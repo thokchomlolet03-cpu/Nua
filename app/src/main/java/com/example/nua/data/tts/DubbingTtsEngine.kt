@@ -155,21 +155,21 @@ class DubbingTtsEngine(private val context: Context) {
         return synthesisSuccess && outputFile.exists() && outputFile.length() > 0
     }
 
-    /**
-     * Reads WAV header from a file and returns its duration in seconds.
-     */
     fun getWavDurationSeconds(wavFile: File): Double {
         if (wavFile.length() <= 44) return 0.0
+        var fis: java.io.FileInputStream? = null
         try {
-            val bytes = wavFile.readBytes()
-            if (bytes.size < 44) return 0.0
+            val buffer = ByteArray(44)
+            fis = java.io.FileInputStream(wavFile)
+            val read = fis.read(buffer)
+            if (read < 44) return 0.0
 
             // Read channels: byte 22-23 (Short)
-            val channels = ByteBuffer.wrap(bytes, 22, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
+            val channels = ByteBuffer.wrap(buffer, 22, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
             // Read sample rate: byte 24-27 (Int)
-            val sampleRate = ByteBuffer.wrap(bytes, 24, 4).order(ByteOrder.LITTLE_ENDIAN).int.toInt()
+            val sampleRate = ByteBuffer.wrap(buffer, 24, 4).order(ByteOrder.LITTLE_ENDIAN).int.toInt()
             // Read bits per sample: byte 34-35 (Short)
-            val bitsPerSample = ByteBuffer.wrap(bytes, 34, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
+            val bitsPerSample = ByteBuffer.wrap(buffer, 34, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
 
             val pcmLength = wavFile.length() - 44
             val bytesPerSample = bitsPerSample / 8
@@ -180,6 +180,8 @@ class DubbingTtsEngine(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to read WAV duration", e)
             return 0.0
+        } finally {
+            fis?.close()
         }
     }
 

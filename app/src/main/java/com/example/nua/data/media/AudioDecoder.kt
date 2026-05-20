@@ -59,9 +59,12 @@ class AudioDecoder {
             var isDecoderEOS = false
             var totalBytesWritten = 0L
 
-            // We will accumulate PCM shorts to resample them
-            // ShortArray holds decoded raw samples
-            val decodeBuffer = ArrayList<Short>()
+            var leftovers = ShortArray(0)
+            var srcIndexPos = 0.0
+            val ratio = sourceSampleRate.toDouble() / TARGET_SAMPLE_RATE.toDouble()
+
+            // 16 KB temporary writing buffer
+            val writeByteBuffer = ByteBuffer.allocate(16384).order(ByteOrder.LITTLE_ENDIAN)
 
             while (!isDecoderEOS) {
                 if (!isExtractorEOS) {
@@ -100,16 +103,52 @@ class AudioDecoder {
                         outputBuffer.position(bufferInfo.offset)
                         outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
 
-                        // Read shorts from buffer (16-bit PCM is standard output of MediaCodec decoders)
                         val shortBuffer = outputBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
                         val shortArray = ShortArray(shortBuffer.remaining())
                         shortBuffer.get(shortArray)
 
-                        for (s in shortArray) {
-                            decodeBuffer.add(s)
+                        // 1. Downmix to Mono on-the-fly
+                        val framesCount = shortArray.size / sourceChannels
+                        val monoArray = ShortArray(framesCount)
+                        for (i in 0 until framesCount) {
+                            var sum = 0
+                            for (c in 0 until sourceChannels) {
+                                sum += shortArray[i * sourceChannels + c].toInt()
+                            }
+                            monoArray[i] = (sum / sourceChannels).toShort()
                         }
 
-                        // Update progress
+                        // 2. Resample stream on-the-fly and write to outputStream
+                        val combined = leftovers + monoArray
+                        val M = combined.size
+
+                        while (srcIndexPos < M - 1) {
+                            val idx = srcIndexPos.toInt()
+                            val frac = srcIndexPos - idx
+                            val s1 = combined[idx]
+                            val s2 = combined[idx + 1]
+                            val resampled = (s1 + frac * (s2 - s1)).toInt().toShort()
+
+                            if (writeByteBuffer.remaining() < 2) {
+                                writeByteBuffer.flip()
+                                outputStream.write(writeByteBuffer.array(), 0, writeByteBuffer.limit())
+                                totalBytesWritten += writeByteBuffer.limit()
+                                writeByteBuffer.clear()
+                            }
+                            writeByteBuffer.putShort(resampled)
+                            srcIndexPos += ratio
+                        }
+
+                        // Save remaining leftovers
+                        val remStart = srcIndexPos.toInt()
+                        if (remStart < M) {
+                            leftovers = combined.copyOfRange(remStart, M)
+                            srcIndexPos -= remStart
+                        } else {
+                            leftovers = ShortArray(0)
+                            srcIndexPos = 0.0
+                        }
+
                         if (durationUs > 0) {
                             val progress = (bufferInfo.presentationTimeUs.toFloat() / durationUs.toFloat()).coerceIn(0f, 1f)
                             onProgress(progress)
@@ -121,35 +160,32 @@ class AudioDecoder {
                     if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         isDecoderEOS = true
                     }
-                } else if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                    // Output format changed
-                    val newFormat = codec.outputFormat
-                    Log.d(TAG, "Decoder output format changed: $newFormat")
                 }
             }
 
-            // Resample all decoded short samples to target: 16kHz mono 16-bit PCM
-            val resampledShorts = resampleAudio(
-                decodeBuffer.toShortArray(),
-                sourceSampleRate,
-                TARGET_SAMPLE_RATE,
-                sourceChannels
-            )
-
-            // Write the resampled shorts to the file
-            val byteBuffer = ByteBuffer.allocate(resampledShorts.size * 2).order(ByteOrder.LITTLE_ENDIAN)
-            for (s in resampledShorts) {
-                byteBuffer.putShort(s)
+            // Flush remaining buffer
+            if (writeByteBuffer.position() > 0) {
+                writeByteBuffer.flip()
+                outputStream.write(writeByteBuffer.array(), 0, writeByteBuffer.limit())
+                totalBytesWritten += writeByteBuffer.limit()
+                writeByteBuffer.clear()
             }
-            outputStream.write(byteBuffer.array())
-            totalBytesWritten = resampledShorts.size * 2L
 
-            // Go back and write the WAV header
+            // Write final single leftover sample if any
+            if (leftovers.isNotEmpty()) {
+                val lastSample = leftovers[0]
+                writeByteBuffer.putShort(lastSample)
+                writeByteBuffer.flip()
+                outputStream.write(writeByteBuffer.array(), 0, writeByteBuffer.limit())
+                totalBytesWritten += writeByteBuffer.limit()
+            }
+
             outputStream.close()
             outputStream = null
 
+            // Write standard WAV header
             writeWavHeader(outputWavFile, totalBytesWritten)
-            Log.d(TAG, "Audio successfully decoded & resampled to WAV: ${outputWavFile.absolutePath}, size=$totalBytesWritten bytes")
+            Log.d(TAG, "Audio successfully decoded & resampled: ${outputWavFile.absolutePath}, size=$totalBytesWritten bytes")
             return true
 
         } catch (e: Exception) {
@@ -179,61 +215,6 @@ class AudioDecoder {
         return -1
     }
 
-    /**
-     * Resamples short PCM data from [sourceSampleRate] and [sourceChannels] to [targetSampleRate] and [TARGET_CHANNELS] (Mono).
-     */
-    private fun resampleAudio(
-        inputPcm: ShortArray,
-        sourceSampleRate: Int,
-        targetSampleRate: Int,
-        sourceChannels: Int
-    ): ShortArray {
-        // Step 1: Stereo to mono
-        val monoPcm = if (sourceChannels == 2) {
-            val output = ShortArray(inputPcm.size / 2)
-            for (i in output.indices) {
-                val left = inputPcm[i * 2].toInt()
-                val right = inputPcm[i * 2 + 1].toInt()
-                output[i] = ((left + right) / 2).toShort()
-            }
-            output
-        } else if (sourceChannels > 2) {
-            // Downmix multi-channel to mono (take first channel)
-            val output = ShortArray(inputPcm.size / sourceChannels)
-            for (i in output.indices) {
-                output[i] = inputPcm[i * sourceChannels]
-            }
-            output
-        } else {
-            inputPcm
-        }
-
-        if (sourceSampleRate == targetSampleRate) {
-            return monoPcm
-        }
-
-        // Step 2: Linear interpolation resampling
-        val ratio = sourceSampleRate.toDouble() / targetSampleRate.toDouble()
-        val outputLength = (monoPcm.size / ratio).toInt()
-        val resampledPcm = ShortArray(outputLength)
-        for (i in 0 until outputLength) {
-            val srcIndex = i * ratio
-            val index = srcIndex.toInt()
-            val fraction = srcIndex - index
-            if (index >= monoPcm.size - 1) {
-                resampledPcm[i] = monoPcm[monoPcm.size - 1]
-            } else {
-                val sample1 = monoPcm[index].toInt()
-                val sample2 = monoPcm[index + 1].toInt()
-                resampledPcm[i] = (sample1 + fraction * (sample2 - sample1)).toInt().toShort()
-            }
-        }
-        return resampledPcm
-    }
-
-    /**
-     * Writes standard 44-byte RIFF WAV header at the beginning of the file.
-     */
     private fun writeWavHeader(file: File, pcmDataLength: Long) {
         val randomAccessFile = RandomAccessFile(file, "rw")
         val header = ByteArray(44)
@@ -243,10 +224,11 @@ class AudioDecoder {
         header[1] = 'I'.code.toByte()
         header[2] = 'F'.code.toByte()
         header[3] = 'F'.code.toByte()
-        header[4] = (totalDataLen & 0xff).toByte()
-        header[5] = ((totalDataLen >> 8) & 0xff).toByte()
-        header[6] = ((totalDataLen >> 16) & 0xff).toByte()
-        header[7] = ((totalDataLen >> 24) & 0xff).toByte()
+        
+        header[4] = (totalDataLen and 0xffL).toByte()
+        header[5] = ((totalDataLen shr 8) and 0xffL).toByte()
+        header[6] = ((totalDataLen shr 16) and 0xffL).toByte()
+        header[7] = ((totalDataLen shr 24) and 0xffL).toByte()
 
         header[8] = 'W'.code.toByte() // WAVE
         header[9] = 'A'.code.toByte()
@@ -270,16 +252,16 @@ class AudioDecoder {
         header[23] = 0
 
         val longSampleRate = TARGET_SAMPLE_RATE.toLong()
-        header[24] = (longSampleRate & 0xff).toByte()
-        header[25] = ((longSampleRate >> 8) & 0xff).toByte()
-        header[26] = ((longSampleRate >> 16) & 0xff).toByte()
-        header[27] = ((longSampleRate >> 24) & 0xff).toByte()
+        header[24] = (longSampleRate and 0xffL).toByte()
+        header[25] = ((longSampleRate shr 8) and 0xffL).toByte()
+        header[26] = ((longSampleRate shr 16) and 0xffL).toByte()
+        header[27] = ((longSampleRate shr 24) and 0xffL).toByte()
 
         val byteRate = longSampleRate * TARGET_CHANNELS * 2 // 16-bit PCM is 2 bytes per sample
-        header[28] = (byteRate & 0xff).toByte()
-        header[29] = ((byteRate >> 8) & 0xff).toByte()
-        header[30] = ((byteRate >> 16) & 0xff).toByte()
-        header[31] = ((byteRate >> 24) & 0xff).toByte()
+        header[28] = (byteRate and 0xffL).toByte()
+        header[29] = ((byteRate shr 8) and 0xffL).toByte()
+        header[30] = ((byteRate shr 16) and 0xffL).toByte()
+        header[31] = ((byteRate shr 24) and 0xffL).toByte()
 
         header[32] = (TARGET_CHANNELS * 2).toByte() // block align
         header[33] = 0
@@ -292,10 +274,10 @@ class AudioDecoder {
         header[38] = 't'.code.toByte()
         header[39] = 'a'.code.toByte()
 
-        header[40] = (pcmDataLength & 0xff).toByte()
-        header[41] = ((pcmDataLength >> 8) & 0xff).toByte()
-        header[42] = ((pcmDataLength >> 16) & 0xff).toByte()
-        header[43] = ((pcmDataLength >> 24) & 0xff).toByte()
+        header[40] = (pcmDataLength and 0xffL).toByte()
+        header[41] = ((pcmDataLength shr 8) and 0xffL).toByte()
+        header[42] = ((pcmDataLength shr 16) and 0xffL).toByte()
+        header[43] = ((pcmDataLength shr 24) and 0xffL).toByte()
 
         randomAccessFile.seek(0)
         randomAccessFile.write(header)

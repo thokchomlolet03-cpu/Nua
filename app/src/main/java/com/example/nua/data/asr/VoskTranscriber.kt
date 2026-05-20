@@ -183,8 +183,9 @@ class VoskTranscriber(private val context: Context) {
         var inputStream: FileInputStream? = null
 
         try {
-            recognizer = Recognizer(voskModel, 16000.0f)
-            recognizer.setWords(true) // Crucial for getting timestamps!
+            val rec = Recognizer(voskModel, 16000.0f)
+            recognizer = rec
+            rec.setWords(true) // Crucial for getting timestamps!
 
             inputStream = FileInputStream(wavFile)
             // Skip 44-byte WAV header
@@ -196,9 +197,9 @@ class VoskTranscriber(private val context: Context) {
 
             while (inputStream.read(buffer).also { bytesRead = it } >= 0) {
                 totalProcessed += bytesRead
-                val isFinal = recognizer.acceptWaveform(buffer, bytesRead)
+                val isFinal = rec.acceptWaveForm(buffer, bytesRead)
                 if (isFinal) {
-                    val resultStr = recognizer.result
+                    val resultStr = rec.result
                     if (resultStr.isNotEmpty()) {
                         results.add(JSONObject(resultStr))
                     }
@@ -206,7 +207,7 @@ class VoskTranscriber(private val context: Context) {
                 onProgress((totalProcessed.toFloat() / fileLength.toFloat()).coerceIn(0f, 1f))
             }
 
-            val finalResultStr = recognizer.finalResult
+            val finalResultStr = rec.finalResult
             if (finalResultStr.isNotEmpty()) {
                 results.add(JSONObject(finalResultStr))
             }

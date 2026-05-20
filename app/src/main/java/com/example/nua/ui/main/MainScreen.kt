@@ -358,13 +358,12 @@ fun MainScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.padding(bottom = 30.dp)
                         ) {
-                            history.forEach { file ->
+                            history.forEach { sessionDir ->
                                 DubbedVideoItem(
-                                    file = file,
-                                    onPlay = { onItemClick(Player(file.absolutePath)) },
+                                    sessionDir = sessionDir,
+                                    onPlay = { onItemClick(Player(sessionDir.absolutePath)) },
                                     onDelete = {
-                                        file.delete()
-                                        viewModel.refreshHistory()
+                                        viewModel.deleteSession(sessionDir)
                                     }
                                 )
                             }
@@ -378,13 +377,25 @@ fun MainScreen(
 
 @Composable
 fun DubbedVideoItem(
-    file: File,
+    sessionDir: File,
     onPlay: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dateString = remember(file) {
+    val dateString = remember(sessionDir) {
+        val manifestFile = File(sessionDir, "manifest.json")
+        val time = if (manifestFile.exists()) manifestFile.lastModified() else sessionDir.lastModified()
         val sdf = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
-        sdf.format(Date(file.lastModified()))
+        sdf.format(Date(time))
+    }
+
+    val displayTitle = remember(sessionDir) {
+        sessionDir.name.removePrefix("session_").replace('_', ' ')
+    }
+
+    val sizeMb = remember(sessionDir) {
+        val videoFile = File(sessionDir, "raw_lecture.mp4")
+        val bytes = if (videoFile.exists()) videoFile.length() else 0L
+        bytes / (1024.0 * 1024.0)
     }
 
     Card(
@@ -402,7 +413,7 @@ fun DubbedVideoItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = file.name.removePrefix("dubbed_"),
+                    text = displayTitle,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
@@ -415,7 +426,7 @@ fun DubbedVideoItem(
                     fontSize = 11.sp
                 )
                 Text(
-                    text = "Size: ${String.format("%.1f MB", file.length() / (1024.0 * 1024.0))}",
+                    text = "Size: ${String.format("%.1f MB", sizeMb)}",
                     color = Color.Gray,
                     fontSize = 11.sp
                 )

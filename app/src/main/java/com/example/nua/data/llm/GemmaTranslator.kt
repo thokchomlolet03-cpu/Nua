@@ -36,7 +36,6 @@ class GemmaTranslator(private val context: Context) {
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
                 .setMaxTokens(128)
-                .setPreferredBackend(LlmInference.Backend.GPU) // Try GPU first
                 .build()
 
             llmInference = LlmInference.createFromOptions(context, options)
@@ -44,21 +43,8 @@ class GemmaTranslator(private val context: Context) {
             Log.d(TAG, "Gemma model loaded successfully")
             return true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load Gemma model with GPU backend, falling back to CPU", e)
-            try {
-                val options = LlmInference.LlmInferenceOptions.builder()
-                    .setModelPath(modelPath)
-                    .setMaxTokens(128)
-                    .setPreferredBackend(LlmInference.Backend.CPU)
-                    .build()
-                llmInference = LlmInference.createFromOptions(context, options)
-                currentModelPath = modelPath
-                Log.d(TAG, "Gemma model loaded successfully with CPU backend")
-                return true
-            } catch (ex: Exception) {
-                Log.e(TAG, "Failed to load Gemma model on CPU as well", ex)
-                return false
-            }
+            Log.e(TAG, "Failed to load Gemma model", e)
+            return false
         }
     }
 
@@ -78,11 +64,19 @@ class GemmaTranslator(private val context: Context) {
 
     /**
      * Translates English text to hybrid Hinglish using Gemma on-device.
-     * If [mockMode] is true, uses a local rule-based pseudo-translator.
+     * Incorporates sliding window context and target duration constraint.
      */
-    fun translate(text: String, mockMode: Boolean = false): String {
+    fun translate(
+        text: String,
+        durationSec: Double,
+        previousTranslation: String?,
+        mockMode: Boolean = false
+    ): String {
+        val maxWords = (durationSec * 3.2).toInt().coerceAtLeast(4)
+
         if (mockMode) {
-            return mockTranslateToHinglish(text)
+            val rawMock = mockTranslateToHinglish(text)
+            return limitWordCount(rawMock, maxWords)
         }
 
         val inference = llmInference
@@ -91,28 +85,51 @@ class GemmaTranslator(private val context: Context) {
             return "Error: Model not loaded"
         }
 
-        // Prompt designed for hybrid code-mixed translation (English terms + Hindi explanations)
-        val prompt = """
+        // Prompt designed for hybrid code-mixed translation with previous context and length limits
+        val prompt = if (previousTranslation.isNullOrEmpty()) {
+            """
             You are a helpful assistant translating lecture audio to Hindi.
             Translate the following English sentence to Hindi (using Devanagari script).
             Keep all scientific, medical, and technical terminology in English (do not translate terms like 'photosynthesis', 'cell', 'plants', 'biology', 'process', 'molecules', 'oxygen', 'mitochondria' to Hindi).
             Write the sentence structure, verbs, and explanations in Hindi.
+            Keep the translation concise. Limit the output to maximum $maxWords words.
             Output ONLY the translation. Do not write any explanations or intros.
             
             Input: $text
             Output:
-        """.trimIndent()
+            """.trimIndent()
+        } else {
+            """
+            You are a helpful assistant translating lecture audio to Hindi.
+            Here is the translation of the previous sentence for context: "$previousTranslation".
+            Translate the following English sentence to Hindi (using Devanagari script), continuing the style and context naturally.
+            Keep all scientific, medical, and technical terminology in English (do not translate terms like 'photosynthesis', 'cell', 'plants', 'biology', 'process', 'molecules', 'oxygen', 'mitochondria' to Hindi).
+            Write the sentence structure, verbs, and explanations in Hindi.
+            Keep the translation concise. Limit the output to maximum $maxWords words.
+            Output ONLY the translation. Do not write any explanations or intros.
+            
+            Input: $text
+            Output:
+            """.trimIndent()
+        }
 
         return try {
             Log.d(TAG, "Sending prompt to Gemma: $text")
             val result = inference.generateResponse(prompt)
             val cleaned = cleanResponse(result)
-            Log.d(TAG, "Gemma response: $cleaned")
-            cleaned
+            val limited = limitWordCount(cleaned, maxWords)
+            Log.d(TAG, "Gemma response: $limited")
+            limited
         } catch (e: Exception) {
             Log.e(TAG, "Error in Gemma translation", e)
             "Error: Translation failed"
         }
+    }
+
+    private fun limitWordCount(text: String, maxWords: Int): String {
+        val words = text.split(Regex("\\s+"))
+        if (words.size <= maxWords) return text
+        return words.take(maxWords).joinToString(" ") + "।"
     }
 
     private fun cleanResponse(response: String): String {
@@ -129,7 +146,6 @@ class GemmaTranslator(private val context: Context) {
     private fun mockTranslateToHinglish(text: String): String {
         val lower = text.lowercase().trim()
         
-        // Let's create realistic Hinglish outputs for standard lecture speech patterns
         if (lower.contains("welcome") && lower.contains("lecture")) {
             return "Welcome, आज की biological lecture में आपका स्वागत है।"
         }
@@ -139,7 +155,7 @@ class GemmaTranslator(private val context: Context) {
         if (lower.contains("cell") && lower.contains("basic unit")) {
             return "Cell, life की basic unit है और structural functions को perform करता है।"
         }
-        if (lower.contains("today") && lower.contains("talk about") || lower.contains("discuss")) {
+        if (lower.contains("today") && (lower.contains("talk about") || lower.contains("discuss"))) {
             val topic = text.substringAfter("about", "").substringAfter("discuss", "").trim()
                 .removeSuffix(".")
             return "आज हम $topic के बारे में discuss करेंगे।"
@@ -163,7 +179,6 @@ class GemmaTranslator(private val context: Context) {
             if (importantNouns.contains(cleanWord)) {
                 builder.append(w).append(" ")
             } else {
-                // Approximate translation mapping of common connecting words
                 val trans = when (cleanWord) {
                     "is" -> "है"
                     "are" -> "हैं"
@@ -187,7 +202,7 @@ class GemmaTranslator(private val context: Context) {
                     "produce" -> "produce करते हैं"
                     "use" -> "use करते हैं"
                     "need" -> "need होती है"
-                    else -> w // keep it
+                    else -> w
                 }
                 if (trans.isNotEmpty()) {
                     builder.append(trans).append(" ")
