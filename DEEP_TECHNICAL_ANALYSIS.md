@@ -76,21 +76,15 @@ graph TD
 | compileSdk | 36 | Android 16 |
 | minSdk | 24 | Android 7.0 (Nougat) |
 
-### 2.2 🚨 Critical Root-Cause: Missing `kotlin-android` Plugin
+### 2.2 ✅ Build Verification & Resolving Compilation Errors
 
-The project compiles with Kotlin and targets Android, but the Kotlin-Android plugin `org.jetbrains.kotlin.android` is **completely missing** from the build files.
+Under Android Gradle Plugin (AGP) 9.0+, Kotlin support is natively managed. Explicitly applying the `org.jetbrains.kotlin.android` plugin is **no longer required and is rejected** by the build system. 
 
-1. **Gradle Catalog** ([libs.versions.toml](file:///Users/lolet/Downloads/Nua/gradle/libs.versions.toml#L56-L59)) lacks any entry for `kotlin-android`. It only defines:
-   ```toml
-   [plugins]
-   android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-   compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-   kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-   ```
-2. **Root Configuration** ([build.gradle.kts](file:///Users/lolet/Downloads/Nua/build.gradle.kts)) does not register it.
-3. **Module Configuration** ([app/build.gradle.kts](file:///Users/lolet/Downloads/Nua/app/build.gradle.kts#L1-L5)) does not apply it.
+Instead, the actual build blockage was caused by compilation errors in the Kotlin code:
+1. **Unresolved `PlayArrow`** in [PlayerScreen.kt](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/player/PlayerScreen.kt#L250): The icon button contained a reference to an unresolved `PlayArrow` icon namespace.
+2. **Wrong `OptIn` Import**: The file used `import androidx.annotation.OptIn` rather than `import kotlin.OptIn`, which caused the Kotlin compiler to treat warnings regarding experimental Material3 APIs as blocking compiler errors.
 
-**Impact**: Because the Gradle Kotlin-Android compiler task isn't registered, Kotlin files are not compiled. No `.class` or `.dex` files are output, and the packaging tasks are skipped. The build finishes as "SUCCESSFUL" but produces **zero APK files**.
+**Resolution**: Reverted all additions of `kotlin-android` plugin, removed the redundant `Icon` reference in `PlayerScreen.kt`, and changed the OptIn import to `kotlin.OptIn`. The project now successfully compiles.
 
 ---
 
@@ -128,11 +122,9 @@ The dubbing and compilation pipeline runs in [PipelineCompilerService.kt](file:/
 
 ## 4. Prioritized Issue Backlog
 
-### 🔴 P0 — Build-Breaking
+### 🔴 P0 — Build-Breaking (RESOLVED)
 
-| # | Issue | Location | Impact |
-|---|---|---|---|
-| 1 | **Missing `kotlin-android` plugin** | [libs.versions.toml](file:///Users/lolet/Downloads/Nua/gradle/libs.versions.toml#L56-L59), [build.gradle.kts](file:///Users/lolet/Downloads/Nua/build.gradle.kts), [app/build.gradle.kts](file:///Users/lolet/Downloads/Nua/app/build.gradle.kts#L1-L5) | The build compiles zero Kotlin files, producing no APK. |
+All P0 compile errors have been resolved. The code now builds successfully.
 
 ### 🟠 P1 — Critical Runtime Bugs
 
@@ -161,12 +153,13 @@ The dubbing and compilation pipeline runs in [PipelineCompilerService.kt](file:/
 
 ## 6. Implementation Remediation Roadmap
 
-### Phase 1: Build Remediation
-1. Declare `kotlin-android` in [libs.versions.toml](file:///Users/lolet/Downloads/Nua/gradle/libs.versions.toml) and apply it to [build.gradle.kts](file:///Users/lolet/Downloads/Nua/build.gradle.kts) and [app/build.gradle.kts](file:///Users/lolet/Downloads/Nua/app/build.gradle.kts).
-2. Execute `./gradlew assembleDebug` to confirm code compiles and generates the APK package.
+### Phase 1: Build Remediation (COMPLETE)
+1. Reverted unnecessary/rejected `kotlin-android` plugin hooks from the Gradle settings.
+2. Fixed the `PlayArrow` and `OptIn` import errors in [PlayerScreen.kt](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/player/PlayerScreen.kt).
+3. Executed `./gradlew assembleDebug` successfully to verify APK generation.
 
-### Phase 2: Pipeline & Playback Fixes
-3. Modify [PipelineCompilerService.kt](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt) to return mock segments directly when `mockMode = true`, instead of calling the uninitialized `VoskTranscriber`.
-4. Refine the drift threshold and seek mechanics in `PlayerViewModel.kt` to avoid recurrent audio stutter.
-5. Check TTS engine language availability during initialization and prompt the user to download Hindi voice data if missing.
-6. Clean up dead code, including [VideoPlayerView.kt](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/components/VideoPlayerView.kt).
+### Phase 2: Pipeline & Playback Fixes (PENDING)
+4. Modify [PipelineCompilerService.kt](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt) to return mock segments directly when `mockMode = true`, instead of calling the uninitialized `VoskTranscriber`.
+5. Refine the drift threshold and seek mechanics in `PlayerViewModel.kt` to avoid recurrent audio stutter.
+6. Check TTS engine language availability during initialization and prompt the user to download Hindi voice data if missing.
+7. Clean up dead code, including [VideoPlayerView.kt](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/components/VideoPlayerView.kt).
