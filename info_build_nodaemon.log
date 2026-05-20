@@ -1,0 +1,115 @@
+Initialized native services in: /Users/lolet/.gradle/native
+Initialized jansi services in: /Users/lolet/.gradle/native
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.1.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: /Users/lolet/.gradle/daemon/9.1.0 Command: /Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp /Users/lolet/.gradle/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0/lib/gradle-daemon-main-9.1.0.jar -javaagent:/Users/lolet/.gradle/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0/lib/agents/gradle-instrumentation-agent-9.1.0.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.1.0
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 34.141 secs.
+The client will now receive all logging from the daemon (pid: 15552). The daemon log file: /Users/lolet/.gradle/daemon/9.1.0/daemon-15552.out.log
+Daemon will be stopped at the end of the build 
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Using 8 worker leases.
+Received JVM installation metadata from '/Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home': {JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home, JAVA_VERSION=18, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=18+36-2087, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=18+36-2087, VM_VENDOR=Oracle Corporation, OS_ARCH=x86_64}
+Watching the file system is configured to be enabled if available
+Now considering [/Users/lolet/Downloads/Nua] as hierarchies to watch
+File system watching is active
+Starting Build
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '1.0.0']
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Settings evaluated using settings file '/Users/lolet/Downloads/Nua/settings.gradle.kts'.
+Using local directory build cache for the root build (location = /Users/lolet/.gradle/caches/build-cache-1, remove unused entries = after 7 days).
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Projects loaded. Root project using build file '/Users/lolet/Downloads/Nua/build.gradle.kts'.
+Included projects: [root project 'Nua', project ':app']
+
+> Configure project :
+Evaluating root project 'Nua' using build file '/Users/lolet/Downloads/Nua/build.gradle.kts'.
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Resolved plugin [id: 'com.android.application', version: '9.0.1', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.20', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '2.3.20', apply: false]
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/kotlinDslCompileAvoidanceClasspathHashCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin

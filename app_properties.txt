@@ -1,0 +1,19 @@
+Starting a Gradle Daemon, 10 busy and 1 stopped Daemons could not be reused, use --status for details
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Timeout waiting to lock Configuration Cache (/Users/lolet/Downloads/Nua/.gradle/configuration-cache). It is currently in use by another process.
+Owner PID: 15276
+Our PID: 15666
+Owner Operation: 
+Our operation: 
+Lock file: /Users/lolet/Downloads/Nua/.gradle/configuration-cache/configuration-cache.lock
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 4m 26s

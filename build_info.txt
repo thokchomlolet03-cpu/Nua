@@ -1,0 +1,541 @@
+Initialized native services in: /Users/lolet/.gradle/native
+Initialized jansi services in: /Users/lolet/.gradle/native
+Removing 0 daemon stop events from registry
+Starting a Gradle Daemon, 2 busy Daemons could not be reused, use --status for details
+Starting process 'Gradle build daemon'. Working directory: /Users/lolet/.gradle/daemon/9.1.0 Command: /Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp /Users/lolet/.gradle/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0/lib/gradle-daemon-main-9.1.0.jar -javaagent:/Users/lolet/.gradle/wrapper/dists/gradle-9.1.0-bin/9agqghryom9wkf8r80qlhnts3/gradle-9.1.0/lib/agents/gradle-instrumentation-agent-9.1.0.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.1.0
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 5.397 secs.
+The client will now receive all logging from the daemon (pid: 15220). The daemon log file: /Users/lolet/.gradle/daemon/9.1.0/daemon-15220.out.log
+Starting build in new daemon [memory: 2 GiB]
+Using 8 worker leases.
+Received JVM installation metadata from '/Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home': {JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-18.jdk/Contents/Home, JAVA_VERSION=18, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=18+36-2087, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=18+36-2087, VM_VENDOR=Oracle Corporation, OS_ARCH=x86_64}
+Encryption key source: default Gradle keystore (pkcs12)
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Reusing configuration cache.
+Watching the file system is configured to be enabled if available
+Now considering [/Users/lolet/Downloads/Nua] as hierarchies to watch
+File system watching is active
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Using local directory build cache for the root build (location = /Users/lolet/.gradle/caches/build-cache-1, remove unused entries = after 7 days).
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Tasks to be executed: [task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugNativeDebugMetadata', task ':app:generateDebugResources', task ':app:packageDebugResources', task ':app:processDebugNavigationResources', task ':app:parseDebugLocalResources', task ':app:generateDebugRFile', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:generateDebugAssets', task ':app:mergeDebugAssets', task ':app:compressDebugAssets', task ':app:desugarDebugFileDependencies', task ':app:checkDebugAarMetadata', task ':app:compileDebugNavigationResources', task ':app:mapDebugSourceSetPaths', task ':app:mergeDebugResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:dexBuilderDebug', task ':app:mergeDebugGlobalSynthetics', task ':app:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:mergeExtDexDebug', task ':app:mergeLibDexDebug', task ':app:mergeProjectDexDebug', task ':app:mergeDebugJniLibFolders', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug']
+Tasks that were excluded: []
+Resolve mutations for :app:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:generateDebugAssets (Thread[Execution worker Thread 7,5,main]) started.
+:app:preBuild (Thread[Execution worker Thread 2,5,main]) started.
+:app:generateDebugAssets (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[included builds,5,main]) started.
+:app:preDebugBuild (Thread[included builds,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[included builds,5,main]) started.
+Resolve mutations for :app:processDebugNavigationResources (Thread[Execution worker Thread 5,5,main]) started.
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app:generateDebugResources (Thread[Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:desugarDebugFileDependencies (Thread[Execution worker,5,main]) started.
+Resolve mutations for :app:javaPreCompileDebug (Thread[Execution worker Thread 4,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[Execution worker Thread 6,5,main]) started.
+:app:checkDebugAarMetadata (Thread[Execution worker Thread 3,5,main]) started.
+Build fdb75137-aa71-4f7c-bb8c-b5ae2182c23c is started
+
+> Task :app:generateDebugAssets UP-TO-DATE
+Skipping task ':app:generateDebugAssets' as it has no actions.
+:app:javaPreCompileDebug (Thread[Execution worker,5,main]) started.
+:app:desugarDebugFileDependencies (Thread[Execution worker Thread 4,5,main]) started.
+:app:mergeDebugNativeDebugMetadata (Thread[included builds,5,main]) started.
+Resolve mutations for :app:mergeDebugAssets (Thread[Execution worker Thread 7,5,main]) started.
+:app:generateDebugResources (Thread[Execution worker Thread 2,5,main]) started.
+:app:processDebugNavigationResources (Thread[Execution worker Thread 5,5,main]) started.
+:app:mergeDebugAssets (Thread[Execution worker Thread 7,5,main]) started.
+
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[included builds,5,main]) started.
+
+> Task :app:generateDebugResources UP-TO-DATE
+Build cache key for task ':app:generateDebugResources' is 9c431ffebafefcd9f170ff651bb97cfb
+Skipping task ':app:generateDebugResources' as it is up-to-date.
+
+> Task :app:javaPreCompileDebug UP-TO-DATE
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/buildOutputCleanup/outputFiles.bin
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for task ':app:javaPreCompileDebug' is 8af29b98b2104d29e8f209d3ed2d3a60
+Skipping task ':app:javaPreCompileDebug' as it is up-to-date.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[Execution worker,5,main]) started.
+
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+Build cache key for task ':app:desugarDebugFileDependencies' is 0675f0802bb01f54e5810dc48caaf025
+Skipping task ':app:desugarDebugFileDependencies' as it is up-to-date.
+Resolve mutations for :app:packageDebugResources (Thread[Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app:mergeDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+:app:extractDeepLinksDebug (Thread[Execution worker,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[included builds,5,main]) started.
+:app:packageDebugResources (Thread[Execution worker Thread 2,5,main]) started.
+:app:mergeDebugResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+Build cache key for task ':app:extractDeepLinksDebug' is 9e875880f60e57e67af10d47cb8d82d5
+Skipping task ':app:extractDeepLinksDebug' as it is up-to-date.
+Resolve mutations for :app:processDebugMainManifest (Thread[Execution worker,5,main]) started.
+:app:processDebugMainManifest (Thread[Execution worker,5,main]) started.
+
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Caching has been disabled for the task
+Skipping task ':app:createDebugCompatibleScreenManifests' as it is up-to-date.
+Resolve mutations for :app:checkDebugDuplicateClasses (Thread[included builds,5,main]) started.
+:app:checkDebugDuplicateClasses (Thread[included builds,5,main]) started.
+
+> Task :app:processDebugNavigationResources
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+
+> Task :app:packageDebugResources UP-TO-DATE
+Build cache key for task ':app:packageDebugResources' is 62c82dc64528dd6d299edd2af64664c0
+Skipping task ':app:packageDebugResources' as it is up-to-date.
+Resolve mutations for :app:mergeDebugJniLibFolders (Thread[Execution worker Thread 2,5,main]) started.
+:app:mergeDebugJniLibFolders (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:mergeDebugJniLibFolders UP-TO-DATE
+Caching disabled for task ':app:mergeDebugJniLibFolders' because:
+  Simple merging task
+Skipping task ':app:mergeDebugJniLibFolders' as it is up-to-date.
+Resolve mutations for :app:mergeDebugNativeLibs (Thread[Execution worker Thread 2,5,main]) started.
+:app:mergeDebugNativeLibs (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:mapDebugSourceSetPaths
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Caching has been disabled for the task
+Skipping task ':app:mapDebugSourceSetPaths' as it is up-to-date.
+
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugAarMetadata' as it is up-to-date.
+
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+
+> Task :app:checkDebugDuplicateClasses UP-TO-DATE
+Caching disabled for task ':app:checkDebugDuplicateClasses' because:
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugDuplicateClasses' as it is up-to-date.
+
+> Task :app:mergeDebugAssets UP-TO-DATE
+Caching disabled for task ':app:mergeDebugAssets' because:
+  Simple merging task
+Skipping task ':app:mergeDebugAssets' as it is up-to-date.
+
+> Task :app:processDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app:processDebugNavigationResources' is c15a2466111e940501073a02d679f424
+Skipping task ':app:processDebugNavigationResources' as it is up-to-date.
+
+> Task :app:mergeDebugResources UP-TO-DATE
+Build cache key for task ':app:mergeDebugResources' is 46d5e30b637eb4faa5b43ed379278d7c
+Skipping task ':app:mergeDebugResources' as it is up-to-date.
+Resolve mutations for :app:compressDebugAssets (Thread[Execution worker Thread 7,5,main]) started.
+Resolve mutations for :app:mergeLibDexDebug (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :app:mergeExtDexDebug (Thread[included builds,5,main]) started.
+Resolve mutations for :app:parseDebugLocalResources (Thread[Execution worker Thread 5,5,main]) started.
+Resolve mutations for :app:compileDebugNavigationResources (Thread[Execution worker Thread 4,5,main]) started.
+Resolve mutations for :app:validateSigningDebug (Thread[Execution worker Thread 6,5,main]) started.
+:app:compressDebugAssets (Thread[Execution worker Thread 7,5,main]) started.
+:app:validateSigningDebug (Thread[Execution worker Thread 6,5,main]) started.
+:app:parseDebugLocalResources (Thread[Execution worker Thread 5,5,main]) started.
+:app:compileDebugNavigationResources (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:processDebugMainManifest
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+
+> Task :app:validateSigningDebug UP-TO-DATE
+Caching disabled for task ':app:validateSigningDebug' because:
+  Caching has been disabled for the task
+Skipping task ':app:validateSigningDebug' as it is up-to-date.
+Resolve mutations for :app:writeDebugAppMetadata (Thread[Execution worker Thread 6,5,main]) started.
+:app:writeDebugAppMetadata (Thread[Execution worker Thread 6,5,main]) started.
+
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app:compileDebugNavigationResources' is 3a79662f323fffe043ba9cb359388c63
+Skipping task ':app:compileDebugNavigationResources' as it is up-to-date.
+
+> Task :app:mergeDebugNativeLibs
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+
+Resolve mutations for :app:writeDebugSigningConfigVersions (Thread[Execution worker Thread 4,5,main]) started.
+:app:writeDebugSigningConfigVersions (Thread[Execution worker Thread 4,5,main]) started.
+
+> Task :app:compressDebugAssets UP-TO-DATE
+Build cache key for task ':app:compressDebugAssets' is dcefed39f26b371b8a0673e9cf38ae80
+Skipping task ':app:compressDebugAssets' as it is up-to-date.
+
+> Task :app:writeDebugAppMetadata UP-TO-DATE
+Caching disabled for task ':app:writeDebugAppMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app:writeDebugAppMetadata' as it is up-to-date.
+
+> Task :app:writeDebugSigningConfigVersions UP-TO-DATE
+Caching disabled for task ':app:writeDebugSigningConfigVersions' because:
+  Caching has been disabled for the task
+Skipping task ':app:writeDebugSigningConfigVersions' as it is up-to-date.
+:app:mergeExtDexDebug (Thread[included builds,5,main]) started.
+:app:mergeLibDexDebug (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :app:mergeLibDexDebug UP-TO-DATE
+Build cache key for task ':app:mergeLibDexDebug' is af48abc86de80b073ac8164be18a4439
+Skipping task ':app:mergeLibDexDebug' as it is up-to-date.
+
+> Task :app:mergeDebugNativeLibs UP-TO-DATE
+Caching disabled for task ':app:mergeDebugNativeLibs' because:
+  Caching has been disabled for the task
+Skipping task ':app:mergeDebugNativeLibs' as it is up-to-date.
+Resolve mutations for :app:stripDebugDebugSymbols (Thread[Execution worker Thread 2,5,main]) started.
+:app:stripDebugDebugSymbols (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :app:parseDebugLocalResources
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for task ':app:parseDebugLocalResources' is c33f13883fbca712c9b6034c8c01526f
+Skipping task ':app:parseDebugLocalResources' as it is up-to-date.
+
+> Task :app:parseDebugLocalResources UP-TO-DATE
+Resolve mutations for :app:generateDebugRFile (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:processDebugMainManifest
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+
+:app:generateDebugRFile (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:stripDebugDebugSymbols
+Deleting stale output file: /Users/lolet/Downloads/Nua/app/build/intermediates/stripped_native_libs/debug/stripDebugDebugSymbols/out
+Caching disabled for task ':app:stripDebugDebugSymbols' because:
+  Caching has been disabled for the task
+Task ':app:stripDebugDebugSymbols' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':app:stripDebugDebugSymbols'.
+
+> Task :app:generateDebugRFile UP-TO-DATE
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for task ':app:generateDebugRFile' is b71308adfeb2444f801ecf156faf4d02
+Skipping task ':app:generateDebugRFile' as it is up-to-date.
+Resolve mutations for :app:compileDebugKotlin (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:mergeExtDexDebug
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/e0dbb834176cbdb3691f06aa3f39d897/transformed/foundation-runtime.jar is a2dea62863541ea051da8788207497f8
+Caching disabled for DexingOutputSplitTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/00962eeb7fc9304f38342d06dc2ead40/transformed/core-1.18.0-runtime because:
+  Caching not enabled.
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/9990f008c4775550626d02ea545804d5/transformed/runtime-runtime.jar is 726749ff4e7b33a41de695045f87edc4
+
+:app:compileDebugKotlin (Thread[Execution worker Thread 5,5,main]) started.
+
+> Task :app:processDebugMainManifest
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+
+> Task :app:stripDebugDebugSymbols
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/armeabi-v7a/libvosk.so' due to missing strip tool for ABI 'armeabi-v7a'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/mips/libjnidispatch.so' due to missing strip tool for ABI 'mips'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/mips64/libjnidispatch.so' due to missing strip tool for ABI 'mips64'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86/libandroidx.graphics.path.so' due to missing strip tool for ABI 'x86'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86/libjnidispatch.so' due to missing strip tool for ABI 'x86'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86/libvosk.so' due to missing strip tool for ABI 'x86'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86_64/libandroidx.graphics.path.so' due to missing strip tool for ABI 'x86_64'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86_64/libjnidispatch.so' due to missing strip tool for ABI 'x86_64'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/x86_64/libvosk.so' due to missing strip tool for ABI 'x86_64'. Packaging it as is.
+C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+C/C++: android.ndkPath from module build.gradle is not set
+C/C++: ndk.dir in local.properties is not set
+C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+C/C++: sdkFolder is /Users/lolet/Library/Android/sdk
+C/C++: NDK side-by-side folder from sdkFolder /Users/lolet/Library/Android/sdk/ndk does not exist
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk/28.2.13676358 does not exist. Ignoring.
+C/C++: Folder /Users/lolet/Library/Android/sdk/ndk-bundle does not exist. Ignoring.
+Unable to strip library '/Users/lolet/Downloads/Nua/app/build/intermediates/merged_native_libs/debug/mergeDebugNativeLibs/out/lib/armeabi-v7a/libjnidispatch.so' due to missing strip tool for ABI 'armeabi-v7a'. Packaging it as is.
+
+> Task :app:mergeExtDexDebug
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/39fcb593a24eb41e9a44e9bb34f27047/transformed/ui-runtime.jar is 6bf8c11ee1d5b89c48191d3e5629a927
+Caching disabled for IdentityTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/028693553dd84954da1462381940ba77/transformed/core-viewtree-1.0.0-runtime.jar because:
+  Caching not enabled.
+Caching disabled for IdentityTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/e833979d7eb66ac8aff4feffba273442/transformed/annotation-experimental-1.4.1-runtime.jar because:
+  Caching not enabled.
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.9.0/9beade4c1c1569e4f36cbd2c37e02e3e41502601/kotlinx-coroutines-core-jvm-1.9.0.jar is 4fe639ee0a9c09d7c80f333f0f9fb7c0
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/028693553dd84954da1462381940ba77/transformed/core-viewtree-1.0.0-runtime.jar is 2019e27c88ce8bc5158cc7b85308c682
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/e833979d7eb66ac8aff4feffba273442/transformed/annotation-experimental-1.4.1-runtime.jar is 7055b5ddf00ccf18ac61912ff46c6688
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/9990f008c4775550626d02ea545804d5/transformed/runtime-runtime.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/028693553dd84954da1462381940ba77/transformed/core-viewtree-1.0.0-runtime.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.9.0/9beade4c1c1569e4f36cbd2c37e02e3e41502601/kotlinx-coroutines-core-jvm-1.9.0.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/e0dbb834176cbdb3691f06aa3f39d897/transformed/foundation-runtime.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/e833979d7eb66ac8aff4feffba273442/transformed/annotation-experimental-1.4.1-runtime.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/39fcb593a24eb41e9a44e9bb34f27047/transformed/ui-runtime.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-android/1.9.0/6cf3b8df5a2ce8c6b0dffe55657a827c405ee2fe/kotlinx-coroutines-android-1.9.0.jar is c174d0ec3a0d3d59d23f3820922b559e
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-android/1.9.0/6cf3b8df5a2ce8c6b0dffe55657a827c405ee2fe/kotlinx-coroutines-android-1.9.0.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/e833979d7eb66ac8aff4feffba273442/transformed/annotation-experimental-1.4.1-runtime.jar with cache key 7055b5ddf00ccf18ac61912ff46c6688
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/028693553dd84954da1462381940ba77/transformed/core-viewtree-1.0.0-runtime.jar with cache key 2019e27c88ce8bc5158cc7b85308c682
+
+> Task :app:compileDebugKotlin
+file or directory '/Users/lolet/Downloads/Nua/app/src/main/kotlin', not found
+file or directory '/Users/lolet/Downloads/Nua/app/src/debug/java', not found
+file or directory '/Users/lolet/Downloads/Nua/app/src/debug/kotlin', not found
+file or directory '/Users/lolet/Downloads/Nua/app/src/debug/java', not found
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/resourceHashesCache.bin
+file or directory '/Users/lolet/Downloads/Nua/app/src/main/kotlin', not found
+file or directory '/Users/lolet/Downloads/Nua/app/src/debug/java', not found
+file or directory '/Users/lolet/Downloads/Nua/app/src/debug/kotlin', not found
+file or directory '/Users/lolet/Downloads/Nua/app/src/debug/java', not found
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/Downloads/Nua/.gradle/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+
+> Task :app:mergeExtDexDebug
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/8698df8ddaad12af19cce0a71161247f/transformed/exifinterface-1.3.6-runtime.jar is e6fe534d3f00f6d75d554abae5a41723
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/8698df8ddaad12af19cce0a71161247f/transformed/exifinterface-1.3.6-runtime.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Caching disabled for DexingOutputSplitTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/20479d2d1ff7a4af9f8b9903bd3a7f89/transformed/profileinstaller-1.4.0-runtime because:
+  Caching not enabled.
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/51052ff2ca3037b7aed2987d802d3029/transformed/startup-runtime-1.1.1-runtime.jar is 1b79c58848352bf14e186bf09df75bfe
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/51052ff2ca3037b7aed2987d802d3029/transformed/startup-runtime-1.1.1-runtime.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-android/1.9.0/6cf3b8df5a2ce8c6b0dffe55657a827c405ee2fe/kotlinx-coroutines-android-1.9.0.jar with cache key c174d0ec3a0d3d59d23f3820922b559e
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/42f7fdf080991bc9bf454b884e08cd8f/transformed/tasks-core-0.10.14-runtime.jar is 7b8d1a9fa247354c2e5573cdb9eabf2d
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/9.1.0/transforms/42f7fdf080991bc9bf454b884e08cd8f/transformed/tasks-core-0.10.14-runtime.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/51052ff2ca3037b7aed2987d802d3029/transformed/startup-runtime-1.1.1-runtime.jar with cache key 1b79c58848352bf14e186bf09df75bfe
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/androidx.collection/collection-jvm/1.5.0/7ba2c69414d46ebc2dd76598bdd0a75c54281a57/collection-jvm-1.5.0.jar is 1687d6b7661a11858acb7c85133ad86e
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/androidx.collection/collection-jvm/1.5.0/7ba2c69414d46ebc2dd76598bdd0a75c54281a57/collection-jvm-1.5.0.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/8698df8ddaad12af19cce0a71161247f/transformed/exifinterface-1.3.6-runtime.jar with cache key e6fe534d3f00f6d75d554abae5a41723
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.7.3/1f226780b845ff9206474c05159245d861556249/kotlinx-serialization-core-jvm-1.7.3.jar is 3b29752888f75f051c8ddd9231e38003
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.7.3/1f226780b845ff9206474c05159245d861556249/kotlinx-serialization-core-jvm-1.7.3.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.7.3/1f226780b845ff9206474c05159245d861556249/kotlinx-serialization-core-jvm-1.7.3.jar with cache key 3b29752888f75f051c8ddd9231e38003
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/4.12.0/2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd/okhttp-4.12.0.jar is 050cf817aac2f5f84a008193319cf0eb
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/4.12.0/2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd/okhttp-4.12.0.jar'
+INFO: D8: Stripped invalid locals information from 2 methods.
+INFO: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.9.0/9beade4c1c1569e4f36cbd2c37e02e3e41502601/kotlinx-coroutines-core-jvm-1.9.0.jar: D8: Methods with invalid locals information:
+  java.lang.Object kotlinx.coroutines.flow.FlowKt__BuildersKt$asFlow$$inlined$unsafeFlow$10.collect(kotlinx.coroutines.flow.FlowCollector, kotlin.coroutines.Continuation)
+  Attempt to define local of type long as element$iv:java.lang.Object
+INFO: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.9.0/9beade4c1c1569e4f36cbd2c37e02e3e41502601/kotlinx-coroutines-core-jvm-1.9.0.jar: D8: Methods with invalid locals information:
+  java.lang.Object kotlinx.coroutines.flow.FlowKt__BuildersKt$asFlow$$inlined$unsafeFlow$9.collect(kotlinx.coroutines.flow.FlowCollector, kotlin.coroutines.Continuation)
+  Attempt to define local of type int as element$iv:java.lang.Object
+INFO: D8: Some warnings are typically a sign of using an outdated Java toolchain. To fix, recompile the source with an updated toolchain.
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.9.0/9beade4c1c1569e4f36cbd2c37e02e3e41502601/kotlinx-coroutines-core-jvm-1.9.0.jar with cache key 4fe639ee0a9c09d7c80f333f0f9fb7c0
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp3/okhttp/4.12.0/2f4525d4a200e97e1b87449c2cd9bd2e25b7e8cd/okhttp-4.12.0.jar with cache key 050cf817aac2f5f84a008193319cf0eb
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/androidx.collection/collection-jvm/1.5.0/7ba2c69414d46ebc2dd76598bdd0a75c54281a57/collection-jvm-1.5.0.jar with cache key 1687d6b7661a11858acb7c85133ad86e
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/9990f008c4775550626d02ea545804d5/transformed/runtime-runtime.jar with cache key 726749ff4e7b33a41de695045f87edc4
+Caching disabled for DexingOutputSplitTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/fd3cf7e0283ac8324bfd9b130a59055c/transformed/collection-jvm-1.5.0 because:
+  Caching not enabled.
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.3.20/ed866de74ad3d49086a27bbd75952cd186479436/kotlin-stdlib-2.3.20.jar is ac9184ec9da60f9c5f0d4c58ed6b4b26
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.3.20/ed866de74ad3d49086a27bbd75952cd186479436/kotlin-stdlib-2.3.20.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.8.1/aacb85fe6fd2a7e6619448efcde89360bda701e9/auto-value-1.8.1.jar is 1a4f076222a799dff4ab5b07df143636
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/32.1.3-android/ea090dd85ca2fa12d42d054369df888665230dd7/guava-32.1.3-android.jar is bca6c63292f0ef8cb26bd9bbe9d9f6af
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/32.1.3-android/ea090dd85ca2fa12d42d054369df888665230dd7/guava-32.1.3-android.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.8.1/aacb85fe6fd2a7e6619448efcde89360bda701e9/auto-value-1.8.1.jar'
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jspecify/jspecify/1.0.0/7425a601c1c7ec76645a78d22b8c6a627edee507/jspecify-1.0.0.jar is 9787de3dd04c7a4d77d6590158bb5743
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Loaded cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/org.jspecify/jspecify/1.0.0/7425a601c1c7ec76645a78d22b8c6a627edee507/jspecify-1.0.0.jar with cache key 9787de3dd04c7a4d77d6590158bb5743
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Stored cache entry for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/9.1.0/transforms/42f7fdf080991bc9bf454b884e08cd8f/transformed/tasks-core-0.10.14-runtime.jar with cache key 7b8d1a9fa247354c2e5573cdb9eabf2d
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/journal-1/file-access.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/fileHashes.bin
+Invalidating in-memory cache of /Users/lolet/.gradle/caches/9.1.0/fileHashes/resourceHashesCache.bin
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.flogger/flogger/0.6/155dc6e303a58f7bbff5d2cd1a259de86827f4fe/flogger-0.6.jar is e667ac1766ff680a85f0c35e5014319d
+Build cache key for DexingNoClasspathTransform: /Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protobuf-javalite/4.26.1/1b5e9b46148ff7866d0faf00b4dbcfc092c83a4e/protobuf-javalite-4.26.1.jar is 1b96fb6fcf22c12e23c6c838adbb0477
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protobuf-javalite/4.26.1/1b5e9b46148ff7866d0faf00b4dbcfc092c83a4e/protobuf-javalite-4.26.1.jar'
+Running dexing transform non-incrementally for '/Users/lolet/.gradle/caches/modules-2/files-2.1/com.google.flogger/flogger/0.6/155dc6e303a58f7bbff5d2cd1a259de86827f4fe/flogger-0.6.jar'
