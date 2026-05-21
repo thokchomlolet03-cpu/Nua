@@ -12,6 +12,7 @@ import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -94,6 +95,9 @@ class DubbingTtsEngine(private val context: Context) {
                 }
             }
 
+            // Reset speech rate to default for next segment
+            tts?.setSpeechRate(1.0f)
+
             return success
         } catch (e: Exception) {
             Log.e(TAG, "Error in TTS synthesis", e)
@@ -104,7 +108,7 @@ class DubbingTtsEngine(private val context: Context) {
     private fun performSynthesis(text: String, outputFile: File): Boolean {
         val utteranceId = UUID.randomUUID().toString()
         val latch = CountDownLatch(1)
-        var synthesisSuccess = true
+        val synthesisSuccess = AtomicBoolean(true)
 
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
@@ -120,13 +124,13 @@ class DubbingTtsEngine(private val context: Context) {
             @Deprecated("Deprecated in Java")
             override fun onError(utteranceId: String?) {
                 Log.e(TAG, "TTS synthesis error: $utteranceId")
-                synthesisSuccess = false
+                synthesisSuccess.set(false)
                 latch.countDown()
             }
 
             override fun onError(id: String?, errorCode: Int) {
                 Log.e(TAG, "TTS synthesis error: $id, errorCode=$errorCode")
-                synthesisSuccess = false
+                synthesisSuccess.set(false)
                 latch.countDown()
             }
         })
@@ -152,7 +156,7 @@ class DubbingTtsEngine(private val context: Context) {
             return false
         }
 
-        return synthesisSuccess && outputFile.exists() && outputFile.length() > 0
+        return synthesisSuccess.get() && outputFile.exists() && outputFile.length() > 0
     }
 
     fun getWavDurationSeconds(wavFile: File): Double {

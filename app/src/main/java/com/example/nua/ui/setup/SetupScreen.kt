@@ -9,12 +9,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,12 +36,12 @@ fun SetupScreen(
     viewModel: MainScreenViewModel,
     onBack: () -> Unit
 ) {
-    val mockMode by viewModel.mockMode.collectAsState()
-    val gemmaModelPath by viewModel.gemmaModelPath.collectAsState()
+    val mockMode by viewModel.mockMode.collectAsStateWithLifecycle()
+    val gemmaModelPath by viewModel.gemmaModelPath.collectAsStateWithLifecycle()
     
-    val isVoskDownloaded by viewModel.isVoskModelDownloaded.collectAsState()
-    val isDownloadingVosk by viewModel.isDownloadingVosk.collectAsState()
-    val voskProgress by viewModel.voskDownloadProgress.collectAsState()
+    val isVoskDownloaded by viewModel.isVoskModelDownloaded.collectAsStateWithLifecycle()
+    val isDownloadingVosk by viewModel.isDownloadingVosk.collectAsStateWithLifecycle()
+    val voskProgress by viewModel.voskDownloadProgress.collectAsStateWithLifecycle()
 
     var isImportingGemma by remember { mutableStateOf(false) }
     var importStatusMessage by remember { mutableStateOf<String?>(null) }
@@ -75,7 +76,7 @@ fun SetupScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = Color.White
                         )

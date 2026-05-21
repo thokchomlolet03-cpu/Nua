@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,13 +44,13 @@ fun PlayerScreen(
     val context = LocalContext.current
     val file = remember(videoPath) { File(videoPath) }
 
-    val isPlaying by viewModel.isPlaying.collectAsState()
-    val virtualTimeMs by viewModel.virtualTimeMs.collectAsState()
-    val totalDurationMs by viewModel.totalDurationMs.collectAsState()
-    val currentOriginalText by viewModel.currentOriginalText.collectAsState()
-    val currentTranslatedText by viewModel.currentTranslatedText.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
+    val virtualTimeMs by viewModel.virtualTimeMs.collectAsStateWithLifecycle()
+    val totalDurationMs by viewModel.totalDurationMs.collectAsStateWithLifecycle()
+    val currentOriginalText by viewModel.currentOriginalText.collectAsStateWithLifecycle()
+    val currentTranslatedText by viewModel.currentTranslatedText.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
 
     // Initialize session inside LaunchedEffect
     LaunchedEffect(videoPath) {

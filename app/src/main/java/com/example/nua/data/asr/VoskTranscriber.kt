@@ -62,31 +62,33 @@ class VoskTranscriber(private val context: Context) {
             val request = Request.Builder().url(MODEL_URL).build()
             val response = client.newCall(request).execute()
 
-            if (!response.isSuccessful) {
-                Log.e(TAG, "Failed to download model: HTTP ${response.code}")
-                return false
-            }
-
-            val body = response.body ?: return false
-            val contentLength = body.contentLength()
-            val inputStream: InputStream = body.byteStream()
-            val outputStream = FileOutputStream(tempZipFile)
-
-            val data = ByteArray(8192)
-            var totalBytesRead = 0L
-            var bytesRead: Int
-
-            while (inputStream.read(data).also { bytesRead = it } != -1) {
-                outputStream.write(data, 0, bytesRead)
-                totalBytesRead += bytesRead
-                if (contentLength > 0) {
-                    onProgress((totalBytesRead.toFloat() / contentLength.toFloat()) * 0.7f) // Download is 70% of work
+            response.use {
+                if (!it.isSuccessful) {
+                    Log.e(TAG, "Failed to download model: HTTP ${it.code}")
+                    return false
                 }
-            }
 
-            outputStream.flush()
-            outputStream.close()
-            inputStream.close()
+                val body = it.body ?: return false
+                val contentLength = body.contentLength()
+                val inputStream: InputStream = body.byteStream()
+                val outputStream = FileOutputStream(tempZipFile)
+
+                val data = ByteArray(8192)
+                var totalBytesRead = 0L
+                var bytesRead: Int
+
+                while (inputStream.read(data).also { bytesRead = it } != -1) {
+                    outputStream.write(data, 0, bytesRead)
+                    totalBytesRead += bytesRead
+                    if (contentLength > 0) {
+                        onProgress((totalBytesRead.toFloat() / contentLength.toFloat()) * 0.7f) // Download is 70% of work
+                    }
+                }
+
+                outputStream.flush()
+                outputStream.close()
+                inputStream.close()
+            }
 
             Log.d(TAG, "Model downloaded. Unzipping to ${modelDir.absolutePath}")
             onProgress(0.75f)
@@ -114,6 +116,14 @@ class VoskTranscriber(private val context: Context) {
     private fun unzip(zipFile: File, targetDirectory: File, onProgress: (Float) -> Unit) {
         val zipInputStream = ZipInputStream(BufferedInputStream(FileInputStream(zipFile)))
         try {
+            // Count entries first for accurate progress
+            var totalEntries = 0
+            val countStream = ZipInputStream(BufferedInputStream(FileInputStream(zipFile)))
+            try {
+                while (countStream.nextEntry != null) { totalEntries++; countStream.closeEntry() }
+            } finally { countStream.close() }
+            if (totalEntries == 0) totalEntries = 1
+
             var zipEntry = zipInputStream.nextEntry
             val buffer = ByteArray(8192)
             
@@ -123,6 +133,10 @@ class VoskTranscriber(private val context: Context) {
             
             while (zipEntry != null) {
                 val file = File(targetDirectory, zipEntry.name)
+                // Validate against ZIP Slip (path traversal)
+                if (!file.canonicalPath.startsWith(targetDirectory.canonicalPath + File.separator) && file.canonicalPath != targetDirectory.canonicalPath) {
+                    throw SecurityException("ZIP entry would escape target directory: ${zipEntry.name}")
+                }
                 val dir = if (zipEntry.isDirectory) file else file.parentFile
                 if (!dir.exists() && !dir.mkdirs()) {
                     throw Exception("Failed to create directory " + dir.absolutePath)
@@ -136,7 +150,7 @@ class VoskTranscriber(private val context: Context) {
                     fileOutputStream.close()
                 }
                 entriesProcessed++
-                onProgress((entriesProcessed.toFloat() / 100f).coerceAtMost(0.95f))
+                onProgress((entriesProcessed.toFloat() / totalEntries.toFloat()).coerceAtMost(0.95f))
                 zipInputStream.closeEntry()
                 zipEntry = zipInputStream.nextEntry
             }
@@ -293,4 +307,9 @@ class VoskTranscriber(private val context: Context) {
         val end: Double,
         val conf: Double
     )
+
+    fun close() {
+        try { voskModel?.close() } catch (_: Exception) {}
+        voskModel = null
+    }
 }

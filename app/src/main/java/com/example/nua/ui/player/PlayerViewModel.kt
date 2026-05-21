@@ -14,11 +14,14 @@ import com.example.nua.data.media.MediaComposition
 import com.example.nua.data.media.SessionManager
 import com.example.nua.data.media.TimelineInterval
 import com.example.nua.data.media.VirtualTimelineMapper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.math.abs
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -67,11 +70,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             if (_isPlaying.value && !isSeeking) {
                 runSyncTick()
             }
-            handler.postDelayed(this, 30) // 30ms interval
+            if (_isPlaying.value) {
+                handler.postDelayed(this, 30)
+            }
         }
     }
 
     fun initSession(sessionPath: String) {
+        // Guard against double initialization
+        if (videoPlayer != null) {
+            releasePlayers()
+        }
+
         _isLoading.value = true
         _errorMessage.value = null
 
@@ -84,7 +94,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             return
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val comp = sessionManager.loadManifest(dir) ?: throw Exception("manifest.json not found or invalid in session directory")
                 composition = comp
@@ -92,18 +102,20 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                 val map = VirtualTimelineMapper(comp, dir)
                 mapper = map
 
-                _totalDurationMs.value = map.totalVirtualDurationMs
-
-                // Initialize players on Main Thread
-                initializePlayers(dir, comp)
-
-                _isLoading.value = false
-                // Start sync loop
-                handler.post(syncRunnable)
+                withContext(Dispatchers.Main) {
+                    _totalDurationMs.value = map.totalVirtualDurationMs
+                    // Initialize players on Main Thread
+                    initializePlayers(dir, comp)
+                    _isLoading.value = false
+                    // Start sync loop
+                    handler.post(syncRunnable)
+                }
             } catch (e: Exception) {
                 Log.e("PlayerViewModel", "Failed to load session", e)
-                _errorMessage.value = "Failed to load session manifest: ${e.message}"
-                _isLoading.value = false
+                withContext(Dispatchers.Main) {
+                    _errorMessage.value = "Failed to load session manifest: ${e.message}"
+                    _isLoading.value = false
+                }
             }
         }
     }
@@ -130,8 +142,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         _isPlaying.value = playing
 
         if (playing) {
-            // Apply play states based on mapper state
             applyPlaybackState()
+            // Restart sync loop
+            handler.removeCallbacks(syncRunnable)
+            handler.post(syncRunnable)
         } else {
             videoPlayer?.pause()
             vocalPlayer?.pause()
@@ -246,8 +260,8 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             }
         } else {
             // Check drift between vocal playhead and timeline mapping
-            val drift = Math.abs(ap.currentPosition - playheadMs)
-            if (drift > 150L) {
+            val drift = abs(ap.currentPosition - playheadMs)
+            if (drift > 300L) {
                 ap.seekTo(playheadMs)
             }
             if (_isPlaying.value && !ap.isPlaying && ap.playbackState != Player.STATE_ENDED) {

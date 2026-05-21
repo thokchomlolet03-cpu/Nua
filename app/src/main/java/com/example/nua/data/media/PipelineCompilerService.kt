@@ -76,6 +76,7 @@ class PipelineCompilerService : Service() {
     }
 
     private fun startCompilation(videoPath: String, gemmaModelPath: String?, mockMode: Boolean) {
+        if (_isProcessing.value) return
         _isProcessing.value = true
         _completedSessionDir.value = null
         _logs.value = emptyList()
@@ -217,7 +218,12 @@ class PipelineCompilerService : Service() {
                 updateStatus("Error", 0f, "❌ Compilation failed: ${e.message}")
             } finally {
                 _isProcessing.value = false
-                stopForeground(true)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                } else {
+                    @Suppress("DEPRECATION")
+                    stopForeground(true)
+                }
                 stopSelf()
             }
         }
@@ -234,13 +240,11 @@ class PipelineCompilerService : Service() {
     }
 
     private fun copyFile(src: File, dst: File) {
-        val inStream = FileInputStream(src)
-        val outStream = FileOutputStream(dst)
-        val inChannel = inStream.channel
-        val outChannel = outStream.channel
-        inChannel.transferTo(0, inChannel.size(), outChannel)
-        inStream.close()
-        outStream.close()
+        FileInputStream(src).use { inStream ->
+            FileOutputStream(dst).use { outStream ->
+                inStream.channel.transferTo(0, inStream.channel.size(), outStream.channel)
+            }
+        }
     }
 
     private fun createNotificationChannel() {
@@ -292,9 +296,9 @@ class PipelineCompilerService : Service() {
         val completedSessionDir: StateFlow<File?> = _completedSessionDir.asStateFlow()
 
         fun addLog(msg: String) {
-            val list = _logs.value.toMutableList()
-            list.add(msg)
-            _logs.value = list
+            synchronized(_logs) {
+                _logs.value = _logs.value + msg
+            }
         }
     }
 }

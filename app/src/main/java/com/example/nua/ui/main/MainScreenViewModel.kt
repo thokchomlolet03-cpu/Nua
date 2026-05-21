@@ -56,6 +56,14 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         refreshHistory()
+        // Auto-refresh gallery when processing completes
+        viewModelScope.launch {
+            isProcessing.collect { processing ->
+                if (!processing) {
+                    refreshHistory()
+                }
+            }
+        }
     }
 
     fun setMockMode(enabled: Boolean) {
@@ -77,21 +85,22 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
                     destinationFile.delete()
                 }
                 
-                val outputStream = FileOutputStream(destinationFile)
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
+                inputStream.use { input ->
+                    FileOutputStream(destinationFile).use { output ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            output.write(buffer, 0, bytesRead)
+                        }
+                        output.flush()
+                    }
                 }
-                outputStream.flush()
-                outputStream.close()
-                inputStream.close()
                 
                 setGemmaModelPath(destinationFile.absolutePath)
-                onCompleted(true)
+                viewModelScope.launch(Dispatchers.Main) { onCompleted(true) }
             } catch (e: Exception) {
                 Log.e("MainScreenViewModel", "Failed to import Gemma model", e)
-                onCompleted(false)
+                viewModelScope.launch(Dispatchers.Main) { onCompleted(false) }
             }
         }
     }
@@ -133,16 +142,16 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
                 if (tempFile.exists()) tempFile.delete()
 
                 val inputStream = context.contentResolver.openInputStream(uri) ?: throw Exception("Failed to open stream")
-                val outputStream = FileOutputStream(tempFile)
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
+                inputStream.use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            output.write(buffer, 0, bytesRead)
+                        }
+                        output.flush()
+                    }
                 }
-                outputStream.flush()
-                outputStream.close()
-                inputStream.close()
 
                 // Trigger Foreground Service
                 val intent = Intent(context, PipelineCompilerService::class.java).apply {
@@ -167,25 +176,24 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
 
             try {
                 val request = Request.Builder().url(url).build()
-                val response = client.newCall(request).execute()
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                        PipelineCompilerService.addLog("❌ Failed to download video: HTTP ${response.code}")
+                        return@launch
+                    }
 
-                if (!response.isSuccessful) {
-                    PipelineCompilerService.addLog("❌ Failed to download video: HTTP ${response.code}")
-                    return@launch
+                    val body = response.body ?: throw Exception("Empty response body")
+                    body.byteStream().use { input ->
+                        FileOutputStream(tempVideoFile).use { output ->
+                            val buffer = ByteArray(8192)
+                            var bytesRead: Int
+                            while (input.read(buffer).also { bytesRead = it } != -1) {
+                                output.write(buffer, 0, bytesRead)
+                            }
+                            output.flush()
+                        }
+                    }
                 }
-
-                val body = response.body ?: throw Exception("Empty response body")
-                val inputStream = body.byteStream()
-                val outputStream = FileOutputStream(tempVideoFile)
-
-                val buffer = ByteArray(8192)
-                var bytesRead: Int
-                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                    outputStream.write(buffer, 0, bytesRead)
-                }
-                outputStream.flush()
-                outputStream.close()
-                inputStream.close()
 
                 // Trigger Foreground Service
                 val intent = Intent(context, PipelineCompilerService::class.java).apply {

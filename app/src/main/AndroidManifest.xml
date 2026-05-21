@@ -15,6 +15,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:windowSoftInputMode="adjustResize"
+        android:largeHeap="true"
         android:theme="@style/Theme.Nua">
         
         <service

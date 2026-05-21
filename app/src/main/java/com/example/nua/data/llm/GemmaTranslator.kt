@@ -133,11 +133,16 @@ class GemmaTranslator(private val context: Context) {
     }
 
     private fun cleanResponse(response: String): String {
-        return response.trim()
-            .removePrefix("Output:")
-            .removePrefix("Here is the translation:")
-            .trim()
-            .split("\n").firstOrNull { it.isNotEmpty() } ?: response
+        var cleaned = response.trim()
+        // Strip common LLM preambles
+        val prefixes = listOf("Output:", "Here is the translation:", "Translation:", "Hindi:", "Result:")
+        for (prefix in prefixes) {
+            if (cleaned.startsWith(prefix, ignoreCase = true)) {
+                cleaned = cleaned.removeRange(0, prefix.length).trim()
+            }
+        }
+        // Take only the first non-empty line (strip any explanation after the translation)
+        return cleaned.split("\n").firstOrNull { it.isNotBlank() }?.trim() ?: cleaned
     }
 
     /**

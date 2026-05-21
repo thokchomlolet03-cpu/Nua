@@ -18,7 +18,8 @@ class SessionManager(private val context: Context) {
 
     fun getSessionDir(videoName: String): File {
         val sanitized = videoName.substringBeforeLast(".").replace(Regex("[^a-zA-Z0-9_]"), "_")
-        val dir = File(getSessionsRootDir(), "session_$sanitized")
+        val timestamp = System.currentTimeMillis()
+        val dir = File(getSessionsRootDir(), "session_${sanitized}_$timestamp")
         if (!dir.exists()) {
             dir.mkdirs()
         }

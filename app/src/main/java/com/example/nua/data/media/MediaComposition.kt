@@ -18,3 +18,9 @@ data class PlaybackSegment(
     val vocalAssetLocalPath: String,
     val directive: String // NORMAL_SYNC, PAD_EMPTY, FREEZE_HOLD
 )
+
+object PlaybackDirective {
+    const val NORMAL_SYNC = "NORMAL_SYNC"
+    const val PAD_EMPTY = "PAD_EMPTY"
+    const val FREEZE_HOLD = "FREEZE_HOLD"
+}

@@ -108,7 +108,7 @@ class AudioDecoder {
                         shortBuffer.get(shortArray)
 
                         // 1. Downmix to Mono on-the-fly
-                        val framesCount = shortArray.size / sourceChannels
+                        val framesCount = if (sourceChannels > 0) shortArray.size / sourceChannels else 0
                         val monoArray = ShortArray(framesCount)
                         for (i in 0 until framesCount) {
                             var sum = 0
@@ -192,14 +192,9 @@ class AudioDecoder {
             Log.e(TAG, "Error decoding video audio", e)
             return false
         } finally {
-            try {
-                extractor.release()
-                codec?.stop()
-                codec?.release()
-                outputStream?.close()
-            } catch (e: Exception) {
-                // Ignore
-            }
+            try { extractor.release() } catch (_: Exception) {}
+            try { codec?.release() } catch (_: Exception) {}
+            try { outputStream?.close() } catch (_: Exception) {}
         }
     }
 
