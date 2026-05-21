@@ -12,7 +12,9 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.nua.data.asr.VoskTranscriber
-import com.example.nua.data.llm.GemmaTranslator
+import com.example.nua.data.asr.FirebaseTranscriber
+import com.example.nua.data.asr.TextSegment
+import com.example.nua.data.llm.LiteRTTranslator
 import com.example.nua.data.tts.DubbingTtsEngine
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +32,8 @@ class PipelineCompilerService : Service() {
     private lateinit var sessionManager: SessionManager
     private lateinit var audioDecoder: AudioDecoder
     private lateinit var voskTranscriber: VoskTranscriber
-    private lateinit var gemmaTranslator: GemmaTranslator
+    private lateinit var firebaseTranscriber: FirebaseTranscriber
+    private lateinit var liteRTTranslator: LiteRTTranslator
     private lateinit var ttsEngine: DubbingTtsEngine
 
     override fun onCreate() {
@@ -38,7 +41,8 @@ class PipelineCompilerService : Service() {
         sessionManager = SessionManager(this)
         audioDecoder = AudioDecoder()
         voskTranscriber = VoskTranscriber(this)
-        gemmaTranslator = GemmaTranslator(this)
+        firebaseTranscriber = FirebaseTranscriber(this)
+        liteRTTranslator = LiteRTTranslator(this)
         ttsEngine = DubbingTtsEngine(this)
         createNotificationChannel()
     }
@@ -48,6 +52,7 @@ class PipelineCompilerService : Service() {
             val videoPath = intent.getStringExtra(EXTRA_VIDEO_PATH) ?: ""
             val gemmaModelPath = intent.getStringExtra(EXTRA_GEMMA_MODEL_PATH)
             val mockMode = intent.getBooleanExtra(EXTRA_MOCK_MODE, true)
+            val asrMode = intent.getStringExtra(EXTRA_ASR_MODE) ?: ASR_MODE_OFFLINE
 
             val notification = createNotification("Initializing compilation...")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -57,7 +62,7 @@ class PipelineCompilerService : Service() {
             }
 
             if (videoPath.isNotEmpty()) {
-                startCompilation(videoPath, gemmaModelPath, mockMode)
+                startCompilation(videoPath, gemmaModelPath, mockMode, asrMode)
             } else {
                 updateStatus("Error", 0f, "❌ Missing input video path.")
                 stopSelf()
@@ -72,10 +77,10 @@ class PipelineCompilerService : Service() {
         super.onDestroy()
         serviceJob.cancel()
         ttsEngine.shutdown()
-        gemmaTranslator.close()
+        liteRTTranslator.close()
     }
 
-    private fun startCompilation(videoPath: String, gemmaModelPath: String?, mockMode: Boolean) {
+    private fun startCompilation(videoPath: String, gemmaModelPath: String?, mockMode: Boolean, asrMode: String) {
         if (_isProcessing.value) return
         _isProcessing.value = true
         _completedSessionDir.value = null
@@ -116,16 +121,22 @@ class PipelineCompilerService : Service() {
                 }
                 addLog("Audio extracted successfully: ${originalAudioWav.length()} bytes")
 
-                // 3. Speech-to-Text Transcription with Vosk
-                updateStatus("Transcribing", 0.0f, "Step 2/5: Transcribing speech offline with Vosk...")
-                if (!mockMode && !voskTranscriber.isModelDownloaded()) {
-                    updateStatus("Error", 0f, "❌ Vosk language model is not downloaded. Please download in Setup first.")
-                    stopSelf()
-                    return@launch
-                }
-
-                val segments = voskTranscriber.transcribeWav(originalAudioWav) { progress ->
-                    updateStatus("Transcribing", progress)
+                // 3. Speech-to-Text Transcription (Vosk or Firebase AI Logic)
+                val segments = if (asrMode == ASR_MODE_CLOUD) {
+                    updateStatus("Transcribing", 0.0f, "Step 2/5: Transcribing speech in cloud with Firebase AI...")
+                    firebaseTranscriber.transcribeWav(originalAudioWav, mockMode) { progress ->
+                        updateStatus("Transcribing (Cloud)", progress)
+                    }
+                } else {
+                    updateStatus("Transcribing", 0.0f, "Step 2/5: Transcribing speech offline with Vosk...")
+                    if (!mockMode && !voskTranscriber.isModelDownloaded()) {
+                        updateStatus("Error", 0f, "❌ Vosk language model is not downloaded. Please download in Setup first.")
+                        stopSelf()
+                        return@launch
+                    }
+                    voskTranscriber.transcribeWav(originalAudioWav) { progress ->
+                        updateStatus("Transcribing (Local)", progress)
+                    }
                 }
                 addLog("Transcribed ${segments.size} speech segments.")
 
@@ -137,7 +148,7 @@ class PipelineCompilerService : Service() {
                         stopSelf()
                         return@launch
                     }
-                    val loaded = gemmaTranslator.initModel(gemmaModelPath)
+                    val loaded = liteRTTranslator.initModel(gemmaModelPath)
                     if (!loaded) {
                         updateStatus("Error", 0f, "❌ Failed to initialize Gemma model.")
                         stopSelf()
@@ -156,7 +167,7 @@ class PipelineCompilerService : Service() {
                     val targetDur = seg.endTimeSec - seg.startTimeSec
 
                     addLog("Translating segment ${i+1}/${segments.size}...")
-                    val translation = gemmaTranslator.translate(seg.text, targetDur, prevTranslation, mockMode)
+                    val translation = liteRTTranslator.translate(seg.text, targetDur, prevTranslation, mockMode)
                     addLog("  Original: \"${seg.text}\"")
                     addLog("  Translated: \"$translation\"")
 
@@ -276,6 +287,10 @@ class PipelineCompilerService : Service() {
         const val EXTRA_VIDEO_PATH = "extra_video_path"
         const val EXTRA_GEMMA_MODEL_PATH = "extra_gemma_model_path"
         const val EXTRA_MOCK_MODE = "extra_mock_mode"
+        const val EXTRA_ASR_MODE = "extra_asr_mode"
+
+        const val ASR_MODE_OFFLINE = "offline"
+        const val ASR_MODE_CLOUD = "cloud"
 
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "nua_pipeline_channel"

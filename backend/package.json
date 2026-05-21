@@ -1,0 +1,29 @@
+{
+  "name": "nua-web-studio",
+  "version": "1.0.0",
+  "description": "Nua Web Studio — Cloud ingestion pipeline for video lecture translation and dubbing",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "@google-cloud/storage": "^7.7.0",
+    "express": "^5.0.0",
+    "flatbuffers": "^25.2.10",
+    "fluent-ffmpeg": "^2.1.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.8.0"
+  }
+}

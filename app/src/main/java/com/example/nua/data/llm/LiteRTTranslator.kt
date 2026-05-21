@@ -2,91 +2,148 @@ package com.example.nua.data.llm
 
 import android.content.Context
 import android.util.Log
-import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.ai.edge.litertlm.Engine
+import com.google.ai.edge.litertlm.EngineConfig
+import com.google.ai.edge.litertlm.Conversation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import java.io.File
 
-class GemmaTranslator(private val context: Context) {
+/**
+ * On-device LLM translator using LiteRT-LM (Google AI Edge).
+ * Replaces the old MediaPipe GenAI GemmaTranslator with NPU-accelerated inference.
+ *
+ * Uses the official Engine + EngineConfig + Conversation API:
+ * - Lazy model loading on background thread
+ * - Streaming response via Kotlin Flow
+ * - Sliding-window context for coherent multi-segment translation
+ * - Duration-constrained output for sync with video timeline
+ */
+class LiteRTTranslator(private val context: Context) {
 
     companion object {
-        private const val TAG = "GemmaTranslator"
+        private const val TAG = "LiteRTTranslator"
     }
 
-    private var llmInference: LlmInference? = null
+    private var engine: Engine? = null
     private var currentModelPath: String? = null
 
     /**
-     * Initializes the Gemma LlmInference with the model file at [modelPath].
-     * Runs on a background thread.
+     * Lazily initializes the LiteRT-LM engine on a background coroutine.
+     * Model loading can take several seconds on first launch.
      */
-    fun initModel(modelPath: String): Boolean {
-        if (currentModelPath == modelPath && llmInference != null) {
-            return true
+    suspend fun initModel(modelPath: String): Boolean = withContext(Dispatchers.IO) {
+        if (currentModelPath == modelPath && engine != null) {
+            return@withContext true
         }
 
         val modelFile = File(modelPath)
         if (!modelFile.exists()) {
             Log.e(TAG, "Model file does not exist: $modelPath")
-            return false
+            return@withContext false
         }
 
         try {
-            Log.d(TAG, "Initializing Gemma model from $modelPath")
+            Log.d(TAG, "Initializing LiteRT-LM engine from $modelPath")
             close()
 
-            val options = LlmInference.LlmInferenceOptions.builder()
-                .setModelPath(modelPath)
-                .setMaxTokens(128)
-                .build()
-
-            llmInference = LlmInference.createFromOptions(context, options)
+            val config = EngineConfig(
+                modelPath = modelPath
+            )
+            engine = Engine(config).also { it.initialize() }
             currentModelPath = modelPath
-            Log.d(TAG, "Gemma model loaded successfully")
-            return true
+            Log.d(TAG, "LiteRT-LM engine loaded successfully")
+            true
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to load Gemma model", e)
-            return false
+            Log.e(TAG, "Failed to initialize LiteRT-LM engine", e)
+            false
         }
     }
 
-    fun isModelLoaded(): Boolean {
-        return llmInference != null
-    }
+    fun isModelLoaded(): Boolean = engine != null
 
     fun close() {
-        try {
-            llmInference?.close()
-        } catch (e: Exception) {
-            // Ignore
-        }
-        llmInference = null
+        try { engine?.close() } catch (_: Exception) {}
+        engine = null
         currentModelPath = null
     }
 
     /**
-     * Translates English text to hybrid Hinglish using Gemma on-device.
-     * Incorporates sliding window context and target duration constraint.
+     * Translates English text to Hinglish using on-device LLM inference.
+     * Supports both blocking (collect full response) and streaming modes.
+     *
+     * @param text The English source text to translate
+     * @param durationSec Duration of the original audio segment (constrains output length)
+     * @param previousTranslation Previous segment's translation for context continuity
+     * @param mockMode If true, uses rule-based mock translation (no model required)
+     * @return The translated Hinglish text
      */
-    fun translate(
+    suspend fun translate(
         text: String,
         durationSec: Double,
         previousTranslation: String?,
         mockMode: Boolean = false
-    ): String {
+    ): String = withContext(Dispatchers.IO) {
         val maxWords = (durationSec * 3.2).toInt().coerceAtLeast(4)
 
         if (mockMode) {
-            val rawMock = mockTranslateToHinglish(text)
-            return limitWordCount(rawMock, maxWords)
+            return@withContext limitWordCount(mockTranslateToHinglish(text), maxWords)
         }
 
-        val inference = llmInference
-        if (inference == null) {
-            Log.e(TAG, "Gemma model is not initialized")
-            return "Error: Model not loaded"
+        val lmEngine = engine
+        if (lmEngine == null) {
+            Log.e(TAG, "LiteRT-LM engine is not initialized")
+            return@withContext "Error: Model not loaded"
         }
 
-        // Prompt designed for hybrid code-mixed translation with previous context and length limits
-        val prompt = if (previousTranslation.isNullOrEmpty()) {
+        val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
+
+        try {
+            Log.d(TAG, "Sending prompt to LiteRT-LM: $text")
+            val conversation = lmEngine.createConversation()
+            val responseBuilder = StringBuilder()
+
+            // Collect streaming response into a single string
+            conversation.sendMessageAsync(prompt).collect { message ->
+                responseBuilder.append(message.toString())
+            }
+
+            val result = responseBuilder.toString()
+            val cleaned = cleanResponse(result)
+            val limited = limitWordCount(cleaned, maxWords)
+            Log.d(TAG, "LiteRT-LM response: $limited")
+            limited
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in LiteRT-LM translation", e)
+            "Error: Translation failed"
+        }
+    }
+
+    /**
+     * Streaming translation via Kotlin Flow. Each emitted value is a token chunk.
+     * Useful for progressive UI updates during translation.
+     */
+    fun translateStreaming(
+        text: String,
+        durationSec: Double,
+        previousTranslation: String?
+    ): Flow<String> = flow {
+        val maxWords = (durationSec * 3.2).toInt().coerceAtLeast(4)
+        val lmEngine = engine ?: throw IllegalStateException("LiteRT-LM engine not initialized")
+        val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
+
+        val conversation = lmEngine.createConversation()
+        conversation.sendMessageAsync(prompt).collect { message ->
+            emit(message.toString())
+        }
+    }
+
+    // ─── Prompt engineering ─────────────────────────────────────────────
+
+    private fun buildTranslationPrompt(text: String, maxWords: Int, previousTranslation: String?): String {
+        return if (previousTranslation.isNullOrEmpty()) {
             """
             You are a helpful assistant translating lecture audio to Hindi.
             Translate the following English sentence to Hindi (using Devanagari script).
@@ -112,19 +169,9 @@ class GemmaTranslator(private val context: Context) {
             Output:
             """.trimIndent()
         }
-
-        return try {
-            Log.d(TAG, "Sending prompt to Gemma: $text")
-            val result = inference.generateResponse(prompt)
-            val cleaned = cleanResponse(result)
-            val limited = limitWordCount(cleaned, maxWords)
-            Log.d(TAG, "Gemma response: $limited")
-            limited
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in Gemma translation", e)
-            "Error: Translation failed"
-        }
     }
+
+    // ─── Post-processing ────────────────────────────────────────────────
 
     private fun limitWordCount(text: String, maxWords: Int): String {
         val words = text.split(Regex("\\s+"))
@@ -134,23 +181,20 @@ class GemmaTranslator(private val context: Context) {
 
     private fun cleanResponse(response: String): String {
         var cleaned = response.trim()
-        // Strip common LLM preambles
         val prefixes = listOf("Output:", "Here is the translation:", "Translation:", "Hindi:", "Result:")
         for (prefix in prefixes) {
             if (cleaned.startsWith(prefix, ignoreCase = true)) {
                 cleaned = cleaned.removeRange(0, prefix.length).trim()
             }
         }
-        // Take only the first non-empty line (strip any explanation after the translation)
         return cleaned.split("\n").firstOrNull { it.isNotBlank() }?.trim() ?: cleaned
     }
 
-    /**
-     * Synthesizes code-mixed Hindi (Hinglish) using basic rules for validation in Mock Mode.
-     */
+    // ─── Mock translator (testing without model) ────────────────────────
+
     private fun mockTranslateToHinglish(text: String): String {
         val lower = text.lowercase().trim()
-        
+
         if (lower.contains("welcome") && lower.contains("lecture")) {
             return "Welcome, आज की biological lecture में आपका स्वागत है।"
         }
@@ -166,19 +210,18 @@ class GemmaTranslator(private val context: Context) {
             return "आज हम $topic के बारे में discuss करेंगे।"
         }
         if (lower.contains("study of")) {
-            val topic = text.substringAfter("of", "").trim().removeSuffix(".")
             return "Biology, life और living organisms की study है।"
         }
 
-        // Default: Keep nouns in English and translate the connecting structure to Hindi
+        // Default: keep nouns in English, translate connecting structure to Hindi
         val words = text.split(" ")
         val importantNouns = setOf(
             "mitochondria", "nucleus", "dna", "rna", "organism", "chemical", "reaction", "protein",
             "cells", "energy", "sunlight", "chlorophyll", "plants", "carbon", "dioxide", "water",
             "professor", "university", "science", "lecture", "student", "class", "topic"
         )
-        
-        val builder = java.lang.StringBuilder()
+
+        val builder = StringBuilder()
         for (w in words) {
             val cleanWord = w.lowercase().replace(Regex("[.,!?;]"), "")
             if (importantNouns.contains(cleanWord)) {
@@ -209,12 +252,10 @@ class GemmaTranslator(private val context: Context) {
                     "need" -> "need होती है"
                     else -> w
                 }
-                if (trans.isNotEmpty()) {
-                    builder.append(trans).append(" ")
-                }
+                if (trans.isNotEmpty()) builder.append(trans).append(" ")
             }
         }
-        
+
         var result = builder.toString().trim()
         if (!result.endsWith("।") && !result.endsWith(".") && !result.endsWith("?")) {
             result += " है।"

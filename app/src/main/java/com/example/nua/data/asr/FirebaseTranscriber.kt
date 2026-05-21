@@ -1,0 +1,108 @@
+package com.example.nua.data.asr
+
+import android.content.Context
+import android.util.Log
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.content
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import java.io.File
+
+class FirebaseTranscriber(private val context: Context) {
+
+    companion object {
+        private const val TAG = "FirebaseTranscriber"
+        private const val DEFAULT_MODEL = "gemini-2.5-flash"
+    }
+
+    private val generativeModel by lazy {
+        try {
+            Firebase.ai.generativeModel(DEFAULT_MODEL)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to initialize Firebase AI Model: ${e.message}. Will use mock mode or fail.", e)
+            null
+        }
+    }
+
+    suspend fun transcribeWav(
+        wavFile: File,
+        mockMode: Boolean = false,
+        onProgress: (Float) -> Unit
+    ): List<TextSegment> = withContext(Dispatchers.IO) {
+        if (mockMode || generativeModel == null) {
+            Log.i(TAG, "Running FirebaseTranscriber in Mock Mode")
+            onProgress(0.5f)
+            // Generate some mock segments
+            val mockSegments = listOf(
+                TextSegment("Welcome to today's lecture on photosynthesis.", 0.0, 4.0),
+                TextSegment("Photosynthesis is a chemical process used by plants.", 4.5, 9.0),
+                TextSegment("It converts carbon dioxide and water into oxygen and glucose.", 9.5, 15.0),
+                TextSegment("This reaction requires sunlight as an energy source.", 15.5, 21.0),
+                TextSegment("Thank you for listening.", 21.5, 25.0)
+            )
+            onProgress(1.0f)
+            return@withContext mockSegments
+        }
+
+        onProgress(0.1f)
+        try {
+            val audioBytes = wavFile.readBytes()
+            onProgress(0.3f)
+
+            val promptText = """
+                You are a high-precision speech-to-text transcriber. 
+                Transcribe the following English audio track.
+                Segment the transcription into sentence-like chunks. 
+                Each chunk should be no more than 14 words or 7 seconds long.
+                Provide exact start and end timestamps in seconds for each chunk.
+                Return the result strictly as a JSON array of objects. Do not include markdown code block formatting (like ```json).
+                Each object in the array MUST have these keys:
+                - "text": string (the transcribed text)
+                - "start": number (start timestamp in seconds)
+                - "end": number (end timestamp in seconds)
+                
+                Example output:
+                [
+                  {"text": "Hello world", "start": 0.0, "end": 2.5}
+                ]
+            """.trimIndent()
+
+            val model = generativeModel ?: throw Exception("Firebase AI model not initialized")
+            onProgress(0.4f)
+
+            val response = model.generateContent(
+                content {
+                    inlineData(audioBytes, "audio/wav")
+                    text(promptText)
+                }
+            )
+
+            onProgress(0.8f)
+            val jsonText = response.text?.trim() ?: throw Exception("Empty response from Gemini")
+            
+            // Strip potential markdown wrapper
+            val cleanJson = if (jsonText.startsWith("```")) {
+                jsonText.substringAfter("\n").substringBeforeLast("```").trim()
+            } else {
+                jsonText
+            }
+
+            val jsonArray = JSONArray(cleanJson)
+            val segments = mutableListOf<TextSegment>()
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val text = obj.getString("text")
+                val start = obj.getDouble("start")
+                val end = obj.getDouble("end")
+                segments.add(TextSegment(text, start, end))
+            }
+            onProgress(1.0f)
+            segments
+        } catch (e: Exception) {
+            Log.e(TAG, "Error during cloud transcription", e)
+            throw e
+        }
+    }
+}

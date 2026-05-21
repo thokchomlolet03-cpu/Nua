@@ -15,6 +15,12 @@
 .cxx
 local.properties
 
+# Backend (Node.js)
+backend/node_modules/
+backend/dist/
+backend/npm_cache/
+.env
+
 # Build artifacts
 *.zip
 *.log

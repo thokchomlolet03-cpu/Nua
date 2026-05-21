@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.nua"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
     }
 
     buildTypes {
@@ -48,57 +48,58 @@ dependencies {
   implementation(composeBom)
   androidTestImplementation(composeBom)
 
-  // Core Android dependencies
+  // Core Android
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.activity.compose)
 
-  // Arch Components
+  // Lifecycle
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-  // Compose
+  // Compose UI
   implementation(libs.androidx.compose.ui)
   implementation(libs.androidx.compose.ui.tooling.preview)
   implementation(libs.androidx.compose.material3)
   implementation(libs.androidx.compose.material.icons.core)
-  // Tooling
   debugImplementation(libs.androidx.compose.ui.tooling)
-  // Instrumented tests
   androidTestImplementation(libs.androidx.compose.ui.test.junit4)
   debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-  // Local tests: jUnit, coroutines, Android runner
-  testImplementation(libs.junit)
-  testImplementation(libs.kotlinx.coroutines.test)
-
-  // Instrumented tests: jUnit rules and runners
-  androidTestImplementation(libs.androidx.test.core)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.androidx.test.runner)
-  androidTestImplementation(libs.androidx.test.espresso.core)
-
-  // Navigation
+  // Navigation3
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
-  // MediaPipe Tasks GenAI for Gemma
-  implementation(libs.mediapipe.tasks.genai)
+  // AI & ML — LiteRT-LM (on-device NPU-accelerated inference)
+  implementation(libs.litertlm.android)
 
-  // Vosk ASR
-  implementation(libs.vosk.android)
+  // Firebase AI Logic (cloud Gemini 3.5 Flash access)
+  implementation(platform(libs.firebase.bom))
+  implementation(libs.firebase.ai)
 
-  // Media3 for media playback & composition
-  implementation(libs.androidx.media3.transformer)
-  implementation(libs.androidx.media3.effect)
+  // Media3 ExoPlayer (dual-player sync engine)
   implementation(libs.androidx.media3.common)
   implementation(libs.androidx.media3.exoplayer)
   implementation(libs.androidx.media3.ui)
 
-  // Network download
+  // Zero-Copy Serialization (FlatBuffers)
+  implementation(libs.flatbuffers.java)
+
+  // ASR — Vosk (offline speech recognition)
+  implementation(libs.vosk.android)
+
+  // Network (model downloads, video URL fetching)
   implementation(libs.okhttp)
 
-  // Serialization
+  // JSON Serialization (kept for legacy manifest migration)
   implementation(libs.kotlinx.serialization.json)
+
+  // Testing
+  testImplementation(libs.junit)
+  testImplementation(libs.kotlinx.coroutines.test)
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.runner)
+  androidTestImplementation(libs.androidx.test.espresso.core)
 }

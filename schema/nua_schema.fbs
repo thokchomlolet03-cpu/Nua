@@ -1,0 +1,56 @@
+// Nua Universal Binary Schema
+// Shared data contract between Nua Edge (Android) and Nua Web Studio (Cloud)
+// Compile with: ./compile_schema.sh
+
+namespace NuaSerialization;
+
+table Hotspot {
+  token:string;
+  concept_definition:string;
+}
+
+table Quiz {
+  trigger_timestamp_ms:uint;
+  question:string;
+  options:[string];
+  correct_index:ubyte;
+}
+
+table GraphNode {
+  node_id:string;
+  keywords:[string];
+  summary_factoid:string;
+  context_tokens:[string];
+}
+
+table TelemetryPayload {
+  session_id:string;
+  completion_percentage:ubyte;
+  quiz_scores_json:string;
+  cryptographic_signature:string;
+}
+
+table TimeSegment {
+  segment_id:string;
+  video_start_ms:uint;
+  video_end_ms:uint;
+  audio_source_path:string;
+  audio_duration_ms:uint;
+  original_text:string;
+  translated_text:string;
+  should_freeze:bool;
+  hotspots:[Hotspot];
+}
+
+table LectureSession {
+  session_id:string;
+  source_lang:string;
+  target_lang:string;
+  course_title:string;
+  timeline_tracks:[TimeSegment];
+  quizzes:[Quiz];
+  knowledge_graph:[GraphNode];
+  telemetry_ledger:[TelemetryPayload];
+}
+
+root_type LectureSession;

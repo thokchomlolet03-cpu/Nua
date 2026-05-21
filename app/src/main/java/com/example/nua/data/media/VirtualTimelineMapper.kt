@@ -14,7 +14,8 @@ data class TimelineInterval(
     val virtualEndMs: Long,
     val vocalAssetLocalPath: String,
     val originalText: String,
-    val translatedText: String
+    val translatedText: String,
+    val hotspots: List<HotspotInfo> = emptyList()
 )
 
 class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
@@ -35,9 +36,11 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
             val originalEnd = seg.endMs
             val originalDur = originalEnd - originalStart
 
-            // Read actual WAV duration from file if it exists to ensure millisecond-level precision
+            // Use the pre-calculated audio duration from segment metadata if available
             val file = File(sessionDir, seg.vocalAssetLocalPath)
-            val vocalDur = if (file.exists()) {
+            val vocalDur = if (seg.audioDurationMs != null && seg.audioDurationMs > 0) {
+                seg.audioDurationMs
+            } else if (file.exists()) {
                 getWavDurationMs(file, originalDur)
             } else {
                 originalDur
@@ -58,7 +61,8 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
                     virtualEndMs = vEnd,
                     vocalAssetLocalPath = seg.vocalAssetLocalPath,
                     originalText = seg.originalText,
-                    translatedText = seg.translatedText
+                    translatedText = seg.translatedText,
+                    hotspots = seg.hotspots
                 )
             )
 
