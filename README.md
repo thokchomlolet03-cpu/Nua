@@ -1,254 +1,155 @@
-# Nua 🎬🎙️
+# Nua 🎬🎙️ — Intelligent Video Lecture Translation & Dubbing Ecosystem
 
-**Nua** (meaning *New* or *Renewed*) is a fully on-device video lecture translation and dubbing engine for Android.
+**Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
 
-It solves a critical educational gap: while academic videos are primarily in English, millions of students learn most effectively in **Hinglish** — Hindi sentence structure with scientific terms preserved in English. Nua processes English video lectures entirely offline, producing a synchronized Hindi-dubbed playback experience without any cloud dependency.
+The project solves a critical educational gap: while technical lectures are primarily in English, millions of students learn most effectively in **Hinglish** (Hindi sentence structure with scientific terms preserved in English) and other regional languages.
 
-> 📄 **For a deep architectural analysis, see [DEEP_TECHNICAL_ANALYSIS.md](DEEP_TECHNICAL_ANALYSIS.md)**
+Nua operates on a **compile-then-play** philosophy:
+1. **Nua Web Studio (Cloud Ingestion Backend)**: Ingests video lectures, translates content using **Gemini 3.5 Flash**, bakes interactive quizzes and RAG knowledge graphs, and packages everything into highly efficient **FlatBuffers binary bundles (`.nuab`)**.
+2. **Nua Edge (Android Client)**: Plays the lectures offline by mapping the original video and regional TTS vocal tracks onto a synchronized **elastic virtual timeline**, with an integrated local **LiteRT-LM** tutor and quiz module.
 
----
-
-## 🚀 Key Innovation: Dynamic Freeze-Frame Dubbing
-
-Traditional video translators perform resource-heavy video transcoding and audio re-muxing on the device. Nua takes a fundamentally different approach:
-
-### Zero-Transcoding Compiler Pipeline
-
-The compiler service extracts the original audio, translates it, synthesizes Hindi vocal chunks, and outputs a lightweight **session package**:
-
-```
-session_{video}_{timestamp}/
-  raw_lecture.mp4              # Original video (unmodified)
-  manifest.json                # Sync manifest
-  vocal_chunks/
-    vocal_0_3500.wav           # Dubbed segment 0–3.5s
-    vocal_3500_7200.wav        # Dubbed segment 3.5–7.2s
-    ...
-```
-
-### Dual-Player Synchronization
-
-During playback, two separate ExoPlayer instances run simultaneously:
-- **Video Player**: Plays the original lecture video (original audio ducked to 10%)
-- **Vocal Player**: Dynamically queues and plays Hindi audio chunks at mapped timestamps
-
-### Elastic Virtual Timeline
-
-Translated Hindi speech is often longer than the original English. Rather than clipping or warping the voice:
-
-```
-Physical Timeline:  |==SEG1==|---gap---|==SEG2==|
-                    0       5s       8s       12s
-
-Virtual Timeline:   |==SEG1==|HOLD|---gap---|==SEG2==|HOLD|
-                    0       5s   7s       10s       14s  16s
-                             ↑ video                 ↑ video
-                             freezes                 freezes
-```
-
-When a dubbed segment runs longer, the **video freezes on the last frame** while the vocal player continues. When the vocal finishes, video automatically resumes in sync.
+> 📄 **For a deep architectural analysis of code, algorithms, and design decisions, see [DEEP_TECHNICAL_ANALYSIS.md](DEEP_TECHNICAL_ANALYSIS.md)**
 
 ---
 
-## 🛠️ The 5-Stage Compilation Pipeline
+## 🚀 Key Architectural Innovations
+
+### 1. Zero-Transcoding Dubbing Player
+Traditional video translators perform heavy video transcoding and audio muxing on the device, which drains battery and degrades video quality. Nua keeps the source MP4 file completely unmodified. The player coordinates two media engines simultaneously:
+- **Video Player**: Plays the unmodified lecture video (original audio volume ducked to 0%).
+- **Vocal Player**: Dynamically queues and plays synthesized vocal WAV chunks at mapped timestamps.
+
+### 2. Elastic Virtual Timeline
+Translated speech is often longer than the original English sentence. Rather than clipping the voice or distorting the audio pitch:
+```
+Physical Timeline (Video): |====SEG1====|-------gap-------|====SEG2====|
+                           0            5s                8s           12s
+
+Virtual Timeline (Player): |====SEG1====|──HOLD──|-------gap-------|====SEG2====|──HOLD──|
+                           0            5s       7s                10s          14s      16s
+                                                 ▲                              ▲
+                                            Video Freezes                  Video Freezes
+```
+When a dubbed segment runs longer, the player freezes the video on the last frame while the vocal player continues. Once the vocal finishes, the video resumes in sync.
+
+### 3. Sonic Pitch-Invariant Time Warping
+For minor sync drifts (`1ms to 800ms`), the engine slows down video playback (down to `0.80x`) using ExoPlayer's native **Sonic time-stretch algorithm**. Sonic uses sinusoidal overlap-add (SOLA) to stretch the video timeline to align with the audio without altering the vocal pitch.
+
+---
+
+## 🏗️ Ecosystem Topology
+
+The monorepo contains both modules sharing a single data contract:
 
 ```
-┌──────────────┐
-│  Input Video ├──────┐
-└──────────────┘      │
-                      ▼
-              1. Audio Extraction
-              [AudioDecoder] → MediaCodec decode → downmix → resample → 16kHz mono WAV
-                      │
-                      ▼
-              2. Speech-to-Text
-              [VoskTranscriber] → Offline ASR → word-level timestamps → sentence segmentation
-                      │
-                      ▼
-              3. Hinglish Translation
-              [GemmaTranslator] → Gemma 2B INT4 (on-device) → context-aware translation
-                      │
-                      ▼
-              4. Voice Synthesis
-              [DubbingTtsEngine] → Android TTS (Hindi) → two-pass speed matching (up to 2.0x)
-                      │
-                      ▼
-              5. Session Packaging
-              [PipelineCompilerService] → manifest.json + vocal_chunks/ → ready for playback
+nua/                                  <-- Monorepo Root Workspace
+├── schema/                           
+│   └── nua_schema.fbs                <-- Shared FlatBuffers binary schema
+├── compile_schema.sh                 <-- Compiles schema for Android & Node.js
+├── backend/                          <-- Nua Web Studio (Node.js / TypeScript)
+│   ├── src/
+│   │   ├── index.ts                  <-- Express ingestion server
+│   │   ├── agents/                   <-- Gemini 3.5 translation agent
+│   │   └── packager/                 <-- FlatBuffers bundle generator
+│   └── package.json
+└── app/                              <-- Nua Edge (Android app module)
+    └── src/main/java/com/example/nua/
+        ├── data/                     <-- LiteRT-LM, Sync Engine, Vosk, AudioDecoder
+        └── ui/                       <-- Compose layouts, Player with Quiz overlays
 ```
 
-### Pipeline Details
-
-| Stage | Component | Algorithm |
-|---|---|---|
-| **Audio Extraction** | `AudioDecoder` | Single-pass streaming decode with on-the-fly downmix (stereo→mono) and linear-interpolation resampling via rolling `leftovers` buffer |
-| **Transcription** | `VoskTranscriber` | 4KB chunk processing with Vosk small English model; segments words by gap (>0.8s), duration (>7s), and count (>14 words) |
-| **Translation** | `GemmaTranslator` | MediaPipe LLM Inference with sliding-window context, duration-constrained output (`maxWords = durationSec × 3.2`), and scientific term preservation |
-| **Voice Synthesis** | `DubbingTtsEngine` | Two-pass: synthesize at 1.0x → measure duration → re-synthesize at faster rate if overflow → clamp at 2.0x for intelligibility |
-| **Packaging** | `PipelineCompilerService` | Foreground Service with `SupervisorJob`, thread-safe logging, duplicate-compilation guard |
+### Shared FlatBuffers Contract (`schema/nua_schema.fbs`)
+Data is stored in memory-mapped `.nuab` binary files, allowing zero-copy deserialization on the Android client:
+- **Timeline tracks**: Chronological list of `TimeSegment` events.
+- **Concept hotspots**: Inline glossary tokens mapping words in subtitles to definitions.
+- **Interactive quizzes**: Checkpoints blocking playback to prompt students.
+- **Knowledge graph**: Nodes containing summary facts and semantic tokens for offline tutoring.
 
 ---
 
-## 🏗️ Technical Stack
+## 🛠️ Ingestion & Compilation Pipelines
 
-| Component | Technology | Version |
-|---|---|---|
-| **Language** | Kotlin | 2.3.20 |
-| **Min SDK** | Android 7.0 | API 24 |
-| **Target SDK** | Android 16 | API 36 |
-| **Build System** | Gradle + AGP | 9.1.0 / 9.0.1 |
-| **UI Framework** | Jetpack Compose + Material3 | BOM 2026.03.01 |
-| **Navigation** | Navigation3 | 1.0.1 |
-| **Video Playback** | Android Media3 ExoPlayer | 1.3.1 |
-| **Speech Recognition** | Vosk-Android | 0.3.75 |
-| **LLM Inference** | MediaPipe GenAI Tasks | 0.10.14 |
-| **Networking** | OkHttp | 4.12.0 |
-| **Serialization** | kotlinx-serialization-json | 1.6.3 |
+### Cloud Ingestion Pipeline (Nua Web Studio)
+Triggered via `POST /api/v1/ingest`:
+- **Audio Extraction**: Extracts audio from the video URL, downmixes to mono, and resamples to 16kHz PCM WAV using `ffmpeg`.
+- **Gemini Ingestion**: Calls **Gemini 3.5 Flash** (via the official `@google/genai` SDK) with the audio track. The model transcribes English speech, segments it into sentence blocks, and translates it to Hinglish.
+- **Cognitive Graph Baking**: Feeds the transcript to Gemini to pre-bake a hierarchical knowledge graph of concepts.
+- **Binary Packing**: Serializes everything into `.nuab` and uploads the bundle to Google Cloud Storage (GCS).
 
----
-
-## 📐 Architecture
-
-```
-┌──────────────────────────────────────────────────────┐
-│                     UI Layer                          │
-│  MainScreen · PlayerScreen · SetupScreen              │
-│  (Jetpack Compose + collectAsStateWithLifecycle)      │
-├──────────────────────────────────────────────────────┤
-│                  ViewModel Layer                      │
-│  MainScreenViewModel            PlayerViewModel       │
-│  Import + gallery + download    Dual-player sync      │
-├──────────────────────────────────────────────────────┤
-│              Pipeline Service Layer                   │
-│  PipelineCompilerService (Foreground Service)         │
-│  5-stage orchestration · static StateFlow comms       │
-├──────────────────────────────────────────────────────┤
-│                  Data Layer                           │
-│  VoskTranscriber · GemmaTranslator · DubbingTtsEngine │
-│  AudioDecoder · SessionManager · VirtualTimelineMapper│
-└──────────────────────────────────────────────────────┘
-```
-
-### Threading Model
-
-| Operation | Thread | Mechanism |
-|---|---|---|
-| Pipeline compilation | `Dispatchers.IO` | Coroutine scope |
-| ExoPlayer operations | Main | `withContext(Dispatchers.Main)` |
-| Sync loop (30ms tick) | Main | `Handler(Looper.getMainLooper())` |
-| TTS synthesis callbacks | TTS engine thread | `AtomicBoolean` + `CountDownLatch` |
-| UI state | Main | `collectAsStateWithLifecycle()` |
+### Local Edge Compiler Pipeline (Nua Edge)
+When operating offline, the client can compile imported lectures using a **5-Stage Foreground Service**:
+1. **Audio Extraction (`AudioDecoder`)**: Demuxes audio streams on-the-fly and resamples them using linear-interpolation downmixing via a rolling `leftovers` buffer.
+2. **ASR Transcription (`VoskTranscriber` / `FirebaseTranscriber`)**: Transcribes the WAV file using a local Vosk model (~40MB) or via Gemini Cloud endpoints when online.
+3. **Local Translation (`LiteRTTranslator`)**: Translates sentences to Hinglish on-device using the Google AI Edge **LiteRT-LM** engine with context sliding windows and word length limiters.
+4. **Voice Synthesis (`DubbingTtsEngine`)**: Synthesizes Hindi voice segments using native Android TTS. Adapts synthesis speed (up to 2.0x) if the vocal duration exceeds the physical timeline slot.
+5. **Session Packaging (`SessionManager`)**: Packs assets into a session folder and saves a local `.nuab` manifest.
 
 ---
 
-## 📦 Model Requirements & Setup
-
-To run Nua in **Real Mode** (non-mock), download the offline models via the **Setup** screen:
-
-| Model | Size | Source |
-|---|---|---|
-| **Vosk English (small)** | ~40MB | Auto-downloaded from alphacephei.com |
-| **Gemma 2B INT4** | ~1.2GB | MediaPipe `.bin` format — copy to app files |
-| **Hindi TTS Voice** | ~50MB | Google Speech Services (System Settings) |
-
-> **Mock Mode**: For development/testing without model downloads, enable Mock Mode in Setup. The app generates simulated translation segments.
+## 🔒 Security Posture
+- **ZIP Slip Protection**: Validates canonical paths of extracted entries in `VoskTranscriber` to prevent directory-traversal attacks.
+- **I/O Stream Safety**: All file and network streams are wrapped in `.use {}` blocks to guarantee descriptor release.
+- **Service Isolation**: The Foreground Service is unexported (`android:exported="false"`) to prevent hijacking.
+- **Cryptographic Telemetry Ledger**: Telemetry analytics (progress, quiz scores) are stored locally as signed FlatBuffers payloads, authenticated with a SHA-256 hash before flushing.
 
 ---
 
-## 📊 Codebase Metrics
+## 🚀 Building & Running
 
-| Metric | Value |
-|---|---|
-| Source files | 19 Kotlin |
-| Total LOC | 3,388 |
-| Dependencies | 15 |
-| APK size (excl. models) | ~32MB |
-| Runtime memory (Gemma loaded) | ~1.5GB |
-| Compile warnings | 3 (non-blocking) |
-| Known bugs | 0 |
+### Prerequisites
+- **JDK 17+**
+- **Android SDK API 36**
+- **Node.js v22+**
+- **FFmpeg** installed on your system path (for backend audio extraction)
 
----
-
-## 🧪 Testing
-
-Nua includes unit tests for the virtual timeline offset calculations:
-
+### 1. Shared Contract Compilation
+To recompile the FlatBuffers schema for both Node.js and Android, run:
 ```bash
+./compile_schema.sh
+```
+
+### 2. Running Nua Web Studio (Backend)
+```bash
+cd backend
+npm install
+# Set your Gemini API key (defaults to Mock Sandbox Mode if empty)
+export GEMINI_API_KEY="your-gemini-key"
+export PORT=8080
+npm run dev
+```
+Send an ingestion request:
+```bash
+curl -X POST http://localhost:8080/api/v1/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"videoUrl": "https://example.com/lecture.mp4", "targetLanguage": "hi"}'
+```
+
+### 3. Running Nua Edge (Android App)
+```bash
+# Clean and compile debug APK
+./gradlew clean assembleDebug
+
+# Run unit tests
 ./gradlew test
 ```
-
-See [`VirtualTimelineMapperTest.kt`](app/src/test/java/com/example/nua/data/media/VirtualTimelineMapperTest.kt) for reference.
-
----
-
-## 📜 Building from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/thokchomlolet03-cpu/Nua.git
-cd Nua
-
-# Build debug APK
-./gradlew assembleDebug
-
-# The APK is generated at:
-# app/build/outputs/apk/debug/app-debug.apk
-```
-
-**Requirements**:
-- JDK 17+
-- Android SDK with API 36 installed
-- ~2GB disk space for build cache
+The compiled APK will be output to: `app/build/outputs/apk/debug/app-debug.apk`.
 
 ---
 
-## 🔒 Security
+## 📁 Codebase Inventory
 
-- **ZIP Slip protection**: Canonical path validation on all archive extraction
-- **Stream safety**: All file I/O wrapped in `.use {}` blocks
-- **Service isolation**: Pipeline service is not exported (`android:exported="false"`)
-- **Thread safety**: `AtomicBoolean`, `synchronized`, and proper dispatcher usage
-- **Scoped storage**: Legacy `READ_EXTERNAL_STORAGE` capped at SDK 32
+### Android Client (Nua Edge)
+- [`AudioDecoder.kt`](app/src/main/java/com/example/nua/data/media/AudioDecoder.kt): Linear-interpolating media resampler.
+- [`VoskTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt) / [`FirebaseTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt): Transcription engines.
+- [`LiteRTTranslator.kt`](app/src/main/java/com/example/nua/data/llm/LiteRTTranslator.kt): On-device LiteRT-LM translation.
+- [`DubbingTtsEngine.kt`](app/src/main/java/com/example/nua/data/tts/DubbingTtsEngine.kt): Text-to-speech synchronization.
+- [`SyncPlayerEngine.kt`](app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt): Dual-player ExoPlayer coordinator.
+- [`VirtualTimelineMapper.kt`](app/src/main/java/com/example/nua/data/media/VirtualTimelineMapper.kt): Timeline mappings and freeze calculations.
+- [`OfflineTutorEngine.kt`](app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt): Pre-baked graph walking conversational RAG.
+- [`TelemetryStub.kt`](app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt): Local telemetry ledger with SHA-256 signatures.
 
----
-
-## 📁 Project Structure
-
-```
-app/src/main/java/com/example/nua/
-├── MainActivity.kt                  # Entry point
-├── Navigation.kt                    # Navigation3 routing
-├── NavigationKeys.kt                # Serializable nav keys
-├── data/
-│   ├── asr/
-│   │   └── VoskTranscriber.kt       # Offline speech-to-text (315 LOC)
-│   ├── llm/
-│   │   └── GemmaTranslator.kt      # On-device translation (224 LOC)
-│   ├── tts/
-│   │   └── DubbingTtsEngine.kt     # Hindi TTS + speed matching (200 LOC)
-│   └── media/
-│       ├── PipelineCompilerService.kt  # Pipeline orchestrator (304 LOC)
-│       ├── AudioDecoder.kt          # Audio extraction + resampling (281 LOC)
-│       ├── VirtualTimelineMapper.kt # Elastic timeline engine (183 LOC)
-│       ├── SessionManager.kt       # Session CRUD (64 LOC)
-│       └── MediaComposition.kt     # Data models (26 LOC)
-├── ui/
-│   ├── main/
-│   │   ├── MainScreen.kt           # Home screen (468 LOC)
-│   │   └── MainScreenViewModel.kt  # Import + gallery logic (212 LOC)
-│   ├── player/
-│   │   ├── PlayerScreen.kt         # Playback UI (284 LOC)
-│   │   └── PlayerViewModel.kt      # Sync engine (297 LOC)
-│   └── setup/
-│       └── SetupScreen.kt          # Model setup (355 LOC)
-└── theme/
-    ├── Color.kt                     # Neon accent palette
-    ├── Theme.kt                     # Material3 dark theme
-    └── Type.kt                      # Typography
-```
-
----
-
-## 📄 License
-
-This project is developed as an educational technology initiative. See individual file headers for licensing details.
+### Cloud Ingestion (Nua Web Studio)
+- [`index.ts`](backend/src/index.ts): Express routing and ingestion pipelines.
+- [`TranslationAgent.ts`](backend/src/agents/TranslationAgent.ts): Gemini 3.5 translation and graph generator.
+- [`NuaBundler.ts`](backend/src/packager/NuaBundler.ts): FlatBuffers binary builder.
+- [`audio.ts`](backend/src/utils/audio.ts): FFmpeg audio extraction utility.
