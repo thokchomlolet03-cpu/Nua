@@ -51,7 +51,16 @@ class SyncPlayerEngine(context: Context) {
 
     val audioPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
         repeatMode = Player.REPEAT_MODE_OFF
+        addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
+                    isSeeking = false
+                }
+            }
+        })
     }
+
+    @Volatile private var isSeeking = false
 
     private var isFreezing = false
     private var currentInterval: TimelineInterval? = null
@@ -299,7 +308,10 @@ class SyncPlayerEngine(context: Context) {
             // Check drift between vocal playhead and timeline mapping
             val drift = kotlin.math.abs(audioPlayer.currentPosition - playheadMs)
             if (drift > SEEK_CORRECTION_THRESHOLD_MS) {
-                audioPlayer.seekTo(playheadMs)
+                if (!isSeeking) {
+                    isSeeking = true
+                    audioPlayer.seekTo(playheadMs)
+                }
             }
             if (isPlaying && !audioPlayer.isPlaying && audioPlayer.playbackState != Player.STATE_ENDED) {
                 audioPlayer.play()
@@ -317,6 +329,7 @@ class SyncPlayerEngine(context: Context) {
         if (activeVocalPath != null && audioPlayer.playbackState != Player.STATE_ENDED) {
             audioPlayer.play()
         }
+        handler.removeCallbacks(syncRunnable)
         handler.post(syncRunnable)
     }
 

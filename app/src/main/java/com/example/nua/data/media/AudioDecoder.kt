@@ -66,6 +66,8 @@ class AudioDecoder {
             // 16 KB temporary writing buffer
             val writeByteBuffer = ByteBuffer.allocate(16384).order(ByteOrder.LITTLE_ENDIAN)
 
+            var tryAgainCount = 0
+
             while (!isDecoderEOS) {
                 if (!isExtractorEOS) {
                     val inputBufferIndex = codec.dequeueInputBuffer(10000)
@@ -92,12 +94,15 @@ class AudioDecoder {
                                 )
                                 extractor.advance()
                             }
+                        } else {
+                            codec.queueInputBuffer(inputBufferIndex, 0, 0, 0, 0)
                         }
                     }
                 }
 
                 val outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 10000)
                 if (outputBufferIndex >= 0) {
+                    tryAgainCount = 0
                     val outputBuffer = codec.getOutputBuffer(outputBufferIndex)
                     if (outputBuffer != null && bufferInfo.size > 0) {
                         outputBuffer.position(bufferInfo.offset)
@@ -159,6 +164,14 @@ class AudioDecoder {
 
                     if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         isDecoderEOS = true
+                    }
+                } else if (outputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                    if (isExtractorEOS) {
+                        tryAgainCount++
+                        if (tryAgainCount > 50) {
+                            Log.e(TAG, "Decoder hung at EOS. Breaking.")
+                            break
+                        }
                     }
                 }
             }

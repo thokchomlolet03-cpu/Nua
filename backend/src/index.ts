@@ -49,8 +49,11 @@ app.get('/health', (_req, res) => {
 app.post('/api/v1/ingest', async (req, res) => {
     const { videoUrl, targetLanguage = 'hi', courseContextDocs = '' } = req.body;
 
-    if (!videoUrl) {
-        return res.status(400).json({ status: 'ERROR', message: 'videoUrl is required' });
+    if (typeof videoUrl !== 'string' || !videoUrl.startsWith('http')) {
+        return res.status(400).json({ status: 'ERROR', message: 'videoUrl must be a string starting with http' });
+    }
+    if (typeof targetLanguage !== 'string') {
+        return res.status(400).json({ status: 'ERROR', message: 'targetLanguage must be a string' });
     }
 
     const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nua-'));

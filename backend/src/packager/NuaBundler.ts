@@ -27,8 +27,8 @@ export class NuaBundler {
         const segmentOffsets = result.segments.map(seg => {
             const segIdOff = builder.createString(seg.segmentId);
             const audioPathOff = builder.createString(`vocal_chunks/vocal_${seg.videoStartMs}_${seg.videoEndMs}.wav`);
-            const origTextOff = builder.createString(seg.originalText);
-            const transTextOff = builder.createString(seg.translatedText);
+            const origTextOff = builder.createString(seg.originalText || "");
+            const transTextOff = builder.createString(seg.translatedText || "");
 
             // using generated builder
             const shouldFreeze = seg.audioDurationMs > (seg.videoEndMs - seg.videoStartMs);
@@ -54,10 +54,12 @@ export class NuaBundler {
             const nodeIdOff = builder.createString(node.nodeId);
             const factoidOff = builder.createString(node.summaryFactoid);
 
-            const kwOffsets = node.keywords.map(kw => builder.createString(kw));
+            const safeKeywords = node.keywords || [];
+            const kwOffsets = safeKeywords.map(kw => builder.createString(kw));
             const kwVector = GraphNode.createKeywordsVector(builder, kwOffsets);
 
-            const ctxOffsets = node.contextTokens.map(ct => builder.createString(ct));
+            const safeContextTokens = node.contextTokens || [];
+            const ctxOffsets = safeContextTokens.map(ct => builder.createString(ct));
             const ctxVector = GraphNode.createContextTokensVector(builder, ctxOffsets);
 
             return GraphNode.createGraphNode(

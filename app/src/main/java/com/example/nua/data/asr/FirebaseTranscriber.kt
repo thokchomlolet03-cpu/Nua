@@ -85,14 +85,26 @@ class FirebaseTranscriber(private val context: Context) {
                     val actualBytes = if (bytesRead == chunkSize) buffer else buffer.copyOf(bytesRead)
                     val model = generativeModel ?: throw Exception("Firebase AI model not initialized")
                     
-                    val response = model.generateContent(
-                        content {
-                            inlineData(actualBytes, "audio/wav")
-                            text(promptText)
+                    var responseText: String? = null
+                    var attempt = 0
+                    while (attempt < 3) {
+                        try {
+                            val response = model.generateContent(
+                                content {
+                                    inlineData(actualBytes, "audio/wav")
+                                    text(promptText)
+                                }
+                            )
+                            responseText = response.text?.trim()
+                            if (responseText != null) break
+                        } catch (e: Exception) {
+                            attempt++
+                            if (attempt >= 3) throw e
+                            kotlinx.coroutines.delay((1000L * attempt * attempt))
                         }
-                    )
+                    }
 
-                    val jsonText = response.text?.trim() ?: throw Exception("Empty response from Gemini")
+                    val jsonText = responseText ?: throw Exception("Empty response from Gemini")
                     val cleanJson = if (jsonText.startsWith("```")) {
                         jsonText.substringAfter("\n").substringBeforeLast("```").trim()
                     } else {

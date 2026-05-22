@@ -24,6 +24,7 @@ class DubbingTtsEngine(private val context: Context) {
 
     private var tts: TextToSpeech? = null
     private var isInitialized = false
+    private var isMissingData = false
     private val initLatch = CountDownLatch(1)
 
     init {
@@ -34,6 +35,7 @@ class DubbingTtsEngine(private val context: Context) {
                 val result = tts?.setLanguage(locale)
                 if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                     Log.e(TAG, "Hindi language is not supported or missing data")
+                    isMissingData = true
                 } else {
                     isInitialized = true
                     Log.d(TAG, "TTS engine initialized successfully with Hindi locale")
@@ -61,6 +63,9 @@ class DubbingTtsEngine(private val context: Context) {
      * Runs synchronously. Call from a background thread.
      */
     fun synthesizeSpeech(text: String, targetDurationSeconds: Double, outputFile: File): Boolean {
+        if (isMissingData) {
+            throw IllegalStateException("TTS_LANG_MISSING_DATA")
+        }
         if (!waitForInit() || tts == null) {
             Log.e(TAG, "TTS is not ready")
             return false

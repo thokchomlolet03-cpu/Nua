@@ -133,6 +133,7 @@ class VoskTranscriber(private val context: Context) {
             // To calculate progress, we can just estimate based on file entries if size is unknown,
             // or just step progress. For simplicity, we step progress by 0.05 per entry up to 0.95
             var entriesProcessed = 0
+            var totalUncompressedBytes = 0L
             
             while (zipEntry != null) {
                 val file = File(targetDirectory, zipEntry.name)
@@ -148,6 +149,11 @@ class VoskTranscriber(private val context: Context) {
                     val fileOutputStream = FileOutputStream(file)
                     var count: Int
                     while (zipInputStream.read(buffer).also { count = it } != -1) {
+                        totalUncompressedBytes += count
+                        if (totalUncompressedBytes > 500 * 1024 * 1024L) {
+                            fileOutputStream.close()
+                            throw SecurityException("Zip bomb detected: Uncompressed size exceeds 500MB")
+                        }
                         fileOutputStream.write(buffer, 0, count)
                     }
                     fileOutputStream.close()

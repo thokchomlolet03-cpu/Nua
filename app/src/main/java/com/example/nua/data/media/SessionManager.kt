@@ -144,13 +144,13 @@ class SessionManager(private val context: Context) {
         if (!file.exists() || file.length() < 4) return null
 
         return try {
-            val raf = RandomAccessFile(file, "r")
-            val channel = raf.channel
-            val mappedBuffer = ByteBuffer.wrap(file.readBytes())
-            mappedBuffer.order(ByteOrder.LITTLE_ENDIAN)
-            channel.close()
-            raf.close()
-            LectureSession.getRootAsLectureSession(mappedBuffer)
+            RandomAccessFile(file, "r").use { raf ->
+                raf.channel.use { channel ->
+                    val mappedBuffer = ByteBuffer.wrap(file.readBytes())
+                    mappedBuffer.order(ByteOrder.LITTLE_ENDIAN)
+                    LectureSession.getRootAsLectureSession(mappedBuffer)
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load .nuab manifest", e)
             null

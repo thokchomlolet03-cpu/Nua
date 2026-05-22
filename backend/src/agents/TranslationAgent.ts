@@ -138,10 +138,16 @@ ${segmentTexts}
 
 Output ONLY valid JSON array. No explanations.`;
 
-        const response = await this.genAI.models.generateContent({
-            model: 'gemini-3.5-flash',
-            contents: prompt
-        });
+        let response;
+        try {
+            response = await this.genAI.models.generateContent({
+                model: 'gemini-3.5-flash',
+                contents: prompt
+            });
+        } catch (e: any) {
+            console.error('Failed to generate knowledge graph:', e.message);
+            return [];
+        }
 
         try {
             const text = response.text || '';

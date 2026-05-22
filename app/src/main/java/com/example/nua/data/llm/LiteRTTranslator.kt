@@ -137,7 +137,11 @@ class LiteRTTranslator(private val context: Context) {
         previousTranslation: String?
     ): Flow<String> = flow {
         val maxWords = (durationSec * 3.2).toInt().coerceAtLeast(4)
-        val lmEngine = engine ?: throw IllegalStateException("LiteRT-LM engine not initialized")
+        val lmEngine = engine
+        if (lmEngine == null) {
+            emit("Error: LiteRT-LM engine not initialized")
+            return@flow
+        }
         val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
 
         val conversation = lmEngine.createConversation()
