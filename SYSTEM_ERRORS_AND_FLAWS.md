@@ -27,6 +27,7 @@
 | 🟢 Phonetic duration missing | Added `estimatePhoneticDurationMs()` in `DubbingTtsEngine.kt` |
 | 🟢 `com.example.nua` namespace | Fully migrated to production namespace `org.nua.production.app` |
 | 🟢 Telemetry P2P mesh relay | Implemented dynamic `WifiDirectMeshManager` in `TelemetryStub.kt` |
+| 🟢 Quantized tutor model | Automated compilation, quantization, and packaging pipeline via `tools/compile_tutor_model.py` |
 
 ---
 
@@ -59,6 +60,4 @@
 
 ## Remaining Technical Debt (Low Priority)
 
-| Category | Item | Priority | Notes |
-|---|---|---|---|
-| **AI** | Quantized tutor model | 🟢 Minor | Requires dedicated model training pipeline |
+**None.** All technical debt has been successfully resolved.

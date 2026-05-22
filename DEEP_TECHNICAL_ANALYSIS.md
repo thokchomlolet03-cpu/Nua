@@ -768,7 +768,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 | 5 | 📋 Deferred | Telemetry Mesh | Wi-Fi Direct P2P requires dedicated hardware testing phase |
 | 6 | ✅ | Phonetic Duration | `estimatePhoneticDurationMs()` in `DubbingTtsEngine.kt` |
 | 7 | ✅ | Binary Search Mapper | O(log n) `getVirtualTimeMs()` in `VirtualTimelineMapper.kt` |
-| 8 | 📋 Deferred | Quantized Tutor | Requires dedicated model training/quantization pipeline |
+| 8 | ✅ | Quantized Tutor | Automated pipeline (`tools/compile_tutor_model.py`) to download, compile, quantize, and package weights using MediaPipe |
 | 9 | ✅ | WAV Header Robustness | Dynamic RIFF chunk iteration in `WavUtils.kt` |
 | 10 | 📋 Deferred | Semantic RAG | Requires embedding model integration (future phase) |
 
@@ -776,7 +776,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 ## v4.0 TRIZ Overhaul Summary
 
-> **Date**: 2026-05-22 | **Changes**: 19 files (4 new, 15 modified)
+> **Date**: 2026-05-22 | **Changes**: 20 files (5 new, 15 modified)
 
 ### Pillar 1: Schema Evolution & Binary Serialization
 - **FlatBuffers schema** rewritten with `file_identifier "NUAB"`, `schema_version:ushort`, typed `OptionSelection` table
@@ -799,4 +799,6 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 - **`build.gradle.kts`**: R8 minification + resource shrinking enabled, version bumped to v4.0
 - **`proguard-rules.pro`**: Protects FlatBuffers, Vosk JNI, LiteRT-LM, kotlinx.serialization
 - **Test harness**: `SchemaValidationTest.kt` (5 round-trip tests) + `WavUtilsTest.kt` (8 edge-case tests)
+- **Tutor Model Compilation**: Added `tools/compile_tutor_model.py` supporting HuggingFace download, conversion, quantization, mock bundling, and ZIP structure validation.
+
 
