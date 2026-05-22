@@ -67,10 +67,25 @@ ${courseContextDocs ? `Supporting course materials for context:\n${courseContext
 Output ONLY valid JSON. No explanations.`;
 
         const model = this.genAI.models;
-        const response = await model.generateContent({
-            model: 'gemini-3.5-flash',
-            contents: systemPrompt
-        });
+        let uploadResult: any = null;
+        let response;
+        try {
+            uploadResult = await this.genAI.files.upload({ file: wavPath, config: { mimeType: 'audio/wav' } });
+            
+            response = await model.generateContent({
+                model: 'gemini-3.5-flash',
+                contents: [uploadResult, systemPrompt]
+            });
+        } catch (e: any) {
+            if (uploadResult && uploadResult.name) {
+                try {
+                    await this.genAI.files.delete({ name: uploadResult.name });
+                } catch (delError) {
+                    // Ignore cleanup error
+                }
+            }
+            throw new Error(`Failed to generate content: ${e.message}`);
+        }
 
         try {
             const text = response.text || '';
@@ -89,6 +104,14 @@ Output ONLY valid JSON. No explanations.`;
             };
         } catch (e: any) {
             throw new Error(`Failed to parse Gemini response: ${e.message}`);
+        } finally {
+            if (uploadResult && uploadResult.name) {
+                try {
+                    await this.genAI.files.delete({ name: uploadResult.name });
+                } catch (e) {
+                    console.error("Failed to delete file from GenAI:", e);
+                }
+            }
         }
     }
 

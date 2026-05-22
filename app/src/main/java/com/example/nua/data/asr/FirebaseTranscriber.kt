@@ -48,8 +48,11 @@ class FirebaseTranscriber(private val context: Context) {
 
         onProgress(0.1f)
         try {
-            val audioBytes = wavFile.readBytes()
-            onProgress(0.3f)
+            val segments = mutableListOf<TextSegment>()
+            val chunkDurationSec = 180.0
+            val sampleRate = 16000
+            val bytesPerSec = sampleRate * 2 // 16-bit mono
+            val chunkSize = (chunkDurationSec * bytesPerSec).toInt()
 
             val promptText = """
                 You are a high-precision speech-to-text transcriber. 
@@ -69,34 +72,47 @@ class FirebaseTranscriber(private val context: Context) {
                 ]
             """.trimIndent()
 
-            val model = generativeModel ?: throw Exception("Firebase AI model not initialized")
-            onProgress(0.4f)
+            wavFile.inputStream().use { stream ->
+                stream.skip(44) // Skip WAV header
+                val buffer = ByteArray(chunkSize)
+                var bytesRead: Int
+                var chunkIndex = 0
 
-            val response = model.generateContent(
-                content {
-                    inlineData(audioBytes, "audio/wav")
-                    text(promptText)
+                val totalLength = wavFile.length() - 44
+                var processedLength = 0L
+
+                while (stream.read(buffer).also { bytesRead = it } > 0) {
+                    val actualBytes = if (bytesRead == chunkSize) buffer else buffer.copyOf(bytesRead)
+                    val model = generativeModel ?: throw Exception("Firebase AI model not initialized")
+                    
+                    val response = model.generateContent(
+                        content {
+                            inlineData(actualBytes, "audio/wav")
+                            text(promptText)
+                        }
+                    )
+
+                    val jsonText = response.text?.trim() ?: throw Exception("Empty response from Gemini")
+                    val cleanJson = if (jsonText.startsWith("```")) {
+                        jsonText.substringAfter("\n").substringBeforeLast("```").trim()
+                    } else {
+                        jsonText
+                    }
+
+                    val jsonArray = JSONArray(cleanJson)
+                    val timeOffset = chunkIndex * chunkDurationSec
+                    for (i in 0 until jsonArray.length()) {
+                        val obj = jsonArray.getJSONObject(i)
+                        val text = obj.getString("text")
+                        val start = obj.getDouble("start") + timeOffset
+                        val end = obj.getDouble("end") + timeOffset
+                        segments.add(TextSegment(text, start, end))
+                    }
+                    
+                    processedLength += bytesRead
+                    onProgress(0.3f + 0.6f * (processedLength.toFloat() / totalLength.toFloat()))
+                    chunkIndex++
                 }
-            )
-
-            onProgress(0.8f)
-            val jsonText = response.text?.trim() ?: throw Exception("Empty response from Gemini")
-            
-            // Strip potential markdown wrapper
-            val cleanJson = if (jsonText.startsWith("```")) {
-                jsonText.substringAfter("\n").substringBeforeLast("```").trim()
-            } else {
-                jsonText
-            }
-
-            val jsonArray = JSONArray(cleanJson)
-            val segments = mutableListOf<TextSegment>()
-            for (i in 0 until jsonArray.length()) {
-                val obj = jsonArray.getJSONObject(i)
-                val text = obj.getString("text")
-                val start = obj.getDouble("start")
-                val end = obj.getDouble("end")
-                segments.add(TextSegment(text, start, end))
             }
             onProgress(1.0f)
             segments

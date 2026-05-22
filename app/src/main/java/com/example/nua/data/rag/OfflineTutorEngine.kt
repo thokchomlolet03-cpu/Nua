@@ -127,10 +127,9 @@ class OfflineTutorEngine(private val context: Context) {
             }
         }
 
-        // Fall back to first node if no match found
-        if (bestNode == null && session.knowledgeGraphLength > 0) {
-            bestNode = session.knowledgeGraph(0)
-        }
+        // Removed naive fallback to index 0 so that out-of-scope questions don't hallucinate
+        // based on an unrelated topic.
+
 
         return bestNode
     }

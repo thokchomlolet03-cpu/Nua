@@ -181,11 +181,16 @@ class PipelineCompilerService : Service() {
                     addLog("Synthesizing segment ${i+1}/${segments.size}...")
                     val ttsSuccess = ttsEngine.synthesizeSpeech(translation, targetDur, chunkFile)
                     
-                    val directive = if (ttsSuccess && chunkFile.exists()) "NORMAL_SYNC" else "PAD_EMPTY"
+                    var actualAudioDurationMs: Long? = null
+                    var directive = if (ttsSuccess && chunkFile.exists()) PlaybackDirective.NORMAL_SYNC else PlaybackDirective.PAD_EMPTY
                     if (!ttsSuccess) {
                         addLog("  ⚠️ Warning: Failed to generate voice for segment ${i+1}")
                     } else {
                         val ttsDur = ttsEngine.getWavDurationSeconds(chunkFile)
+                        actualAudioDurationMs = (ttsDur * 1000).toLong()
+                        if (actualAudioDurationMs > (endMs - startMs)) {
+                            directive = PlaybackDirective.FREEZE_HOLD
+                        }
                         addLog("  Voice generated: ${String.format("%.2f", ttsDur)}s (Target: ${String.format("%.2f", targetDur)}s)")
                     }
 
@@ -199,7 +204,8 @@ class PipelineCompilerService : Service() {
                             originalText = seg.text,
                             translatedText = translation,
                             vocalAssetLocalPath = relativePath,
-                            directive = directive
+                            directive = directive,
+                            audioDurationMs = actualAudioDurationMs
                         )
                     )
 

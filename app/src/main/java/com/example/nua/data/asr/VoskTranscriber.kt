@@ -109,6 +109,9 @@ class VoskTranscriber(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "Error downloading/unpacking Vosk model", e)
             tempZipFile.delete()
+            if (modelDir.exists()) {
+                modelDir.deleteRecursively()
+            }
             return false
         }
     }

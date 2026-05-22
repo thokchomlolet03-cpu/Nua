@@ -138,13 +138,11 @@ fun PlayerScreen(
                         // Playback Area
                         Column(modifier = Modifier.fillMaxSize()) {
 
-                            // Video Player container
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
                                     .fillMaxWidth()
                                     .background(Color.Black)
-                                    .clickable { viewModel.togglePlayPause() }
                             ) {
                                 viewModel.videoPlayer?.let { vp ->
                                     AndroidView(
@@ -156,6 +154,7 @@ fun PlayerScreen(
                                                     ViewGroup.LayoutParams.MATCH_PARENT,
                                                     ViewGroup.LayoutParams.MATCH_PARENT
                                                 )
+                                                setOnClickListener { viewModel.togglePlayPause() }
                                             }
                                         },
                                         modifier = Modifier.fillMaxSize()

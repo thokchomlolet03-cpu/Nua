@@ -112,6 +112,15 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
     private fun writePayload(sessionId: String, eventType: String, data: ByteArray) {
         val filename = "${sessionId}_${eventType}_${System.currentTimeMillis()}.tlm"
         File(ledgerDir, filename).writeBytes(data)
+        pruneOldPayloads()
+    }
+
+    private fun pruneOldPayloads() {
+        val files = ledgerDir.listFiles()?.sortedBy { it.lastModified() } ?: return
+        val maxFiles = 100
+        if (files.size > maxFiles) {
+            files.take(files.size - maxFiles).forEach { it.delete() }
+        }
     }
 
     private fun sha256(input: String): String {

@@ -60,6 +60,12 @@ class Quiz : Table() {
             builder.addByte(3, correctIndex.toByte(), 0)
             return builder.endTable()
         }
+
+        fun createOptionsVector(builder: FlatBufferBuilder, data: IntArray): Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.indices.reversed()) builder.addOffset(data[i])
+            return builder.endVector()
+        }
     }
 
     fun __init(i: Int, bb: ByteBuffer) { __reset(i, bb) }
@@ -88,6 +94,18 @@ class GraphNode : Table() {
             builder.addOffset(2, summaryFactoidOffset, 0)
             builder.addOffset(3, contextTokensOffset, 0)
             return builder.endTable()
+        }
+
+        fun createKeywordsVector(builder: FlatBufferBuilder, data: IntArray): Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.indices.reversed()) builder.addOffset(data[i])
+            return builder.endVector()
+        }
+
+        fun createContextTokensVector(builder: FlatBufferBuilder, data: IntArray): Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.indices.reversed()) builder.addOffset(data[i])
+            return builder.endVector()
         }
     }
 
@@ -219,6 +237,18 @@ class LectureSession : Table() {
         }
 
         fun createTimelineTracksVector(builder: FlatBufferBuilder, data: IntArray): Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.indices.reversed()) builder.addOffset(data[i])
+            return builder.endVector()
+        }
+
+        fun createQuizzesVector(builder: FlatBufferBuilder, data: IntArray): Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.indices.reversed()) builder.addOffset(data[i])
+            return builder.endVector()
+        }
+
+        fun createKnowledgeGraphVector(builder: FlatBufferBuilder, data: IntArray): Int {
             builder.startVector(4, data.size, 4)
             for (i in data.indices.reversed()) builder.addOffset(data[i])
             return builder.endVector()

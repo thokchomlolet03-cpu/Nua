@@ -58,6 +58,7 @@ class SyncPlayerEngine(context: Context) {
     private var mapper: VirtualTimelineMapper? = null
     private var sessionDir: File? = null
     private var activeVocalPath: String? = null
+    private val vocalWindowIndices = mutableMapOf<String, Int>()
 
     private val handler = Handler(Looper.getMainLooper())
     private var isPlaying = false
@@ -83,10 +84,37 @@ class SyncPlayerEngine(context: Context) {
 
     fun setMapper(timelineMapper: VirtualTimelineMapper) {
         this.mapper = timelineMapper
+        buildAudioPlaylist()
     }
 
     fun setSessionDir(dir: File) {
         this.sessionDir = dir
+        buildAudioPlaylist()
+    }
+
+    private fun buildAudioPlaylist() {
+        val dir = sessionDir ?: return
+        val timelineMapper = mapper ?: return
+        
+        val items = mutableListOf<MediaItem>()
+        var windowIndex = 0
+        vocalWindowIndices.clear()
+
+        for (interval in timelineMapper.intervals) {
+            if (interval.vocalAssetLocalPath.isNotEmpty()) {
+                val file = File(dir, interval.vocalAssetLocalPath)
+                if (file.exists()) {
+                    items.add(MediaItem.fromUri(file.absolutePath))
+                    vocalWindowIndices[interval.vocalAssetLocalPath] = windowIndex
+                    windowIndex++
+                }
+            }
+        }
+        
+        if (items.isNotEmpty()) {
+            audioPlayer.setMediaItems(items)
+            audioPlayer.prepare()
+        }
     }
 
     // ─── Sync evaluation ────────────────────────────────────────────────
@@ -109,8 +137,13 @@ class SyncPlayerEngine(context: Context) {
                 // Clock Skewing Zone: slow video via Sonic pitch-invariant stretching
                 val scalingRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat()
                 val clampedRatio = scalingRatio.coerceAtLeast(MIN_VIDEO_SPEED)
-                videoPlayer.playbackParameters = PlaybackParameters(clampedRatio)
-                audioPlayer.playbackParameters = PlaybackParameters(1.0f)
+                
+                if (kotlin.math.abs(videoPlayer.playbackParameters.speed - clampedRatio) > 0.01f) {
+                    videoPlayer.playbackParameters = PlaybackParameters(clampedRatio)
+                }
+                if (kotlin.math.abs(audioPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
+                    audioPlayer.playbackParameters = PlaybackParameters(1.0f)
+                }
                 Log.d(TAG, "Clock skew: video at ${clampedRatio}x (drift: ${durationDrift}ms)")
             }
             durationDrift > FREEZE_THRESHOLD_MS -> {
@@ -122,8 +155,12 @@ class SyncPlayerEngine(context: Context) {
             }
             else -> {
                 // No drift: normal speed
-                videoPlayer.playbackParameters = PlaybackParameters(1.0f)
-                audioPlayer.playbackParameters = PlaybackParameters(1.0f)
+                if (kotlin.math.abs(videoPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
+                    videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+                }
+                if (kotlin.math.abs(audioPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
+                    audioPlayer.playbackParameters = PlaybackParameters(1.0f)
+                }
             }
         }
     }
@@ -135,12 +172,16 @@ class SyncPlayerEngine(context: Context) {
     fun handleAudioSegmentComplete() {
         if (isFreezing) {
             isFreezing = false
-            videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            if (kotlin.math.abs(videoPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
+                videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            }
             videoPlayer.play()
             Log.d(TAG, "Unfreeze: video resumed at 1.0x")
         } else {
             // Reset any clock-skewing
-            videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            if (kotlin.math.abs(videoPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
+                videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            }
         }
         currentInterval = null
     }
@@ -187,7 +228,9 @@ class SyncPlayerEngine(context: Context) {
             // Exit freeze
             isFreezing = false
             currentInterval = null
-            videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            if (kotlin.math.abs(videoPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
+                videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            }
             videoPlayer.play()
         }
 
@@ -243,14 +286,13 @@ class SyncPlayerEngine(context: Context) {
         }
 
         if (activeVocalPath != path) {
-            audioPlayer.stop()
-            if (targetFile.exists()) {
-                audioPlayer.setMediaItem(MediaItem.fromUri(path))
-                audioPlayer.prepare()
-                audioPlayer.seekTo(playheadMs)
+            val windowIndex = vocalWindowIndices[interval.vocalAssetLocalPath]
+            if (windowIndex != null) {
+                audioPlayer.seekTo(windowIndex, playheadMs)
                 if (isPlaying) audioPlayer.play()
                 activeVocalPath = path
             } else {
+                audioPlayer.stop()
                 activeVocalPath = null
             }
         } else {

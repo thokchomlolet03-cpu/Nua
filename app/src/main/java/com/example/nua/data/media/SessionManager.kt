@@ -78,6 +78,40 @@ class SessionManager(private val context: Context) {
         }.toIntArray()
 
         val tracksVector = LectureSession.createTimelineTracksVector(builder, segmentOffsets)
+        
+        val quizzesOffsets = composition.quizzes.map { q ->
+            val questionOff = builder.createString(q.question)
+            val optionsOffs = q.options.map { builder.createString(it) }.toIntArray()
+            val optionsVector = com.example.nua.data.schema.Quiz.createOptionsVector(builder, optionsOffs)
+            
+            com.example.nua.data.schema.Quiz.createQuiz(
+                builder,
+                q.triggerTimestampMs,
+                questionOff,
+                optionsVector,
+                q.correctIndex.toUByte()
+            )
+        }.toIntArray()
+        val quizzesVector = LectureSession.createQuizzesVector(builder, quizzesOffsets)
+
+        val kgOffsets = composition.knowledgeGraph.map { k ->
+            val nodeIdOff = builder.createString(k.nodeId)
+            val summaryOff = builder.createString(k.summaryFactoid)
+            val kwOffs = k.keywords.map { builder.createString(it) }.toIntArray()
+            val kwVector = com.example.nua.data.schema.GraphNode.createKeywordsVector(builder, kwOffs)
+            val ctxOffs = k.contextTokens.map { builder.createString(it) }.toIntArray()
+            val ctxVector = com.example.nua.data.schema.GraphNode.createContextTokensVector(builder, ctxOffs)
+
+            com.example.nua.data.schema.GraphNode.createGraphNode(
+                builder,
+                nodeIdOff,
+                kwVector,
+                summaryOff,
+                ctxVector
+            )
+        }.toIntArray()
+        val kgVector = LectureSession.createKnowledgeGraphVector(builder, kgOffsets)
+
         val sessionIdOff = builder.createString(composition.videoId)
         val sourceVideoOff = builder.createString(composition.sourceVideoPath)
         val sourceLangOff = builder.createString("en")
@@ -85,14 +119,14 @@ class SessionManager(private val context: Context) {
 
         val root = LectureSession.createLectureSession(
             builder,
-            sessionIdOffset = sessionIdOff,
-            sourceLangOffset = sourceLangOff,
-            targetLangOffset = targetLangOff,
-            courseTitleOffset = sourceVideoOff,
-            timelineTracksOffset = tracksVector,
-            quizzesOffset = 0,
-            knowledgeGraphOffset = 0,
-            telemetryLedgerOffset = 0
+            sessionIdOff,
+            sourceLangOff,
+            targetLangOff,
+            sourceVideoOff,
+            tracksVector,
+            quizzesVector,
+            kgVector,
+            0
         )
         LectureSession.finishLectureSessionBuffer(builder, root)
 
@@ -112,7 +146,7 @@ class SessionManager(private val context: Context) {
         return try {
             val raf = RandomAccessFile(file, "r")
             val channel = raf.channel
-            val mappedBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, file.length())
+            val mappedBuffer = ByteBuffer.wrap(file.readBytes())
             mappedBuffer.order(ByteOrder.LITTLE_ENDIAN)
             channel.close()
             raf.close()
@@ -206,11 +240,24 @@ class SessionManager(private val context: Context) {
             )
         }
 
+        val kgList = (0 until session.knowledgeGraphLength).map { i ->
+            val k = session.knowledgeGraph(i)!!
+            val kwList = (0 until k.keywordsLength).map { j -> k.keywords(j) ?: "" }
+            val ctxList = (0 until k.contextTokensLength).map { j -> k.contextTokens(j) ?: "" }
+            GraphNodeInfo(
+                nodeId = k.nodeId ?: "",
+                keywords = kwList,
+                summaryFactoid = k.summaryFactoid ?: "",
+                contextTokens = ctxList
+            )
+        }
+
         return MediaComposition(
             videoId = session.sessionId ?: "",
             sourceVideoPath = session.courseTitle ?: "raw_lecture.mp4",
             segments = segments,
-            quizzes = quizzesList
+            quizzes = quizzesList,
+            knowledgeGraph = kgList
         )
     }
 

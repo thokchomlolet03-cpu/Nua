@@ -170,7 +170,7 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
     fun startDubbingVideoFromUrl(url: String) {
         if (isProcessing.value) return
 
-        viewModelScope.launch(Dispatchers.IO) {
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob()).launch {
             val client = OkHttpClient()
             val tempVideoFile = File(context.cacheDir, "downloaded_temp.mp4")
 

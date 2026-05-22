@@ -14,7 +14,16 @@ data class MediaComposition(
     val videoId: String,
     val sourceVideoPath: String,
     val segments: List<PlaybackSegment>,
-    val quizzes: List<QuizInfo> = emptyList()
+    val quizzes: List<QuizInfo> = emptyList(),
+    val knowledgeGraph: List<GraphNodeInfo> = emptyList()
+)
+
+@Serializable
+data class GraphNodeInfo(
+    val nodeId: String,
+    val keywords: List<String>,
+    val summaryFactoid: String,
+    val contextTokens: List<String>
 )
 
 @Serializable

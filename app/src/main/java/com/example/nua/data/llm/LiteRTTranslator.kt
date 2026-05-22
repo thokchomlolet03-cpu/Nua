@@ -9,6 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 
 /**
@@ -26,6 +28,8 @@ class LiteRTTranslator(private val context: Context) {
     companion object {
         private const val TAG = "LiteRTTranslator"
     }
+
+    private val translationMutex = Mutex()
 
     private var engine: Engine? = null
     private var currentModelPath: String? = null
@@ -101,20 +105,22 @@ class LiteRTTranslator(private val context: Context) {
         val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
 
         try {
-            Log.d(TAG, "Sending prompt to LiteRT-LM: $text")
-            val conversation = lmEngine.createConversation()
-            val responseBuilder = StringBuilder()
+            translationMutex.withLock {
+                Log.d(TAG, "Sending prompt to LiteRT-LM: $text")
+                val conversation = lmEngine.createConversation()
+                val responseBuilder = StringBuilder()
 
-            // Collect streaming response into a single string
-            conversation.sendMessageAsync(prompt).collect { message ->
-                responseBuilder.append(message.toString())
+                // Collect streaming response into a single string
+                conversation.sendMessageAsync(prompt).collect { message ->
+                    responseBuilder.append(message.toString())
+                }
+
+                val result = responseBuilder.toString()
+                val cleaned = cleanResponse(result)
+                val limited = limitWordCount(cleaned, maxWords)
+                Log.d(TAG, "LiteRT-LM response: $limited")
+                return@withContext limited
             }
-
-            val result = responseBuilder.toString()
-            val cleaned = cleanResponse(result)
-            val limited = limitWordCount(cleaned, maxWords)
-            Log.d(TAG, "LiteRT-LM response: $limited")
-            limited
         } catch (e: Exception) {
             Log.e(TAG, "Error in LiteRT-LM translation", e)
             "Error: Translation failed"
