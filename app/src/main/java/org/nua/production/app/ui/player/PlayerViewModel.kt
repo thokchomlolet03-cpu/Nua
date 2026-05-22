@@ -17,6 +17,9 @@ import org.nua.production.app.data.media.HotspotInfo
 import org.nua.production.app.data.media.QuizInfo
 import org.nua.production.app.data.llm.ModelLifecycleManager
 import org.nua.production.app.data.schema.LectureSession
+import org.nua.production.app.data.telemetry.LocalTelemetryStore
+import org.nua.production.app.data.telemetry.QuizResponse
+import org.nua.production.app.data.telemetry.TelemetryContract
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +35,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val context = application.applicationContext
     private val sessionManager = SessionManager(context.filesDir)
+    private val telemetryStore: TelemetryContract = LocalTelemetryStore(context)
 
     private var syncEngine: SyncPlayerEngine? = null
 
@@ -87,6 +91,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private var composition: MediaComposition? = null
 
     private val shownQuizTimestamps: MutableSet<Long> = Collections.synchronizedSet(mutableSetOf())
+    private var maxCompletionPercentage = 0
 
     fun initSession(sessionPath: String) {
         if (syncEngine != null) {
@@ -116,6 +121,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
                 // Reset quiz progress state
                 shownQuizTimestamps.clear()
+                maxCompletionPercentage = 0
 
                 withContext(Dispatchers.Main) {
                     _totalDurationMs.value = map.totalVirtualDurationMs
@@ -138,6 +144,15 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                         _currentTranslatedText.value = state.currentSubtitle ?: ""
                         _isFreezing.value = state.isFreezing
                         _currentHotspots.value = state.activeInterval?.hotspots ?: emptyList()
+
+                        // Track completion percentage peak
+                        val totalDur = _totalDurationMs.value
+                        if (totalDur > 0) {
+                            val pct = (state.virtualTimeMs * 100 / totalDur).toInt().coerceIn(0, 100)
+                            if (pct > maxCompletionPercentage) {
+                                maxCompletionPercentage = pct
+                            }
+                        }
 
                         // Evaluate quiz triggers based on playhead position
                         checkQuizTriggers(state.virtualTimeMs)
@@ -209,7 +224,26 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         _virtualTimeMs.value = virtualMs
     }
 
-    fun submitQuizAnswer() {
+    fun submitQuizAnswer(quiz: QuizInfo, selectedIndex: Int, latencyMs: Long) {
+        val comp = composition
+        if (comp != null) {
+            val sessionId = comp.videoId
+            val isCorrect = selectedIndex == quiz.correctIndex
+            val response = QuizResponse(
+                quizId = quiz.triggerTimestampMs.toString(),
+                selectedIndex = selectedIndex,
+                latencyMs = latencyMs,
+                isCorrect = isCorrect
+            )
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    telemetryStore.recordQuizResponses(sessionId, listOf(response))
+                    telemetryStore.flushToServer()
+                } catch (e: Exception) {
+                    Log.e("PlayerViewModel", "Failed to record quiz responses", e)
+                }
+            }
+        }
         _activeQuiz.value = null
         play()
     }
@@ -329,6 +363,22 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun releasePlayers() {
+        val comp = composition
+        val pct = maxCompletionPercentage
+        if (comp != null && pct > 0) {
+            val sessionId = comp.videoId
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    telemetryStore.recordCompletion(sessionId, pct)
+                    telemetryStore.flushToServer()
+                } catch (e: Exception) {
+                    Log.e("PlayerViewModel", "Failed to record completion telemetry", e)
+                }
+            }
+        }
+        maxCompletionPercentage = 0
+        shownQuizTimestamps.clear()
+
         syncEngine?.release()
         syncEngine = null
         _isPlaying.value = false

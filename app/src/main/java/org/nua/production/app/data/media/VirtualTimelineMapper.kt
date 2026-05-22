@@ -25,6 +25,9 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
     val intervals: List<TimelineInterval>
     val totalVirtualDurationMs: Long
     private val physicalStartPositions: LongArray
+    private val virtualStartPositions: LongArray
+    private val virtualEndPositions: LongArray
+    private val cumulativeHoldsAtEnd: LongArray
 
     init {
         val list = ArrayList<TimelineInterval>()
@@ -69,6 +72,9 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
         }
         intervals = list
         physicalStartPositions = list.map { it.originalStartMs }.toLongArray()
+        virtualStartPositions = list.map { it.virtualStartMs }.toLongArray()
+        virtualEndPositions = list.map { it.virtualEndMs }.toLongArray()
+        cumulativeHoldsAtEnd = list.map { it.cumulativeHoldBeforeMs + it.holdMs }.toLongArray()
 
         // Find total original duration. Assume last segment's end or extract from media
         val lastOriginalEnd = composition.segments.lastOrNull()?.endMs ?: 0L
@@ -130,43 +136,57 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
             )
         }
 
-        // 1. Check if virtualTimeMs falls into any vocal chunk interval
-        val active = intervals.firstOrNull { virtualTimeMs >= it.virtualStartMs && virtualTimeMs <= it.virtualEndMs }
-        if (active != null) {
-            val elapsedInInterval = virtualTimeMs - active.virtualStartMs
-            val originalDur = active.originalEndMs - active.originalStartMs
-
-            return if (elapsedInInterval >= originalDur) {
-                // If dubbed audio is longer than original segment and has run past originalEndMs: Freeze video!
-                PhysicalState(
-                    physicalTimeMs = active.originalEndMs,
-                    shouldFreeze = true,
-                    activeInterval = active,
-                    vocalPlayheadMs = elapsedInInterval
-                )
+        var lo = 0
+        var hi = virtualStartPositions.size - 1
+        var idx = -1
+        while (lo <= hi) {
+            val mid = (lo + hi) ushr 1
+            if (virtualStartPositions[mid] <= virtualTimeMs) {
+                idx = mid
+                lo = mid + 1
             } else {
-                // Video plays normally in sync with the beginning of the vocal chunk
-                PhysicalState(
-                    physicalTimeMs = active.originalStartMs + elapsedInInterval,
+                hi = mid - 1
+            }
+        }
+
+        if (idx >= 0) {
+            val active = intervals[idx]
+            if (virtualTimeMs <= active.virtualEndMs) {
+                val elapsedInInterval = virtualTimeMs - active.virtualStartMs
+                val originalDur = active.originalEndMs - active.originalStartMs
+
+                return if (elapsedInInterval >= originalDur) {
+                    // If dubbed audio is longer than original segment and has run past originalEndMs: Freeze video!
+                    PhysicalState(
+                        physicalTimeMs = active.originalEndMs,
+                        shouldFreeze = true,
+                        activeInterval = active,
+                        vocalPlayheadMs = elapsedInInterval
+                    )
+                } else {
+                    // Video plays normally in sync with the beginning of the vocal chunk
+                    PhysicalState(
+                        physicalTimeMs = active.originalStartMs + elapsedInInterval,
+                        shouldFreeze = false,
+                        activeInterval = active,
+                        vocalPlayheadMs = elapsedInInterval
+                    )
+                }
+            } else {
+                // Not inside any segment: we are in a silence/gap after the interval 'idx'
+                val cumulativeHold = cumulativeHoldsAtEnd[idx]
+                val physicalTime = (virtualTimeMs - cumulativeHold).coerceAtLeast(0L)
+                return PhysicalState(
+                    physicalTimeMs = physicalTime,
                     shouldFreeze = false,
-                    activeInterval = active,
-                    vocalPlayheadMs = elapsedInInterval
+                    activeInterval = null,
+                    vocalPlayheadMs = 0L
                 )
             }
         }
 
-        // 2. Not inside any segment: we are in a silence/gap.
-        // Physical = Virtual - cumulativeHold of all completed holds before this point.
-        var cumulativeHold = 0L
-        for (interval in intervals) {
-            if (virtualTimeMs >= interval.virtualEndMs) {
-                cumulativeHold += interval.holdMs
-            } else {
-                break
-            }
-        }
-
-        val physicalTime = (virtualTimeMs - cumulativeHold).coerceAtLeast(0L)
+        // virtualTimeMs is before the first interval
+        val physicalTime = virtualTimeMs.coerceAtLeast(0L)
         return PhysicalState(
             physicalTimeMs = physicalTime,
             shouldFreeze = false,

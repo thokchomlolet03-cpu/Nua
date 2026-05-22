@@ -346,6 +346,8 @@ fun PlayerScreen(
             ) {
                 var selectedOption by remember { mutableStateOf<Int?>(null) }
                 var submitted by remember { mutableStateOf(false) }
+                val quizShownTime = remember(quiz) { System.currentTimeMillis() }
+                var latencyMs by remember { mutableStateOf(0L) }
 
                 Card(
                     modifier = Modifier
@@ -432,7 +434,10 @@ fun PlayerScreen(
 
                         if (!submitted) {
                             Button(
-                                onClick = { submitted = true },
+                                onClick = {
+                                    submitted = true
+                                    latencyMs = System.currentTimeMillis() - quizShownTime
+                                },
                                 enabled = selectedOption != null,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -453,7 +458,11 @@ fun PlayerScreen(
                         } else {
                             Button(
                                 onClick = {
-                                    viewModel.submitQuizAnswer()
+                                    viewModel.submitQuizAnswer(
+                                        quiz = quiz,
+                                        selectedIndex = selectedOption ?: -1,
+                                        latencyMs = latencyMs
+                                    )
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
