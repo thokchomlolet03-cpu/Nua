@@ -83,8 +83,15 @@ hotspotsLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+directive():string|null
+directive(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+directive(optionalEncoding?:any):string|Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 22);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+}
+
 static startTimeSegment(builder:flatbuffers.Builder) {
-  builder.startObject(9);
+  builder.startObject(10);
 }
 
 static addSegmentId(builder:flatbuffers.Builder, segmentIdOffset:flatbuffers.Offset) {
@@ -135,12 +142,16 @@ static startHotspotsVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addDirective(builder:flatbuffers.Builder, directiveOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(9, directiveOffset, 0);
+}
+
 static endTimeSegment(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createTimeSegment(builder:flatbuffers.Builder, segmentIdOffset:flatbuffers.Offset, videoStartMs:number, videoEndMs:number, audioSourcePathOffset:flatbuffers.Offset, audioDurationMs:number, originalTextOffset:flatbuffers.Offset, translatedTextOffset:flatbuffers.Offset, shouldFreeze:boolean, hotspotsOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createTimeSegment(builder:flatbuffers.Builder, segmentIdOffset:flatbuffers.Offset, videoStartMs:number, videoEndMs:number, audioSourcePathOffset:flatbuffers.Offset, audioDurationMs:number, originalTextOffset:flatbuffers.Offset, translatedTextOffset:flatbuffers.Offset, shouldFreeze:boolean, hotspotsOffset:flatbuffers.Offset, directiveOffset:flatbuffers.Offset):flatbuffers.Offset {
   TimeSegment.startTimeSegment(builder);
   TimeSegment.addSegmentId(builder, segmentIdOffset);
   TimeSegment.addVideoStartMs(builder, videoStartMs);
@@ -151,6 +162,7 @@ static createTimeSegment(builder:flatbuffers.Builder, segmentIdOffset:flatbuffer
   TimeSegment.addTranslatedText(builder, translatedTextOffset);
   TimeSegment.addShouldFreeze(builder, shouldFreeze);
   TimeSegment.addHotspots(builder, hotspotsOffset);
+  TimeSegment.addDirective(builder, directiveOffset);
   return TimeSegment.endTimeSegment(builder);
 }
 }

@@ -39,6 +39,23 @@ export class TranslationAgent {
         }
     }
 
+    private async withRetry<T>(operation: () => Promise<T>, maxRetries = 3): Promise<T> {
+        let attempt = 0;
+        let delay = 1000;
+        while (attempt < maxRetries) {
+            try {
+                return await operation();
+            } catch (error: any) {
+                attempt++;
+                if (attempt >= maxRetries) throw error;
+                console.warn(`GenAI API call failed (attempt ${attempt}/${maxRetries}): ${error.message}. Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+        }
+        throw new Error('Retry loop failed');
+    }
+
     /**
      * Translates a lecture audio file using Gemini 3.5 Flash.
      * Produces timestamped, translated segments.
@@ -70,12 +87,12 @@ Output ONLY valid JSON. No explanations.`;
         let uploadResult: any = null;
         let response;
         try {
-            uploadResult = await this.genAI.files.upload({ file: wavPath, config: { mimeType: 'audio/wav' } });
+            uploadResult = await this.withRetry(() => this.genAI!.files.upload({ file: wavPath, config: { mimeType: 'audio/wav' } }));
             
-            response = await model.generateContent({
+            response = await this.withRetry(() => model.generateContent({
                 model: 'gemini-3.5-flash',
                 contents: [uploadResult, systemPrompt]
-            });
+            }));
         } catch (e: any) {
             if (uploadResult && uploadResult.name) {
                 try {
@@ -89,12 +106,14 @@ Output ONLY valid JSON. No explanations.`;
 
         try {
             const text = response.text || '';
-            // Extract JSON from response (handle markdown code blocks)
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (!jsonMatch) {
-                throw new Error('Failed to extract JSON from Gemini response');
+            // Extract JSON from response robustly
+            const firstBracket = text.indexOf('[');
+            const lastBracket = text.lastIndexOf(']');
+            if (firstBracket === -1 || lastBracket === -1 || lastBracket < firstBracket) {
+                throw new Error('Failed to extract JSON array from Gemini response');
             }
-            const segments: TranslationSegment[] = JSON.parse(jsonMatch[0]);
+            const jsonStr = text.substring(firstBracket, lastBracket + 1);
+            const segments: TranslationSegment[] = JSON.parse(jsonStr);
 
             return {
                 segments,
@@ -140,10 +159,10 @@ Output ONLY valid JSON array. No explanations.`;
 
         let response;
         try {
-            response = await this.genAI.models.generateContent({
+            response = await this.withRetry(() => this.genAI!.models.generateContent({
                 model: 'gemini-3.5-flash',
                 contents: prompt
-            });
+            }));
         } catch (e: any) {
             console.error('Failed to generate knowledge graph:', e.message);
             return [];
@@ -151,9 +170,10 @@ Output ONLY valid JSON array. No explanations.`;
 
         try {
             const text = response.text || '';
-            const jsonMatch = text.match(/\[[\s\S]*\]/);
-            if (!jsonMatch) return [];
-            return JSON.parse(jsonMatch[0]);
+            const firstBracket = text.indexOf('[');
+            const lastBracket = text.lastIndexOf(']');
+            if (firstBracket === -1 || lastBracket === -1 || lastBracket < firstBracket) return [];
+            return JSON.parse(text.substring(firstBracket, lastBracket + 1));
         } catch {
             return [];
         }

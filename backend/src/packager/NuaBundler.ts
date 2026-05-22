@@ -30,6 +30,8 @@ export class NuaBundler {
             const origTextOff = builder.createString(seg.originalText || "");
             const transTextOff = builder.createString(seg.translatedText || "");
 
+            const directiveOff = builder.createString("NORMAL_SYNC");
+
             // using generated builder
             const shouldFreeze = seg.audioDurationMs > (seg.videoEndMs - seg.videoStartMs);
             return TimeSegment.createTimeSegment(
@@ -42,7 +44,8 @@ export class NuaBundler {
                 origTextOff,
                 transTextOff,
                 shouldFreeze,
-                0 // hotspots (empty)
+                0, // hotspots (empty)
+                directiveOff
             );
         });
 
@@ -96,7 +99,7 @@ export class NuaBundler {
 
         // Write binary to disk
         const buf = builder.asUint8Array();
-        fs.writeFileSync(outputPath, Buffer.from(buf));
+        fs.writeFileSync(outputPath, buf);
         console.log(`  📄 Serialized .nuab bundle: ${buf.length} bytes → ${outputPath}`);
     }
 }
