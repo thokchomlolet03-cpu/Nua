@@ -1,12 +1,12 @@
 # Nua — Deep Technical Analysis
 
-> **Revision**: 7 (Post-Remediation — All Bugs Resolved)
+> **Revision**: 8 (Backend Post-Audit Analysis)
 > **Date**: 2026-05-22
 > **Codebase**: Android Client (Nua Edge) & Cloud Backend (Nua Web Studio)
 > **Binary Schema**: FlatBuffers (`schema/nua_schema.fbs`)
 
-> [!TIP]
-> **Status: 🟢 Production Ready (v3.1)** — This document reflects a complete line-by-line audit of every source file. All 21 identified bugs (B1–B8 + C1–C6 + M7–M13 + L9) have been fully resolved. Build verified: `assembleDebug` + unit tests pass.
+> [!WARNING]
+> **Status: 🟠 Backend Remediation Required** — The Android client (v3.1) is completely stabilized and bug-free. However, a deep audit of the Node.js backend reveals 3 active bugs (B9: Schema Out of Sync, B10: Unhandled Rate Limits, B11: Greedy JSON Regex) that must be addressed before the ecosystem is fully production-ready.
 
 ---
 
@@ -198,10 +198,11 @@ Encapsulates all **Gemini 3.5 Flash** interactions via the `@google/genai` SDK.
 - Concatenates all `originalText` segments and prompts Gemini for concept nodes.
 - **Graceful degradation**: Returns empty array on any failure (silent).
 
-**Edge Cases:**
+**Active Flaws & Edge Cases:**
+- 🔴 **Schema Desynchronization**: The FlatBuffers schema (`schema/nua_schema.fbs`) was updated with a new `directive` field to fix `PAD_EMPTY` round-trips on Android, but the TypeScript schema definitions (`backend/src/schema/nua-serialization/time-segment.ts`) were never regenerated. As a result, `NuaBundler` generates bundles with missing offsets, causing fatal deserialization errors on the Android client.
+- 🟡 **No Rate Limiting/Retries**: No retry logic, exponential backoff, or rate-limiting for Gemini API calls. HTTP 429s will silently crash the ingestion task.
+- 🟡 **Greedy Regex**: Response parsing uses `text.match(/\[[\s\S]*\]/)` which is overly greedy and can fail to parse if the LLM output contains trailing text or markdown noise with brackets.
 - No Gemini response schema validation — LLM output is trusted as-is with `JSON.parse`.
-- `coursTitle` is hardcoded to `'Lecture Translation'` — never derived from content.
-- No retry/backoff for Gemini API calls (single attempt).
 - Entire transcript sent as one prompt to `compileKnowledgeGraph` — could exceed context window for long lectures.
 
 ### 3.3 FlatBuffers Bundler (`NuaBundler.ts` — 103 lines)
@@ -211,7 +212,7 @@ Serializes `TranslationResult` + `GraphNodeData[]` into a `.nuab` binary file.
 - `shouldFreeze` flag: `audioDurationMs > (videoEndMs - videoStartMs)` — signals Android player to freeze video.
 - Hotspots, quizzes, and telemetry are passed as offset `0` (empty) — placeholders.
 - `audioSourcePath` generates convention paths (`vocal_chunks/vocal_{start}_{end}.wav`) — but these WAV chunks are never actually created by the backend pipeline. They're placeholders for the future TTS step.
-- `Buffer.from(buf)` creates an unnecessary copy of the `Uint8Array`.
+- `Buffer.from(buf)` creates an unnecessary memory copy of the `Uint8Array`.
 
 ### 3.4 Audio Extraction (`audio.ts` — 43 lines)
 
