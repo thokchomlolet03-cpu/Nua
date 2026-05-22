@@ -13,9 +13,10 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@google/genai": "^1.0.0",
     "@google-cloud/storage": "^7.7.0",
+    "@google/genai": "^1.0.0",
     "express": "^5.0.0",
+    "express-rate-limit": "^7.5.1",
     "flatbuffers": "^25.2.10",
     "fluent-ffmpeg": "^2.1.2"
   },

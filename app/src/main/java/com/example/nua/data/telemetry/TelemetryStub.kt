@@ -3,6 +3,7 @@ package com.example.nua.data.telemetry
 import android.content.Context
 import android.util.Log
 import com.google.flatbuffers.FlatBufferBuilder
+import com.example.nua.data.schema.OptionSelection
 import com.example.nua.data.schema.TelemetryPayload
 import java.io.File
 import java.security.MessageDigest
@@ -21,12 +22,23 @@ import java.security.MessageDigest
  * - Future: P2P mesh relay allows offline devices to aggregate telemetry
  *   through intermediate peers before any device reaches connectivity
  */
+
+/**
+ * Represents a single quiz answer for structured telemetry.
+ */
+data class QuizResponse(
+    val quizId: String,
+    val selectedIndex: Int,
+    val latencyMs: Long,
+    val isCorrect: Boolean
+)
+
 interface TelemetryContract {
     /** Record a session completion event */
     fun recordCompletion(sessionId: String, completionPercentage: Int)
 
-    /** Record quiz results for a session */
-    fun recordQuizScores(sessionId: String, scoresJson: String)
+    /** Record quiz results for a session (structured) */
+    fun recordQuizResponses(sessionId: String, responses: List<QuizResponse>)
 
     /** Flush all pending telemetry when network is available */
     suspend fun flushToServer()
@@ -54,20 +66,20 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
         val payload = buildPayload(
             sessionId = sessionId,
             completionPercentage = completionPercentage.coerceIn(0, 100),
-            quizScoresJson = ""
+            quizResponses = emptyList()
         )
         writePayload(sessionId, "completion", payload)
         Log.d(TAG, "Recorded completion: $sessionId → $completionPercentage%")
     }
 
-    override fun recordQuizScores(sessionId: String, scoresJson: String) {
+    override fun recordQuizResponses(sessionId: String, responses: List<QuizResponse>) {
         val payload = buildPayload(
             sessionId = sessionId,
             completionPercentage = 0,
-            quizScoresJson = scoresJson
+            quizResponses = responses
         )
         writePayload(sessionId, "quiz", payload)
-        Log.d(TAG, "Recorded quiz scores: $sessionId")
+        Log.d(TAG, "Recorded ${responses.size} quiz responses: $sessionId")
     }
 
     override suspend fun flushToServer() {
@@ -88,21 +100,35 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
     private fun buildPayload(
         sessionId: String,
         completionPercentage: Int,
-        quizScoresJson: String
+        quizResponses: List<QuizResponse>
     ): ByteArray {
         val builder = FlatBufferBuilder(256)
         val sessionIdOff = builder.createString(sessionId)
-        val quizJsonOff = builder.createString(quizScoresJson)
+
+        // Build quiz response vector (typed OptionSelection instead of ad-hoc JSON)
+        val responseOffsets = quizResponses.map { qr ->
+            val quizIdOff = builder.createString(qr.quizId)
+            OptionSelection.createOptionSelection(
+                builder,
+                quizIdOffset = quizIdOff,
+                selectedIndex = qr.selectedIndex.toUByte(),
+                latencyMs = qr.latencyMs,
+                isCorrect = qr.isCorrect
+            )
+        }.toIntArray()
+        val responsesVectorOff = if (responseOffsets.isNotEmpty()) {
+            TelemetryPayload.createQuizResponsesVector(builder, responseOffsets)
+        } else 0
 
         // Generate cryptographic signature (SHA-256 of content)
-        val contentHash = sha256("$sessionId|$completionPercentage|$quizScoresJson")
+        val contentHash = sha256("$sessionId|$completionPercentage|${quizResponses.size}")
         val sigOff = builder.createString(contentHash)
 
         val root = TelemetryPayload.createTelemetryPayload(
             builder,
             sessionIdOffset = sessionIdOff,
             completionPercentage = completionPercentage.toUByte(),
-            quizScoresJsonOffset = quizJsonOff,
+            quizResponsesVectorOffset = responsesVectorOff,
             cryptographicSignatureOffset = sigOff
         )
         builder.finish(root)

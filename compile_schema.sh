@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCHEMA_FILE="${SCRIPT_DIR}/schema/nua_schema.fbs"
 
 KOTLIN_OUT="${SCRIPT_DIR}/app/src/main/java"
-TS_OUT="${SCRIPT_DIR}/backend/src/generated"
+TS_OUT="${SCRIPT_DIR}/backend/src/schema"
 
 if ! command -v flatc &> /dev/null; then
     echo "❌ flatc not found. Install from: https://github.com/google/flatbuffers/releases"

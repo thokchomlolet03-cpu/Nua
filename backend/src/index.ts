@@ -1,4 +1,6 @@
 import express from 'express';
+import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
 import { Storage } from '@google-cloud/storage';
 import { TranslationAgent } from './agents/TranslationAgent.js';
 import { NuaBundler } from './packager/NuaBundler.js';
@@ -34,6 +36,26 @@ try {
 const translationAgent = new TranslationAgent(GEMINI_API_KEY || '');
 const bundler = new NuaBundler();
 
+// ─── Security Middleware ───────────────────────────────────────────────
+
+const ingestionLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minute window
+    max: 5,                   // Strict request limits per IP
+    message: { error: 'Excessive requests generated from this origin point' }
+});
+
+const verifyHmacSignature = (req: any, res: any, next: any) => {
+    const signature = req.headers['x-nua-signature'];
+    if (!signature) return res.status(401).json({ error: 'Missing security signature metadata' });
+
+    const computedHmac = crypto.createHmac('sha256', process.env.SIGNING_SECRET || 'fallback_secret')
+                               .update(JSON.stringify(req.body))
+                               .digest('hex');
+
+    if (signature !== computedHmac) return res.status(403).json({ error: 'Access signature verification failure' });
+    next();
+};
+
 // ─── Health Check ──────────────────────────────────────────────────────
 
 app.get('/health', (_req, res) => {
@@ -46,7 +68,7 @@ app.get('/health', (_req, res) => {
 
 // ─── Main Ingestion Endpoint ───────────────────────────────────────────
 
-app.post('/api/v1/ingest', async (req, res) => {
+app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, async (req, res) => {
     const { videoUrl, targetLanguage = 'hi', courseContextDocs = '' } = req.body;
 
     if (typeof videoUrl !== 'string' || !videoUrl.startsWith('http')) {

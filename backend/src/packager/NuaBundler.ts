@@ -30,10 +30,11 @@ export class NuaBundler {
             const origTextOff = builder.createString(seg.originalText || "");
             const transTextOff = builder.createString(seg.translatedText || "");
 
-            const directiveOff = builder.createString("NORMAL_SYNC");
+            // Determine directive based on duration comparison
+            const directive = seg.audioDurationMs > (seg.videoEndMs - seg.videoStartMs)
+                ? "FREEZE_HOLD" : "NORMAL_SYNC";
+            const directiveOff = builder.createString(directive);
 
-            // using generated builder
-            const shouldFreeze = seg.audioDurationMs > (seg.videoEndMs - seg.videoStartMs);
             return TimeSegment.createTimeSegment(
                 builder,
                 segIdOff,
@@ -43,9 +44,8 @@ export class NuaBundler {
                 seg.audioDurationMs,
                 origTextOff,
                 transTextOff,
-                shouldFreeze,
-                0, // hotspots (empty)
-                directiveOff
+                directiveOff,
+                0 // hotspots (empty)
             );
         });
 
@@ -81,21 +81,19 @@ export class NuaBundler {
         const sessionIdOff = builder.createString(`session_${Date.now()}`);
         const sourceLangOff = builder.createString(result.sourceLang);
         const targetLangOff = builder.createString(result.targetLang);
-        const titleOff = builder.createString(result.courseTitle);
+        const sourceVideoPathOff = builder.createString(result.courseTitle || 'unknown');
 
-        const root = LectureSession.createLectureSession(
-            builder,
-            sessionIdOff,
-            sourceLangOff,
-            targetLangOff,
-            titleOff,
-            segmentsVector,
-            0, // quizzes
-            graphVector,
-            0  // telemetry_ledger
-        );
+        LectureSession.startLectureSession(builder);
+        LectureSession.addSchemaVersion(builder, 1);
+        LectureSession.addSessionId(builder, sessionIdOff);
+        LectureSession.addSourceLang(builder, sourceLangOff);
+        LectureSession.addTargetLang(builder, targetLangOff);
+        LectureSession.addSourceVideoPath(builder, sourceVideoPathOff);
+        LectureSession.addTimelineTracks(builder, segmentsVector);
+        LectureSession.addKnowledgeGraph(builder, graphVector);
+        const root = LectureSession.endLectureSession(builder);
 
-        builder.finish(root);
+        builder.finish(root, 'NUAB');
 
         // Write binary to disk
         const buf = builder.asUint8Array();

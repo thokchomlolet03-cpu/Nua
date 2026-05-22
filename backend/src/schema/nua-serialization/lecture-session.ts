@@ -28,96 +28,109 @@ static getSizePrefixedRootAsLectureSession(bb:flatbuffers.ByteBuffer, obj?:Lectu
   return (obj || new LectureSession()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
+static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
+  return bb.__has_identifier('NUAB');
+}
+
+schemaVersion():number {
+  const offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? this.bb!.readUint16(this.bb_pos + offset) : 1;
+}
+
 sessionId():string|null
 sessionId(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 sessionId(optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 4);
+  const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
 sourceLang():string|null
 sourceLang(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 sourceLang(optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 6);
+  const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
 targetLang():string|null
 targetLang(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
 targetLang(optionalEncoding?:any):string|Uint8Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
-}
-
-courseTitle():string|null
-courseTitle(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-courseTitle(optionalEncoding?:any):string|Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
+sourceVideoPath():string|null
+sourceVideoPath(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+sourceVideoPath(optionalEncoding?:any):string|Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+}
+
 timelineTracks(index: number, obj?:TimeSegment):TimeSegment|null {
-  const offset = this.bb!.__offset(this.bb_pos, 12);
+  const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? (obj || new TimeSegment()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 timelineTracksLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 12);
+  const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 quizzes(index: number, obj?:Quiz):Quiz|null {
-  const offset = this.bb!.__offset(this.bb_pos, 14);
+  const offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? (obj || new Quiz()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 quizzesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 14);
+  const offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 knowledgeGraph(index: number, obj?:GraphNode):GraphNode|null {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
+  const offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? (obj || new GraphNode()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 knowledgeGraphLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
+  const offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 telemetryLedger(index: number, obj?:TelemetryPayload):TelemetryPayload|null {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
+  const offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? (obj || new TelemetryPayload()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
 }
 
 telemetryLedgerLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
+  const offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 static startLectureSession(builder:flatbuffers.Builder) {
-  builder.startObject(8);
+  builder.startObject(10);
+}
+
+static addSchemaVersion(builder:flatbuffers.Builder, schemaVersion:number) {
+  builder.addFieldInt16(0, schemaVersion, 1);
 }
 
 static addSessionId(builder:flatbuffers.Builder, sessionIdOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(0, sessionIdOffset, 0);
+  builder.addFieldOffset(1, sessionIdOffset, 0);
 }
 
 static addSourceLang(builder:flatbuffers.Builder, sourceLangOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(1, sourceLangOffset, 0);
+  builder.addFieldOffset(2, sourceLangOffset, 0);
 }
 
 static addTargetLang(builder:flatbuffers.Builder, targetLangOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, targetLangOffset, 0);
+  builder.addFieldOffset(3, targetLangOffset, 0);
 }
 
-static addCourseTitle(builder:flatbuffers.Builder, courseTitleOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, courseTitleOffset, 0);
+static addSourceVideoPath(builder:flatbuffers.Builder, sourceVideoPathOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, sourceVideoPathOffset, 0);
 }
 
 static addTimelineTracks(builder:flatbuffers.Builder, timelineTracksOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(4, timelineTracksOffset, 0);
+  builder.addFieldOffset(6, timelineTracksOffset, 0);
 }
 
 static createTimelineTracksVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
@@ -133,7 +146,7 @@ static startTimelineTracksVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addQuizzes(builder:flatbuffers.Builder, quizzesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(5, quizzesOffset, 0);
+  builder.addFieldOffset(7, quizzesOffset, 0);
 }
 
 static createQuizzesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
@@ -149,7 +162,7 @@ static startQuizzesVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addKnowledgeGraph(builder:flatbuffers.Builder, knowledgeGraphOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(6, knowledgeGraphOffset, 0);
+  builder.addFieldOffset(8, knowledgeGraphOffset, 0);
 }
 
 static createKnowledgeGraphVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
@@ -165,7 +178,7 @@ static startKnowledgeGraphVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addTelemetryLedger(builder:flatbuffers.Builder, telemetryLedgerOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(7, telemetryLedgerOffset, 0);
+  builder.addFieldOffset(9, telemetryLedgerOffset, 0);
 }
 
 static createTelemetryLedgerVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
@@ -186,19 +199,20 @@ static endLectureSession(builder:flatbuffers.Builder):flatbuffers.Offset {
 }
 
 static finishLectureSessionBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset);
+  builder.finish(offset, 'NUAB');
 }
 
 static finishSizePrefixedLectureSessionBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, undefined, true);
+  builder.finish(offset, 'NUAB', true);
 }
 
-static createLectureSession(builder:flatbuffers.Builder, sessionIdOffset:flatbuffers.Offset, sourceLangOffset:flatbuffers.Offset, targetLangOffset:flatbuffers.Offset, courseTitleOffset:flatbuffers.Offset, timelineTracksOffset:flatbuffers.Offset, quizzesOffset:flatbuffers.Offset, knowledgeGraphOffset:flatbuffers.Offset, telemetryLedgerOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createLectureSession(builder:flatbuffers.Builder, schemaVersion:number, sessionIdOffset:flatbuffers.Offset, sourceLangOffset:flatbuffers.Offset, targetLangOffset:flatbuffers.Offset, sourceVideoPathOffset:flatbuffers.Offset, timelineTracksOffset:flatbuffers.Offset, quizzesOffset:flatbuffers.Offset, knowledgeGraphOffset:flatbuffers.Offset, telemetryLedgerOffset:flatbuffers.Offset):flatbuffers.Offset {
   LectureSession.startLectureSession(builder);
+  LectureSession.addSchemaVersion(builder, schemaVersion);
   LectureSession.addSessionId(builder, sessionIdOffset);
   LectureSession.addSourceLang(builder, sourceLangOffset);
   LectureSession.addTargetLang(builder, targetLangOffset);
-  LectureSession.addCourseTitle(builder, courseTitleOffset);
+  LectureSession.addSourceVideoPath(builder, sourceVideoPathOffset);
   LectureSession.addTimelineTracks(builder, timelineTracksOffset);
   LectureSession.addQuizzes(builder, quizzesOffset);
   LectureSession.addKnowledgeGraph(builder, knowledgeGraphOffset);

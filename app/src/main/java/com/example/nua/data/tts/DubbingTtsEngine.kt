@@ -5,16 +5,13 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import com.example.nua.data.media.WavUtils
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class DubbingTtsEngine(private val context: Context) {
 
@@ -165,33 +162,20 @@ class DubbingTtsEngine(private val context: Context) {
     }
 
     fun getWavDurationSeconds(wavFile: File): Double {
-        if (wavFile.length() <= 44) return 0.0
-        var fis: java.io.FileInputStream? = null
-        try {
-            val buffer = ByteArray(44)
-            fis = java.io.FileInputStream(wavFile)
-            val read = fis.read(buffer)
-            if (read < 44) return 0.0
+        return WavUtils.getWavDurationSeconds(wavFile)
+    }
 
-            // Read channels: byte 22-23 (Short)
-            val channels = ByteBuffer.wrap(buffer, 22, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
-            // Read sample rate: byte 24-27 (Int)
-            val sampleRate = ByteBuffer.wrap(buffer, 24, 4).order(ByteOrder.LITTLE_ENDIAN).int.toInt()
-            // Read bits per sample: byte 34-35 (Short)
-            val bitsPerSample = ByteBuffer.wrap(buffer, 34, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
-
-            val pcmLength = wavFile.length() - 44
-            val bytesPerSample = bitsPerSample / 8
-            val bytesPerSecond = sampleRate * channels * bytesPerSample
-
-            if (bytesPerSecond <= 0) return 0.0
-            return pcmLength.toDouble() / bytesPerSecond.toDouble()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to read WAV duration", e)
-            return 0.0
-        } finally {
-            fis?.close()
-        }
+    /**
+     * Estimates spoken duration using syllable density analysis.
+     * Uses Devanagari vowel markers + word count for Hinglish text.
+     */
+    fun estimatePhoneticDurationMs(text: String, baseSpeechRate: Float = 1.0f): Long {
+        val devanagariVowels = listOf('\u093E', '\u093F', '\u0940', '\u0941', '\u0942',
+            '\u0947', '\u0948', '\u094B', '\u094C', '\u0902')
+        val syllableCount = text.count { it in devanagariVowels } + (text.length / 3)
+        val baselineWordsPerMinute = 135.0f * baseSpeechRate
+        val wordCount = text.split("\\s+".toRegex()).size.coerceAtLeast(1)
+        return ((wordCount / baselineWordsPerMinute) * 60.0f * 1000.0f).toLong() + (syllableCount * 45L)
     }
 
     fun shutdown() {

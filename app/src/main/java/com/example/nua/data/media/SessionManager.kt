@@ -86,9 +86,8 @@ class SessionManager(private val context: Context) {
                 audioDurationMs = seg.audioDurationMs ?: (seg.endMs - seg.startMs),
                 originalTextOffset = origTextOff,
                 translatedTextOffset = transTextOff,
-                shouldFreeze = seg.directive == PlaybackDirective.FREEZE_HOLD,
-                hotspotsOffset = hotspotsVectorOff,
-                directiveOffset = directiveOff
+                directiveOffset = directiveOff,
+                hotspotsVectorOffset = hotspotsVectorOff
             )
         }.toIntArray()
 
@@ -128,20 +127,22 @@ class SessionManager(private val context: Context) {
         val kgVector = LectureSession.createKnowledgeGraphVector(builder, kgOffsets)
 
         val sessionIdOff = builder.createString(composition.videoId)
-        val sourceVideoOff = builder.createString(composition.sourceVideoPath)
+        val sourceVideoPathOff = builder.createString(composition.sourceVideoPath)
         val sourceLangOff = builder.createString("en")
         val targetLangOff = builder.createString("hi")
+        val sessionIdOffset = sessionIdOff
+        val sourceVideoOff = sourceVideoPathOff
 
         val root = LectureSession.createLectureSession(
             builder,
-            sessionIdOff,
-            sourceLangOff,
-            targetLangOff,
-            sourceVideoOff,
-            tracksVector,
-            quizzesVector,
-            kgVector,
-            0
+            schemaVersion = 1u,
+            sessionIdOffset = sessionIdOff,
+            sourceLangOffset = sourceLangOff,
+            targetLangOffset = targetLangOff,
+            sourceVideoPathOffset = sourceVideoOff,
+            timelineTracksVectorOffset = tracksVector,
+            quizzesVectorOffset = quizzesVector,
+            knowledgeGraphVectorOffset = kgVector
         )
         LectureSession.finishLectureSessionBuffer(builder, root)
 
@@ -232,9 +233,7 @@ class SessionManager(private val context: Context) {
                 originalText = seg.originalText ?: "",
                 translatedText = seg.translatedText ?: "",
                 vocalAssetLocalPath = seg.audioSourcePath ?: "",
-                // B5 fix: Read directive string if available, fall back to shouldFreeze mapping
-                directive = seg.directive?.takeIf { it.isNotEmpty() }
-                    ?: if (seg.shouldFreeze) PlaybackDirective.FREEZE_HOLD else PlaybackDirective.NORMAL_SYNC,
+                directive = seg.directive?.takeIf { it.isNotEmpty() } ?: PlaybackDirective.NORMAL_SYNC,
                 segmentId = seg.segmentId,
                 audioDurationMs = seg.audioDurationMs,
                 hotspots = hotspotsList
@@ -268,7 +267,7 @@ class SessionManager(private val context: Context) {
 
         return MediaComposition(
             videoId = session.sessionId ?: "",
-            sourceVideoPath = session.courseTitle ?: "raw_lecture.mp4",
+            sourceVideoPath = session.sourceVideoPath ?: @Suppress("DEPRECATION") session.courseTitle ?: "raw_lecture.mp4",
             segments = segments,
             quizzes = quizzesList,
             knowledgeGraph = kgList

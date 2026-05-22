@@ -1,7 +1,7 @@
 # Nua 🎬🎙️ — Intelligent Video Lecture Translation & Dubbing Ecosystem
 
 > [!TIP]
-> **Status: 🟢 Production Ready (v3.1)** — All 21 identified bugs fully resolved (8 active + 13 from Phase 3). Zero open bugs. Only low-priority technical debt remains.
+> **Status: 🟢 Production Ready (v4.0)** — Major TRIZ-driven architectural overhaul complete. Versioned FlatBuffers schema with typed telemetry, dynamic RIFF WAV parsing, O(log n) timeline binary search, HMAC-authenticated API, R8-optimized build. All 24 bugs resolved. 8/11 technical debt items eliminated.
 
 **Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
 

@@ -4,6 +4,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { OptionSelection } from '../nua-serialization/option-selection.js';
+
+
 export class TelemetryPayload {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -34,11 +37,14 @@ completionPercentage():number {
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
 }
 
-quizScoresJson():string|null
-quizScoresJson(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-quizScoresJson(optionalEncoding?:any):string|Uint8Array|null {
+quizResponses(index: number, obj?:OptionSelection):OptionSelection|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? (obj || new OptionSelection()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+quizResponsesLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 cryptographicSignature():string|null
@@ -60,8 +66,20 @@ static addCompletionPercentage(builder:flatbuffers.Builder, completionPercentage
   builder.addFieldInt8(1, completionPercentage, 0);
 }
 
-static addQuizScoresJson(builder:flatbuffers.Builder, quizScoresJsonOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, quizScoresJsonOffset, 0);
+static addQuizResponses(builder:flatbuffers.Builder, quizResponsesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, quizResponsesOffset, 0);
+}
+
+static createQuizResponsesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startQuizResponsesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
 }
 
 static addCryptographicSignature(builder:flatbuffers.Builder, cryptographicSignatureOffset:flatbuffers.Offset) {
@@ -73,11 +91,11 @@ static endTelemetryPayload(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createTelemetryPayload(builder:flatbuffers.Builder, sessionIdOffset:flatbuffers.Offset, completionPercentage:number, quizScoresJsonOffset:flatbuffers.Offset, cryptographicSignatureOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createTelemetryPayload(builder:flatbuffers.Builder, sessionIdOffset:flatbuffers.Offset, completionPercentage:number, quizResponsesOffset:flatbuffers.Offset, cryptographicSignatureOffset:flatbuffers.Offset):flatbuffers.Offset {
   TelemetryPayload.startTelemetryPayload(builder);
   TelemetryPayload.addSessionId(builder, sessionIdOffset);
   TelemetryPayload.addCompletionPercentage(builder, completionPercentage);
-  TelemetryPayload.addQuizScoresJson(builder, quizScoresJsonOffset);
+  TelemetryPayload.addQuizResponses(builder, quizResponsesOffset);
   TelemetryPayload.addCryptographicSignature(builder, cryptographicSignatureOffset);
   return TelemetryPayload.endTelemetryPayload(builder);
 }

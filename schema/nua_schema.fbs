@@ -1,8 +1,10 @@
-// Nua Universal Binary Schema
-// Shared data contract between Nua Edge (Android) and Nua Web Studio (Cloud)
-// Compile with: ./compile_schema.sh
+// Nua FlatBuffers Schema — v4.0
+// Shared binary contract between Nua Web Studio (backend) and Nua Edge (Android client).
+// Run compile_schema.sh after any changes to regenerate Kotlin + TypeScript bindings.
 
 namespace NuaSerialization;
+
+file_identifier "NUAB";
 
 table Hotspot {
   token:string;
@@ -23,10 +25,17 @@ table GraphNode {
   context_tokens:[string];
 }
 
+table OptionSelection {
+  quiz_id:string;
+  selected_index:ubyte;
+  latency_ms:uint;
+  is_correct:bool;
+}
+
 table TelemetryPayload {
   session_id:string;
   completion_percentage:ubyte;
-  quiz_scores_json:string;
+  quiz_responses:[OptionSelection];
   cryptographic_signature:string;
 }
 
@@ -38,16 +47,17 @@ table TimeSegment {
   audio_duration_ms:uint;
   original_text:string;
   translated_text:string;
-  should_freeze:bool;
-  hotspots:[Hotspot];
   directive:string;
+  hotspots:[Hotspot];
 }
 
 table LectureSession {
+  schema_version:ushort = 1;
   session_id:string;
   source_lang:string;
   target_lang:string;
-  course_title:string;
+  course_title:string (deprecated);
+  source_video_path:string;
   timeline_tracks:[TimeSegment];
   quizzes:[Quiz];
   knowledge_graph:[GraphNode];

@@ -1,8 +1,6 @@
 package com.example.nua.data.media
 
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 data class TimelineInterval(
     val originalStartMs: Long,
@@ -26,6 +24,7 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
 
     val intervals: List<TimelineInterval>
     val totalVirtualDurationMs: Long
+    private val physicalStartPositions: LongArray
 
     init {
         val list = ArrayList<TimelineInterval>()
@@ -69,7 +68,8 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
             cumulativeHold += hold
         }
         intervals = list
-        
+        physicalStartPositions = list.map { it.originalStartMs }.toLongArray()
+
         // Find total original duration. Assume last segment's end or extract from media
         val lastOriginalEnd = composition.segments.lastOrNull()?.endMs ?: 0L
         totalVirtualDurationMs = lastOriginalEnd + cumulativeHold
@@ -79,18 +79,35 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
      * Map physical video timeline playhead to virtual lecture timeline time.
      */
     fun getVirtualTimeMs(physicalTimeMs: Long): Long {
-        var cumulativeHold = 0L
-        for (interval in intervals) {
-            if (physicalTimeMs < interval.originalStartMs) {
-                return physicalTimeMs + cumulativeHold
+        if (intervals.isEmpty()) return physicalTimeMs
+
+        // O(log n) binary search over pre-sorted start positions
+        var lo = 0
+        var hi = physicalStartPositions.size - 1
+        var idx = -1
+        while (lo <= hi) {
+            val mid = (lo + hi) ushr 1
+            if (physicalStartPositions[mid] <= physicalTimeMs) {
+                idx = mid
+                lo = mid + 1
+            } else {
+                hi = mid - 1
             }
-            if (physicalTimeMs <= interval.originalEndMs) {
-                val elapsed = physicalTimeMs - interval.originalStartMs
-                return interval.virtualStartMs + elapsed
-            }
-            cumulativeHold += interval.holdMs
         }
-        return physicalTimeMs + cumulativeHold
+
+        if (idx < 0) {
+            // Before all intervals
+            return physicalTimeMs
+        }
+
+        val interval = intervals[idx]
+        return if (physicalTimeMs <= interval.originalEndMs) {
+            val elapsed = physicalTimeMs - interval.originalStartMs
+            interval.virtualStartMs + elapsed
+        } else {
+            // After this interval — add cumulative hold through this interval
+            physicalTimeMs + interval.cumulativeHoldBeforeMs + interval.holdMs
+        }
     }
 
     data class PhysicalState(
@@ -159,29 +176,6 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
     }
 
     private fun getWavDurationMs(file: File, fallbackMs: Long): Long {
-        if (file.length() <= 44) return fallbackMs
-        var fis: java.io.FileInputStream? = null
-        return try {
-            val buffer = ByteArray(44)
-            fis = java.io.FileInputStream(file)
-            val read = fis.read(buffer)
-            if (read < 44) return fallbackMs
-
-            val channels = ByteBuffer.wrap(buffer, 22, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
-            val sampleRate = ByteBuffer.wrap(buffer, 24, 4).order(ByteOrder.LITTLE_ENDIAN).int
-            val bitsPerSample = ByteBuffer.wrap(buffer, 34, 2).order(ByteOrder.LITTLE_ENDIAN).short.toInt()
-
-            val pcmLength = file.length() - 44
-            val bytesPerSample = bitsPerSample / 8
-            val bytesPerSecond = sampleRate * channels * bytesPerSample
-
-            if (bytesPerSecond <= 0) return fallbackMs
-            (pcmLength * 1000L) / bytesPerSecond
-        } catch (e: Exception) {
-            System.err.println("Failed to read WAV duration for mapper: ${e.message}")
-            fallbackMs
-        } finally {
-            fis?.close()
-        }
+        return WavUtils.getWavDurationMs(file, fallbackMs)
     }
 }

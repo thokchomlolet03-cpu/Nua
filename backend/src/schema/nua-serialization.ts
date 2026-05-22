@@ -5,6 +5,7 @@
 export { GraphNode } from './nua-serialization/graph-node.js';
 export { Hotspot } from './nua-serialization/hotspot.js';
 export { LectureSession } from './nua-serialization/lecture-session.js';
+export { OptionSelection } from './nua-serialization/option-selection.js';
 export { Quiz } from './nua-serialization/quiz.js';
 export { TelemetryPayload } from './nua-serialization/telemetry-payload.js';
 export { TimeSegment } from './nua-serialization/time-segment.js';
