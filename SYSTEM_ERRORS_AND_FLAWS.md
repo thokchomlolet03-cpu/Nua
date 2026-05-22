@@ -179,4 +179,29 @@ This document tracks all identified errors, security flaws, architectural defici
 2. **Telemetry Pruning**: Add a size or count threshold to [`LocalTelemetryStore`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt) to delete the oldest `.tlm` files once the directory exceeds a limit (e.g., max 100 entries).
 3. **Tutor RAG Context Nullability**: Pass a null context instead of fallback index `0` in [`OfflineTutorEngine.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt) when no keyword matches the query.
 4. **ExoPlayer Concatenation**: Replace individual `setMediaItem()` calls in [`SyncPlayerEngine.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt) with a pre-built playlist or use a single player instance with `seekTo(chunkIndex, position)`.
-5. **Background Download Service**: Move video downloads out of the ViewModel scope in [`MainScreenViewModel.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/main/MainScreenViewModel.kt) and execute them via Android's `DownloadManager` or a background Service.
+    5. **Background Download Service**: Move video downloads out of the ViewModel scope in [`MainScreenViewModel.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/main/MainScreenViewModel.kt) and execute them via Android's `DownloadManager` or a background Service.
+
+---
+
+## 🔒 4. Phase 3: Deep Technical Audit (v3.0 Edge Cases)
+
+A subsequent deep technical audit by subagents revealed 13 additional edge cases, race conditions, and memory leaks. **These have all been resolved as of v3.0**.
+
+### Android Security & Memory Fixes
+- **Zip Bomb Prevention**: `VoskTranscriber.kt` now tracks total bytes written during ZIP extraction. Aborts if >500MB.
+- **Buffer Leak Patched**: `AudioDecoder.kt` queues null `inputBuffer` indexes back to the codec to prevent decoder starvation.
+- **Memory Mapping Release**: `SessionManager.kt` wraps memory mapping in Kotlin `.use {}` blocks, releasing descriptors on `OutOfMemoryError`.
+
+### Android Concurrency & UI Fixes
+- **Rapid-Seek Crash Solved**: `SyncPlayerEngine.kt` uses an `@Volatile private var isSeeking` flag to suppress redundant ExoPlayer seek commands.
+- **Main Thread Clobbering**: `SyncPlayerEngine.kt` removes previous `syncRunnable` callbacks before posting new ones, preventing duplicate sync loops.
+- **Missing Data Notification**: `DubbingTtsEngine.kt` detects `LANG_MISSING_DATA` and explicitly triggers an error state instead of silently failing.
+- **Flow Error Emitting**: `LiteRTTranslator.kt` emits errors through its `Flow` instead of throwing a hard exception on an uninitialized engine.
+- **API Retries**: `FirebaseTranscriber.kt` uses a 3-attempt exponential backoff loop to handle Gemini cloud API timeouts and rate limits.
+- **Decoder EOF Hang**: `AudioDecoder.kt` contains a 50-tick timeout failsafe when `dequeueOutputBuffer` continually returns `-1` post-extractor EOS.
+
+### Backend Resiliency Fixes
+- **Input Validation**: `index.ts` enforces strict structural typing for `/api/v1/ingest`.
+- **FFmpeg Hanging**: `audio.ts` enforces a 3-minute kill-switch on `child_process.spawn()` and verifies output `stats.size > 0`.
+- **Graceful Degradation**: `TranslationAgent.ts` catches knowledge graph compilation rejections and returns `[]`.
+- **FlatBuffers Type Safety**: `NuaBundler.ts` defaults `null` or `undefined` arrays to empty to prevent schema compilation crashes.
