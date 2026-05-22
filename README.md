@@ -1,7 +1,7 @@
 # Nua 🎬🎙️ — Intelligent Video Lecture Translation & Dubbing Ecosystem
 
 > [!TIP]
-> **Status: 🟢 System Stabilized (v3.0)** - All architectural flaws, synchronization bugs, edge-cases, and pipeline security vulnerabilities have been successfully remediated.
+> **Status: 🟢 System Stabilized (v3.0)** — All critical architectural flaws, synchronization bugs, edge-cases, and pipeline security vulnerabilities have been remediated. 8 non-critical items remain tracked in the technical debt registry.
 
 **Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
 
@@ -12,6 +12,8 @@ Nua operates on a **compile-then-play** philosophy:
 2. **Nua Edge (Android Client)**: Plays the lectures offline by mapping the original video and regional TTS vocal tracks onto a synchronized **elastic virtual timeline**, with an integrated local **LiteRT-LM** tutor and quiz module.
 
 > 📄 **For a deep architectural analysis of code, algorithms, and design decisions, see [DEEP_TECHNICAL_ANALYSIS.md](DEEP_TECHNICAL_ANALYSIS.md)**
+>
+> 🔍 **For the active bug registry and technical debt tracker, see [SYSTEM_ERRORS_AND_FLAWS.md](SYSTEM_ERRORS_AND_FLAWS.md)**
 
 ---
 
@@ -141,6 +143,15 @@ The compiled APK will be output to: `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## 📁 Codebase Inventory
 
+| Layer | Files | LOC |
+|---|---|---|
+| Android Data (media, ASR, LLM, TTS, RAG, telemetry, schema) | 13 | 3,042 |
+| Android UI (screens, ViewModels, navigation, theme) | 12 | 1,999 |
+| Backend (TypeScript) | 4 | 515 |
+| Shared Schema | 1 | 57 |
+| Tests | 2 | 213 |
+| **Total** | **~47** | **~6,878** |
+
 ### Android Client (Nua Edge)
 - [`AudioDecoder.kt`](app/src/main/java/com/example/nua/data/media/AudioDecoder.kt): Linear-interpolating media resampler.
 - [`VoskTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt) / [`FirebaseTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt): Transcription engines.
@@ -150,6 +161,10 @@ The compiled APK will be output to: `app/build/outputs/apk/debug/app-debug.apk`.
 - [`VirtualTimelineMapper.kt`](app/src/main/java/com/example/nua/data/media/VirtualTimelineMapper.kt): Timeline mappings and freeze calculations.
 - [`OfflineTutorEngine.kt`](app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt): Pre-baked graph walking conversational RAG.
 - [`TelemetryStub.kt`](app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt): Local telemetry ledger with SHA-256 signatures.
+- [`SessionManager.kt`](app/src/main/java/com/example/nua/data/media/SessionManager.kt): Session persistence and FlatBuffers I/O.
+- [`NuaSchema.kt`](app/src/main/java/com/example/nua/data/schema/NuaSchema.kt): Hand-written FlatBuffers wrappers.
+- [`PipelineCompilerService.kt`](app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt): 5-stage foreground compilation service.
+- [`MediaComposition.kt`](app/src/main/java/com/example/nua/data/media/MediaComposition.kt): In-memory session data model.
 
 ### Cloud Ingestion (Nua Web Studio)
 - [`index.ts`](backend/src/index.ts): Express routing and ingestion pipelines.

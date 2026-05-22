@@ -1,207 +1,114 @@
-# 🛑 Project Nua Ecosystem - System Errors & Flaws Tracking
+# Nua — System Errors, Flaws & Technical Debt Registry
 
-> [!TIP]
-> **Status: FULLY RESOLVED** (All critical, moderate, and minor flaws listed below have been successfully remediated and verified through compilation.)
-
-This document tracks all identified errors, security flaws, architectural deficiencies, and performance limitations across the entire **Project Nua Ecosystem** (including the **Nua Edge** Android Client and the **Nua Web Studio** Cloud Ingestion Backend).
-
-> [!NOTE]
-> This audit has been compiled to track outstanding issues and guide remediation efforts.
+> **Revision**: 4 (Exhaustive Ecosystem Audit)
+> **Date**: 2026-05-22
+> **Status**: 🟡 8 active items identified, 13 previously resolved
 
 ---
 
-## 📊 Summary of Findings
+## Active Issues
 
-| ID | Component | Severity | Description | Target File / Code Reference |
-| :--- | :--- | :--- | :--- | :--- |
-| **C1** | Android Client | 🔴 Critical | **Sync Timeline Collapse / Video Freeze Bypass**: `PlaybackSegment` is created without `audioDurationMs`, defaulting to the original video duration and bypassing freeze/hold logic. | [`PipelineCompilerService.kt#L195-204`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt#L195-204) |
-| **C2** | Cloud Backend | 🔴 Critical | **Missing Audio Input in Translation Agent**: The ingestion translation agent invokes Gemini 3.5 Flash without passing the extracted lecture audio file payload. | [`TranslationAgent.ts#L70-73`](file:///Users/lolet/Downloads/Nua/backend/src/agents/TranslationAgent.ts#L70-73) |
-| **C3** | Android Client | 🔴 Critical | **On-Device Quiz and Knowledge Graph Data Loss**: Legacy manifest migration hardcodes quiz and graph offsets to `0`, discarding data and deleting the source JSON. | [`SessionManager.kt#L86-96`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SessionManager.kt#L86-96) |
-| **C4** | Android Client | 🔴 Critical | **ASR Memory Exhaustion (OOM Vulnerability)**: `FirebaseTranscriber` reads the entire WAV audio file into memory in one go, crashing on longer lectures. | [`FirebaseTranscriber.kt#L51`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt#L51) |
-| **C5** | Android Client | 🔴 Critical | **Corrupt/Partial Vosk Model Unpack Leak**: Unzipping errors clean up the temp ZIP but leave partial directories, leading to subsequent false-positive initialization checks. | [`VoskTranscriber.kt#L109-113`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt#L109-113) |
-| **M1** | Android Client | 🟡 Moderate | **Unreleased FlatBuffers Memory-Mapped Files**: Closing the channel and random-access file immediately after mapping does not unmap the buffer, locking files. | [`SessionManager.kt#L113-118`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SessionManager.kt#L113-118) |
-| **M2** | Android Client | 🟡 Moderate | **ExoPlayer View Click / Gesture Interception**: Native `PlayerView` consumes all touch events, completely ignoring Compose's `.clickable` pause toggle wrapper. | [`PlayerScreen.kt#L142-163`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/player/PlayerScreen.kt#L142-163) |
-| **M3** | Android Client | 🟡 Moderate | **Infinite Telemetry Disk Accumulation**: Telemetry events write `.tlm` files to disk indefinitely, but the flush method is a no-op stub that never deletes files. | [`TelemetryStub.kt#L113`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt#L113) |
-| **M4** | Android Client | 🟡 Moderate | **Tutor Search RAG Hallucination**: Failing to match keywords in the knowledge graph forces fallback to index `0`, grounding unrelated prompts in the wrong context. | [`OfflineTutorEngine.kt#L130-134`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt#L130-134) |
-| **M5** | Android Client | 🟡 Moderate | **Heavy Main-Thread Audio Pipeline Jank**: Rebuilding and preparing ExoPlayer items on vocal chunk transitions causes UI stuttering and thread blockages. | [`SyncPlayerEngine.kt#L245-253`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt#L245-253) |
-| **M6** | Android Client | 🟡 Moderate | **Spamming PlaybackParameters / Speed Updates**: Re-applying `PlaybackParameters` every 30ms causes ExoPlayer thread contention and massive system logs. | [`SyncPlayerEngine.kt#L98-129`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt#L98-129) |
-| **M7** | Android Client | 🟡 Moderate | **Download Coupled to ViewModel Lifecycle**: Downloading lecture video files is scoped to the ViewModel, immediately aborting if the user rotates the screen. | [`MainScreenViewModel.kt#L170-211`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/main/MainScreenViewModel.kt#L170-211) |
-| **L1** | Cloud Backend | 🟢 Minor | **FFmpeg Ingestion Hanging Vulnerability**: Video download/stream extraction does not enforce timeouts or validate protocols, posing a request-blocking threat. | [`audio.ts#L8-26`](file:///Users/lolet/Downloads/Nua/backend/src/utils/audio.ts#L8-26) |
-| **L2** | Cloud Backend | 🟢 Minor | **Manual Offset FlatBuffer Serialization**: Building binary buffers via manual table indices in Node.js creates high fragility and risks schema incompatibility. | [`NuaBundler.ts#L33-43`](file:///Users/lolet/Downloads/Nua/backend/src/packager/NuaBundler.ts#L33-43) |
-| **L3** | Android Client | 🟢 Minor | **Unsynchronized Mutable Engine Instance**: The LiteRT-LM model engine is closed, initialized, and read across threads without volatile fields or synchronization. | [`LiteRTTranslator.kt#L37-62`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/llm/LiteRTTranslator.kt#L37-62) |
+### 🔴 Critical
+
+#### B1 — Leaking CoroutineScope in MainScreenViewModel
+- **File**: `MainScreenViewModel.kt:173`
+- **Description**: `startDubbingVideoFromUrl()` creates a standalone `CoroutineScope(SupervisorJob() + Dispatchers.IO)` that is not tied to `viewModelScope`. This scope survives ViewModel clearing and cannot be cancelled, causing a memory/coroutine leak.
+- **Fix**: Replace with `viewModelScope.launch(Dispatchers.IO) { ... }`.
+- **Impact**: Memory leak + potential background work after user navigates away.
 
 ---
 
-## 🔴 1. Critical Flaws
+### 🟡 Moderate
 
-### C1: Sync Timeline Collapse / Video Freeze Bypass
-* **Location**: [`PipelineCompilerService.kt#L195-204`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt#L195-204)
-* **Root Cause**: During on-device compilation, vocal chunk segments are generated and appended. However, the `PlaybackSegment` is initialized without setting the `audioDurationMs` parameter. It defaults to `null`. 
-* **Impact**:
-  1. In [`SessionManager.kt#L72`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SessionManager.kt#L72), if `audioDurationMs` is null, it falls back to: `seg.audioDurationMs ?: (seg.endMs - seg.startMs)`. This represents the *original English* segment duration, not the actual generated Hindi wav file duration.
-  2. During playback, [`VirtualTimelineMapper.kt#L41-47`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/VirtualTimelineMapper.kt#L41-47) loads the manifest, sees the non-null value representing the original video segment duration, and completely bypasses calling `getWavDurationMs(file)`.
-  3. Consequently, `vocalDur` is set equal to `originalDur`, making `holdMs` resolve to `0`. The video freezing mechanism is bypassed entirely, breaking timeline synchronization and letting the video speed past the vocal audio track.
+#### B2 — Hotspots Silently Dropped During FlatBuffers Serialization
+- **File**: `SessionManager.kt:76`
+- **Description**: `hotspotsOffset = 0` in `saveManifest()` means no hotspots vector is written to the `.nuab` file. Hotspots survive in-memory during a session but are permanently lost when saved and reloaded from disk.
+- **Fix**: Serialize hotspot data properly: iterate `seg.hotspots`, create `Hotspot.createHotspot()` for each, build a hotspots vector, and pass it to `TimeSegment.createTimeSegment()`.
+- **Impact**: Vocabulary hotspots disappear after app restart.
 
-### C2: Missing Audio Input in Cloud Translation Agent
-* **Location**: [`TranslationAgent.ts#L70-73`](file:///Users/lolet/Downloads/Nua/backend/src/agents/TranslationAgent.ts#L70-73)
-* **Root Cause**: The method `translateLecture` extracts the audio channel to `wavPath`, then starts a Gemini 3.5 Flash content generation request. However, it passes only the text instructions in `contents: systemPrompt` and never attaches the audio file data!
-* **Impact**: The model receives a prompt instructing it to "Analyze the provided lecture audio..." but receives no audio payload. This causes the Gemini model to fail or hallucinate translation timestamps and text entirely out of context.
+#### B3 — Streaming Translation Bypasses Mutex
+- **File**: `LiteRTTranslator.kt:134–151`
+- **Description**: `translateStreaming()` does NOT acquire the `translationMutex` that protects `translate()`. If both are called concurrently, they could access the LiteRT-LM `Engine` simultaneously, causing undefined behavior or crashes.
+- **Fix**: Wrap the streaming path in `translationMutex.withLock { ... }` or use a shared access pattern.
+- **Impact**: Potential crash if streaming and blocking translation overlap.
 
-### C3: On-Device Quiz and Knowledge Graph Data Loss
-* **Location**: [`SessionManager.kt#L86-96`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SessionManager.kt#L86-96)
-* **Root Cause**: In legacy JSON migration, the JSON manifest is loaded containing list items for `quizzes` and other metadata. However, inside `saveManifest`, when constructing the FlatBuffers table:
-  ```kotlin
-  val root = LectureSession.createLectureSession(
-      builder,
-      ...
-      quizzesOffset = 0,
-      knowledgeGraphOffset = 0,
-      telemetryLedgerOffset = 0
-  )
-  ```
-  Quizzes and the knowledge graph are explicitly hardcoded to offset `0`.
-* **Impact**: Any quiz arrays or knowledge graph arrays compiled in legacy JSON manifests are permanently discarded. Because `migrateJsonToNuab` immediately calls `jsonFile.delete()`, this leads to permanent user data loss.
+#### B4 — Thread-Unsafe Quiz Deduplication Set
+- **File**: `PlayerViewModel.kt:71`
+- **Description**: `shownQuizTimestamps = mutableSetOf()` is a plain `HashSet`. If `onStateUpdate` fires from a non-main thread while `seekTo` modifies the set on the main thread, a `ConcurrentModificationException` could occur.
+- **Fix**: Replace with `Collections.synchronizedSet(mutableSetOf())` or `ConcurrentHashMap.newKeySet()`.
+- **Impact**: Potential crash during seek + quiz trigger race.
 
-### C4: ASR Memory Exhaustion (OOM Vulnerability)
-* **Location**: [`FirebaseTranscriber.kt#L51`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt#L51)
-* **Root Cause**: The method `transcribeWav` performs:
-  ```kotlin
-  val audioBytes = wavFile.readBytes()
-  ```
-  which reads the entire file into a contiguous `ByteArray` on the JVM heap.
-* **Impact**: Lecture audio files are typically 20 minutes to 1 hour long. A 30-minute 16kHz mono WAV file is ~57MB, and stereo files are even larger. Reading this into memory in a single block quickly exhausts the Android heap space, throwing an `OutOfMemoryError` and crashing the application.
-
-### C5: Corrupt/Partial Vosk Model Unpack Leak
-* **Location**: [`VoskTranscriber.kt#L109-113`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt#L109-113)
-* **Root Cause**: If the model download finishes but the unzipping operation is interrupted or throws an exception, the catch block deletes the temporary ZIP file but does not clean up the target directory `modelDir`.
-* **Impact**: A partial/corrupt unzipped model remains on-disk. On the next application run, [`isModelDownloaded()`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt#L37-45) finds the directories and reports that the model is fully ready. Subsequent ASR requests then crash during native `Model()` instantiation.
+#### B5 — PAD_EMPTY Directive Lost in Round-Trip
+- **File**: `SessionManager.kt:223`
+- **Description**: The FlatBuffers schema only stores a `shouldFreeze: bool` flag. On deserialization, segments are mapped to either `FREEZE_HOLD` or `NORMAL_SYNC`. The `PAD_EMPTY` directive (assigned when TTS fails) is lost, causing silent segments to be treated as normal sync segments after save/load.
+- **Fix**: Add a `directive:string` field to the FlatBuffers `TimeSegment` table, or use a `ubyte` enum.
+- **Impact**: Subtle playback timing issues for segments where TTS originally failed.
 
 ---
 
-## 🟡 2. Moderate Flaws
+### 🟢 Minor
 
-### M1: Unreleased FlatBuffers Memory-Mapped Files
-* **Location**: [`SessionManager.kt#L113-118`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SessionManager.kt#L113-118)
-* **Root Cause**: When loading the manifest, the method memory-maps the file via `channel.map(...)`. It then immediately closes the `FileChannel` and `RandomAccessFile` in an attempt to release resources:
-  ```kotlin
-  val mappedBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, file.length())
-  channel.close()
-  raf.close()
-  ```
-* **Impact**: Closing the file channel/handle does not unmap the buffer on Java (due to how `MappedByteBuffer` is structured in the JVM). The buffer retains the lock on the file. Any subsequent attempt to delete, overwrite, or update this session file (e.g., during recompilation or cleaning up history) fails with a write block or sharing violation exception.
+#### B6 — Dead Memory-Mapping Code in loadManifestBinary
+- **File**: `SessionManager.kt:147–149`
+- **Description**: `RandomAccessFile` and `FileChannel` are opened inside `use {}` blocks but never used for memory-mapping. The actual read is done via `file.readBytes()`. This is dead code from an abandoned memory-mapping implementation.
+- **Fix**: Remove `RandomAccessFile`/`FileChannel`, keep `file.readBytes()`.
+- **Impact**: Code cleanliness; no functional impact.
 
-### M2: ExoPlayer View Click / Gesture Interception
-* **Location**: [`PlayerScreen.kt#L142-163`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/player/PlayerScreen.kt#L142-163)
-* **Root Cause**: The `.clickable { viewModel.togglePlayPause() }` modifier is attached to the parent `Box` wrapping the player. However, the native Android `PlayerView` embedded inside via `AndroidView` consumes all touch events internally.
-* **Impact**: Gestures never bubble up to the parent Compose container. Tapping on the video screen fails to toggle play/pause, forcing the user to tap the small, floating play button below.
+#### B7 — Audio Downmix Integer Truncation
+- **File**: `AudioDecoder.kt:123`
+- **Description**: Stereo-to-mono downmix uses `sum / sourceChannels` (integer division), which truncates rather than rounds. For stereo input, this loses ~0.5 LSB of precision.
+- **Fix**: Use `(sum + sourceChannels / 2) / sourceChannels` for proper rounding.
+- **Impact**: Negligible audio quality loss; inaudible in practice.
 
-### M3: Infinite Telemetry Disk Accumulation (Storage Leak)
-* **Location**: [`TelemetryStub.kt#L113`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt#L113)
-* **Root Cause**: Every progress track or quiz answer generates a `.tlm` file on local storage inside `telemetry_ledger`. However, because the server sync network layer is currently deferred to a future phase, `flushToServer()` is a no-op stub:
-  ```kotlin
-  override suspend fun flushToServer() {
-      // STUB: Network transmission deferred to mesh-network implementation phase
-      val pending = pendingCount()
-      if (pending > 0) {
-          Log.i(TAG, "Telemetry flush requested ($pending entries pending). " +
-                  "Network relay not yet implemented — entries retained locally.")
-      }
-  }
-  ```
-* **Impact**: Local telemetry files accrue on the device indefinitely. Over time, this leads to uncontrolled storage bloat, eventually filling the user's disk and causing system crashes.
-
-### M4: Tutor Search RAG Hallucination
-* **Location**: [`OfflineTutorEngine.kt#L130-134`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt#L130-134)
-* **Root Cause**: When a student asks a tutoring question, the engine scores graph nodes based on keyword overlap. If there are no keyword matches, the engine falls back to selecting index `0`:
-  ```kotlin
-  if (bestNode == null && session.knowledgeGraphLength > 0) {
-      bestNode = session.knowledgeGraph(0)
-  }
-  ```
-* **Impact**: If a student asks a general interface question (e.g., "how to pause?") or a query completely outside the lecture scope, the engine grounds the prompt in index `0` (e.g., "Photosynthesis"). The AI then responds with unrelated content, causing confusion and RAG hallucinations.
-
-### M5: Heavy Main-Thread Audio Pipeline Jank
-* **Location**: [`SyncPlayerEngine.kt#L245-253`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt#L245-253)
-* **Root Cause**: During continuous playback, transitioning from one Hindi vocal chunk to another triggers:
-  ```kotlin
-  audioPlayer.stop()
-  audioPlayer.setMediaItem(MediaItem.fromUri(path))
-  audioPlayer.prepare()
-  audioPlayer.seekTo(playheadMs)
-  ```
-* **Impact**: Calling `stop()`, `prepare()`, and `seekTo()` synchronously on the main thread every few seconds forces the ExoPlayer pipeline to rebuild and synchronize. This blocks the main thread, causing noticeable UI jank and audio stuttering.
-
-### M6: Spamming PlaybackParameters / Speed Updates
-* **Location**: [`SyncPlayerEngine.kt#L98-129`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt#L98-129)
-* **Root Cause**: The sync alignment evaluator is invoked inside the tick loop every 30ms. If a segment has a drift, the engine repeatedly invokes:
-  ```kotlin
-  videoPlayer.playbackParameters = PlaybackParameters(clampedRatio)
-  ```
-* **Impact**: Changing playback parameters on ExoPlayer is an expensive operation that forces internal state recalculations. Invoking this every 30ms causes thread contention, playback stutter, and floods logcat with state update messages.
-
-### M7: Download Coupled to ViewModel Lifecycle
-* **Location**: [`MainScreenViewModel.kt#L170-211`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/main/MainScreenViewModel.kt#L170-211)
-* **Root Cause**: The `startDubbingVideoFromUrl` method launches video downloading directly inside the `viewModelScope` on `Dispatchers.IO`.
-* **Impact**: If the user leaves the screen, rotates the device (which destroys and recreates the view model), or navigates away, the `viewModelScope` is cancelled. The download coroutine terminates mid-flight, resulting in corrupt, incomplete files in the cache.
+#### B8 — RAG Tutor Aggressive Partial Matching
+- **File**: `OfflineTutorEngine.kt:120`
+- **Description**: Bidirectional partial matching (`keyword.contains(promptWord)`) causes false positives. For example, `"photosynthesis".contains("the")` evaluates to `true`, polluting relevance scores.
+- **Fix**: Use whole-word matching or minimum token length threshold (e.g., skip words < 3 characters).
+- **Impact**: Tutor may select wrong knowledge graph node for short common words.
 
 ---
 
-## 🟢 3. Minor Flaws
+## Previously Resolved Issues (v3.0)
 
-### L1: FFmpeg Ingestion Hanging Vulnerability
-* **Location**: [`audio.ts#L8-26`](file:///Users/lolet/Downloads/Nua/backend/src/utils/audio.ts#L8-26)
-* **Root Cause**: The backend `extractAudioChannel` function calls the local `ffmpeg` process directly using the user-provided `videoUrl` without performing protocol validation or setting execution timeout limits.
-* **Impact**: If the URL points to a slow-responding or hanging network stream, the FFmpeg process blocks execution indefinitely. This leaks work directories and clogs node event loops.
+All 13 edge cases from the Phase 3 audit have been resolved:
 
-### L2: Manual Offset FlatBuffer Serialization
-* **Location**: [`NuaBundler.ts#L33-43`](file:///Users/lolet/Downloads/Nua/backend/src/packager/NuaBundler.ts#L33-43)
-* **Root Cause**: The Node.js package builder manually serializes FlatBuffers by hardcoding table field indexes (`builder.addFieldOffset(0, ...)`, `builder.startObject(9)`, etc.) instead of utilizing code generated from the schema.
-* **Impact**: Any change to the FlatBuffers schema file requires manually rewriting serialization offsets. This is highly error-prone and risks silent structure corruption on version mismatch.
-
-### L3: Unsynchronized Mutable Engine Instance
-* **Location**: [`LiteRTTranslator.kt#L37-62`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/llm/LiteRTTranslator.kt#L37-62)
-* **Root Cause**: The mutable `engine` reference is closed and re-initialized across multiple threads. However, the `engine` property is neither marked as `@Volatile` nor wrapped in thread-safe locks/synchronized blocks.
-* **Impact**: Concurrent translation requests or closing the player while initialization is in progress can lead to race conditions, null pointer exceptions, or native memory corruption crashes.
-
----
-
-## 🛠️ Proposed Remediation Plan
-
-### Phase 1: Critical Fixes
-1. **Sync Timeline Correction**: Update [`PipelineCompilerService.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt) to calculate and pass the `audioDurationMs` parameter inside the `PlaybackSegment` constructor.
-2. **Translation Audio Payload**: Update [`TranslationAgent.ts`](file:///Users/lolet/Downloads/Nua/backend/src/agents/TranslationAgent.ts) to upload the `wavPath` file to the Gemini API using the File API, and pass the file reference in `contents`.
-3. **Data Loss Prevention**: Update [`SessionManager.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SessionManager.kt) to serialize `quizzes` and `knowledgeGraph` items from the loaded `MediaComposition` rather than hardcoding their offsets to `0`.
-4. **ASR Streaming / Chunking**: Update [`FirebaseTranscriber.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt) to upload audio using the Cloud Storage URI or chunk the audio file stream rather than calling `readBytes()`.
-5. **Clean Vosk Unpacking**: Modify [`VoskTranscriber.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt) to delete the `modelDir` recursively if the download or unzip operation throws an error.
-
-### Phase 2: Moderate Fixes
-1. **ExoPlayer Click Handler**: Bind the play/pause trigger directly to the `PlayerView` click listener within the Compose `AndroidView` factory in [`PlayerScreen.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/player/PlayerScreen.kt).
-2. **Telemetry Pruning**: Add a size or count threshold to [`LocalTelemetryStore`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt) to delete the oldest `.tlm` files once the directory exceeds a limit (e.g., max 100 entries).
-3. **Tutor RAG Context Nullability**: Pass a null context instead of fallback index `0` in [`OfflineTutorEngine.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt) when no keyword matches the query.
-4. **ExoPlayer Concatenation**: Replace individual `setMediaItem()` calls in [`SyncPlayerEngine.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt) with a pre-built playlist or use a single player instance with `seekTo(chunkIndex, position)`.
-    5. **Background Download Service**: Move video downloads out of the ViewModel scope in [`MainScreenViewModel.kt`](file:///Users/lolet/Downloads/Nua/app/src/main/java/com/example/nua/ui/main/MainScreenViewModel.kt) and execute them via Android's `DownloadManager` or a background Service.
+| ID | Severity | Fix Summary |
+|---|---|---|
+| C1 | 🔴 Critical | ZIP Slip vulnerability patched with canonical path validation |
+| C2 | 🔴 Critical | TTS race condition fixed with `AtomicBoolean` signaling |
+| C3 | 🔴 Critical | Non-volatile `synthesisSuccess` fixed with `@Volatile` |
+| C4 | 🔴 Critical | Thread-safe `addLog()` with `synchronized(_logs)` block |
+| C5 | 🔴 Critical | `codec.stop()` removed from finally block (IllegalStateException) |
+| C6 | 🟡 Moderate | Division by zero guard in AudioDecoder downmix |
+| M7 | 🟡 Moderate | OkHttp response body leak fixed with `.use {}` |
+| M8 | 🟡 Moderate | Hardcoded unzip progress replaced with two-pass entry counting |
+| M9 | 🟡 Moderate | TTS speech rate reset after synthesis |
+| M11 | 🟡 Moderate | Duplicate compilation guard added |
+| M12 | 🟡 Moderate | Session directory collision fixed with timestamp suffix |
+| M13 | 🟡 Moderate | Vosk model close method added |
+| L9 | 🟢 Minor | Deprecated `stopForeground(true)` replaced with API-level check |
 
 ---
 
-## 🔒 4. Phase 3: Deep Technical Audit (v3.0 Edge Cases)
+## Technical Debt Registry
 
-A subsequent deep technical audit by subagents revealed 13 additional edge cases, race conditions, and memory leaks. **These have all been resolved as of v3.0**.
-
-### Android Security & Memory Fixes
-- **Zip Bomb Prevention**: `VoskTranscriber.kt` now tracks total bytes written during ZIP extraction. Aborts if >500MB.
-- **Buffer Leak Patched**: `AudioDecoder.kt` queues null `inputBuffer` indexes back to the codec to prevent decoder starvation.
-- **Memory Mapping Release**: `SessionManager.kt` wraps memory mapping in Kotlin `.use {}` blocks, releasing descriptors on `OutOfMemoryError`.
-
-### Android Concurrency & UI Fixes
-- **Rapid-Seek Crash Solved**: `SyncPlayerEngine.kt` uses an `@Volatile private var isSeeking` flag to suppress redundant ExoPlayer seek commands.
-- **Main Thread Clobbering**: `SyncPlayerEngine.kt` removes previous `syncRunnable` callbacks before posting new ones, preventing duplicate sync loops.
-- **Missing Data Notification**: `DubbingTtsEngine.kt` detects `LANG_MISSING_DATA` and explicitly triggers an error state instead of silently failing.
-- **Flow Error Emitting**: `LiteRTTranslator.kt` emits errors through its `Flow` instead of throwing a hard exception on an uninitialized engine.
-- **API Retries**: `FirebaseTranscriber.kt` uses a 3-attempt exponential backoff loop to handle Gemini cloud API timeouts and rate limits.
-- **Decoder EOF Hang**: `AudioDecoder.kt` contains a 50-tick timeout failsafe when `dequeueOutputBuffer` continually returns `-1` post-extractor EOS.
-
-### Backend Resiliency Fixes
-- **Input Validation**: `index.ts` enforces strict structural typing for `/api/v1/ingest`.
-- **FFmpeg Hanging**: `audio.ts` enforces a 3-minute kill-switch on `child_process.spawn()` and verifies output `stats.size > 0`.
-- **Graceful Degradation**: `TranslationAgent.ts` catches knowledge graph compilation rejections and returns `[]`.
-- **FlatBuffers Type Safety**: `NuaBundler.ts` defaults `null` or `undefined` arrays to empty to prevent schema compilation crashes.
+| Category | Item | Priority |
+|---|---|---|
+| **Testing** | ~8% test coverage (2/25 files) | 🔴 High |
+| **Build** | R8/ProGuard disabled (`isMinifyEnabled = false`) | 🔴 High |
+| **Security** | No authentication on backend endpoints | 🔴 High |
+| **Security** | No rate limiting on `/api/v1/ingest` | 🟡 Medium |
+| **Schema** | `quiz_scores_json:string` violates no-ad-hoc-JSON invariant | 🟡 Medium |
+| **Schema** | No schema version field for evolution | 🟡 Medium |
+| **Schema** | `courseTitle` field stores `sourceVideoPath` (naming mismatch) | 🟡 Medium |
+| **Build** | `com.example.nua` namespace (example domain) | 🟡 Medium |
+| **UI** | `ClickableText` deprecated in PlayerScreen | 🟡 Medium |
+| **UI** | `videoUrl` is local compose state (lost on config change) | 🟢 Minor |
+| **Theme** | Dead `LightColorScheme`, unused `dynamicColor` param, dead `Build` import | 🟢 Minor |
+| **Theme** | `AccentPink` color defined but never used | 🟢 Minor |
+| **Theme** | `Type.kt` nearly empty — all styling is inline | 🟢 Minor |
+| **Backend** | Gemini response parsing uses greedy regex | 🟢 Minor |
+| **Backend** | `NuaBundler` creates unnecessary `Buffer.from()` copy | 🟢 Minor |
+| **Pipeline** | Two-pass TTS synthesis is wasteful | 🟢 Minor |
+| **Pipeline** | 44-byte WAV header assumption (3 places) | 🟢 Minor |
+| **Manifest** | `allowBackup="true"` — session data extractable via ADB | 🟢 Minor |
