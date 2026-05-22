@@ -161,9 +161,10 @@ class TimeSegment : Table() {
             originalTextOffset: Int,
             translatedTextOffset: Int,
             shouldFreeze: Boolean,
-            hotspotsOffset: Int
+            hotspotsOffset: Int,
+            directiveOffset: Int = 0
         ): Int {
-            builder.startTable(9)
+            builder.startTable(10)
             builder.addOffset(0, segmentIdOffset, 0)
             builder.addInt(1, videoStartMs.toInt(), 0)
             builder.addInt(2, videoEndMs.toInt(), 0)
@@ -173,6 +174,7 @@ class TimeSegment : Table() {
             builder.addOffset(6, translatedTextOffset, 0)
             builder.addBoolean(7, shouldFreeze, false)
             builder.addOffset(8, hotspotsOffset, 0)
+            builder.addOffset(9, directiveOffset, 0)
             return builder.endTable()
         }
 
@@ -201,6 +203,7 @@ class TimeSegment : Table() {
         return obj
     }
     val hotspotsLength: Int get() { val o = __offset(20); return if (o != 0) __vector_len(o) else 0 }
+    val directive: String? get() = __string(__offset(22))
 }
 
 // ─── LectureSession (Root Type) ───────────────────────────────────────────

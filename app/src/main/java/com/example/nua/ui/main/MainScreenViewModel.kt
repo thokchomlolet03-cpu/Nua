@@ -19,6 +19,11 @@ import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * ViewModel for the main screen. Manages config, Vosk download,
+ * compilation lifecycle, and dubbing history.
+ */
+
 class MainScreenViewModel(application: Application) : AndroidViewModel(application) {
 
     private val context = application.applicationContext
@@ -53,6 +58,14 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
     // Gallery History (List of session folders containing compiled offline packages)
     private val _dubbedHistory = MutableStateFlow<List<File>>(emptyList())
     val dubbedHistory: StateFlow<List<File>> = _dubbedHistory.asStateFlow()
+
+    // Video URL input state (hoisted from Compose local state to survive config changes)
+    private val _videoUrl = MutableStateFlow("")
+    val videoUrl: StateFlow<String> = _videoUrl.asStateFlow()
+
+    fun setVideoUrl(url: String) {
+        _videoUrl.value = url
+    }
 
     init {
         refreshHistory()
@@ -170,7 +183,7 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
     fun startDubbingVideoFromUrl(url: String) {
         if (isProcessing.value) return
 
-        kotlinx.coroutines.CoroutineScope(Dispatchers.IO + kotlinx.coroutines.SupervisorJob()).launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val client = OkHttpClient()
             val tempVideoFile = File(context.cacheDir, "downloaded_temp.mp4")
 

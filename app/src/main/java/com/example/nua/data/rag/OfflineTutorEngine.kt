@@ -108,7 +108,10 @@ class OfflineTutorEngine(private val context: Context) {
      * best match the user's prompt. Uses keyword overlap scoring.
      */
     private fun findBestMatchingNode(prompt: String, session: LectureSession): GraphNode? {
-        val promptWords = prompt.lowercase().split(Regex("\\s+")).toSet()
+        // Filter out short stopwords (< 3 chars) to prevent false positives like "the" matching "photosynthesis"
+        val promptWords = prompt.lowercase().split(Regex("\\s+"))
+            .filter { it.length >= 3 }
+            .toSet()
         var bestNode: GraphNode? = null
         var bestScore = 0
 
@@ -117,7 +120,8 @@ class OfflineTutorEngine(private val context: Context) {
             var score = 0
             for (k in 0 until node.keywordsLength) {
                 val keyword = node.keywords(k)?.lowercase() ?: continue
-                if (promptWords.any { it.contains(keyword) || keyword.contains(it) }) {
+                // Use exact whole-word matching instead of substring containment
+                if (promptWords.contains(keyword) || promptWords.any { keyword.split(Regex("\\s+")).contains(it) }) {
                     score++
                 }
             }

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.Collections
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -68,7 +69,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private var sessionDir: File? = null
     private var composition: MediaComposition? = null
 
-    private val shownQuizTimestamps = mutableSetOf<Long>()
+    private val shownQuizTimestamps: MutableSet<Long> = Collections.synchronizedSet(mutableSetOf())
 
     fun initSession(sessionPath: String) {
         if (syncEngine != null) {
@@ -183,7 +184,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun seekTo(virtualMs: Long) {
         val engine = syncEngine ?: return
         // Allow re-triggering quizzes that are after the seek point
-        shownQuizTimestamps.removeAll { it >= virtualMs }
+        synchronized(shownQuizTimestamps) {
+            shownQuizTimestamps.removeAll { it >= virtualMs }
+        }
         engine.seekTo(virtualMs)
         _virtualTimeMs.value = virtualMs
     }

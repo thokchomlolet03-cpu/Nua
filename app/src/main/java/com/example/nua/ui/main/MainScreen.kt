@@ -56,8 +56,7 @@ fun MainScreen(
     val stepProgress by viewModel.stepProgress.collectAsStateWithLifecycle()
     val logs by viewModel.processingLogs.collectAsStateWithLifecycle()
     val history by viewModel.dubbedHistory.collectAsStateWithLifecycle()
-
-    var videoUrl by remember { mutableStateOf("") }
+    val videoUrl by viewModel.videoUrl.collectAsStateWithLifecycle()
     val logsListState = rememberLazyListState()
 
     // Scroll to bottom of logs when a new log arrives
@@ -255,7 +254,7 @@ fun MainScreen(
                             
                             OutlinedTextField(
                                 value = videoUrl,
-                                onValueChange = { videoUrl = it },
+                                onValueChange = { viewModel.setVideoUrl(it) },
                                 label = { Text("Video link (Direct MP4 URL)") },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(10.dp),

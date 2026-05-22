@@ -7,6 +7,7 @@ import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.Conversation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
@@ -135,18 +136,20 @@ class LiteRTTranslator(private val context: Context) {
         text: String,
         durationSec: Double,
         previousTranslation: String?
-    ): Flow<String> = flow {
+    ): Flow<String> = channelFlow {
         val maxWords = (durationSec * 3.2).toInt().coerceAtLeast(4)
         val lmEngine = engine
         if (lmEngine == null) {
-            emit("Error: LiteRT-LM engine not initialized")
-            return@flow
+            send("Error: LiteRT-LM engine not initialized")
+            return@channelFlow
         }
         val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
 
-        val conversation = lmEngine.createConversation()
-        conversation.sendMessageAsync(prompt).collect { message ->
-            emit(message.toString())
+        translationMutex.withLock {
+            val conversation = lmEngine.createConversation()
+            conversation.sendMessageAsync(prompt).collect { message ->
+                send(message.toString())
+            }
         }
     }
 

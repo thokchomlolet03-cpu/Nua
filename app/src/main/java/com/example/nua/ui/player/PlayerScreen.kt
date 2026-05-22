@@ -7,7 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
@@ -19,8 +19,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -191,37 +194,54 @@ fun PlayerScreen(
                                             val annotatedText = remember(currentTranslatedText, hotspots) {
                                                 buildAnnotatedString {
                                                     val text = currentTranslatedText
-                                                    append(text)
 
+                                                    // Build spans: track hotspot ranges first
+                                                    data class HotspotRange(val start: Int, val end: Int, val definition: String, val token: String)
+                                                    val ranges = mutableListOf<HotspotRange>()
                                                     for (hotspot in hotspots) {
                                                         val token = hotspot.token
                                                         if (token.isEmpty()) continue
-
                                                         var startIndex = text.indexOf(token)
                                                         while (startIndex >= 0) {
                                                             val endIndex = startIndex + token.length
-                                                            addStyle(
-                                                                style = SpanStyle(
+                                                            ranges.add(HotspotRange(startIndex, endIndex, hotspot.conceptDefinition, token))
+                                                            startIndex = text.indexOf(token, endIndex)
+                                                        }
+                                                    }
+                                                    ranges.sortBy { it.start }
+
+                                                    // Emit text segments with LinkAnnotation for hotspot spans
+                                                    var cursor = 0
+                                                    for (range in ranges) {
+                                                        if (range.start > cursor) {
+                                                            append(text.substring(cursor, range.start))
+                                                        }
+                                                        val tag = "hotspot_${range.start}"
+                                                        withLink(
+                                                            LinkAnnotation.Clickable(tag) {
+                                                                selectedHotspotDefinition = range.definition
+                                                                selectedHotspotToken = range.token
+                                                            }
+                                                        ) {
+                                                            withStyle(
+                                                                SpanStyle(
                                                                     color = PrimaryNeon,
                                                                     textDecoration = TextDecoration.Underline,
                                                                     fontWeight = FontWeight.ExtraBold
-                                                                ),
-                                                                start = startIndex,
-                                                                end = endIndex
-                                                            )
-                                                            addStringAnnotation(
-                                                                tag = "HOTSPOT",
-                                                                annotation = hotspot.conceptDefinition,
-                                                                start = startIndex,
-                                                                end = endIndex
-                                                            )
-                                                            startIndex = text.indexOf(token, endIndex)
+                                                                )
+                                                            ) {
+                                                                append(text.substring(range.start, range.end))
+                                                            }
                                                         }
+                                                        cursor = range.end
+                                                    }
+                                                    if (cursor < text.length) {
+                                                        append(text.substring(cursor))
                                                     }
                                                 }
                                             }
 
-                                            ClickableText(
+                                            Text(
                                                 text = annotatedText,
                                                 style = LocalTextStyle.current.copy(
                                                     color = SecondaryNeon,
@@ -229,14 +249,7 @@ fun PlayerScreen(
                                                     fontWeight = FontWeight.Bold,
                                                     textAlign = TextAlign.Center,
                                                     lineHeight = 22.sp
-                                                ),
-                                                onClick = { offset ->
-                                                    annotatedText.getStringAnnotations(tag = "HOTSPOT", start = offset, end = offset)
-                                                        .firstOrNull()?.let { annotation ->
-                                                            selectedHotspotDefinition = annotation.item
-                                                            selectedHotspotToken = annotatedText.substring(annotation.start, annotation.end)
-                                                        }
-                                                }
+                                                )
                                             )
                                         }
                                     }

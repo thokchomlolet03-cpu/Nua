@@ -5,12 +5,11 @@ import android.util.Log
 import com.google.flatbuffers.FlatBufferBuilder
 import com.example.nua.data.schema.LectureSession
 import com.example.nua.data.schema.TimeSegment
+import com.example.nua.data.schema.Hotspot
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.FileChannel
 
 /**
  * Manages session lifecycle: creation, persistence (FlatBuffers .nuab),
@@ -63,6 +62,21 @@ class SessionManager(private val context: Context) {
             val origTextOff = builder.createString(seg.originalText)
             val transTextOff = builder.createString(seg.translatedText)
 
+            // B2 fix: Properly serialize hotspots instead of passing 0
+            val hotspotsOffsetList = seg.hotspots.map { hs ->
+                val tokenOff = builder.createString(hs.token)
+                val defOff = builder.createString(hs.conceptDefinition)
+                Hotspot.createHotspot(builder, tokenOff, defOff)
+            }.toIntArray()
+            val hotspotsVectorOff = if (hotspotsOffsetList.isNotEmpty()) {
+                TimeSegment.createHotspotsVector(builder, hotspotsOffsetList)
+            } else {
+                0
+            }
+
+            // B5 fix: Serialize directive string for lossless round-trip
+            val directiveOff = builder.createString(seg.directive)
+
             TimeSegment.createTimeSegment(
                 builder,
                 segmentIdOffset = segIdOff,
@@ -73,7 +87,8 @@ class SessionManager(private val context: Context) {
                 originalTextOffset = origTextOff,
                 translatedTextOffset = transTextOff,
                 shouldFreeze = seg.directive == PlaybackDirective.FREEZE_HOLD,
-                hotspotsOffset = 0
+                hotspotsOffset = hotspotsVectorOff,
+                directiveOffset = directiveOff
             )
         }.toIntArray()
 
@@ -144,13 +159,10 @@ class SessionManager(private val context: Context) {
         if (!file.exists() || file.length() < 4) return null
 
         return try {
-            RandomAccessFile(file, "r").use { raf ->
-                raf.channel.use { channel ->
-                    val mappedBuffer = ByteBuffer.wrap(file.readBytes())
-                    mappedBuffer.order(ByteOrder.LITTLE_ENDIAN)
-                    LectureSession.getRootAsLectureSession(mappedBuffer)
-                }
-            }
+            // B6 fix: Removed dead RandomAccessFile/FileChannel wrappers
+            val mappedBuffer = ByteBuffer.wrap(file.readBytes())
+            mappedBuffer.order(ByteOrder.LITTLE_ENDIAN)
+            LectureSession.getRootAsLectureSession(mappedBuffer)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load .nuab manifest", e)
             null
@@ -220,7 +232,9 @@ class SessionManager(private val context: Context) {
                 originalText = seg.originalText ?: "",
                 translatedText = seg.translatedText ?: "",
                 vocalAssetLocalPath = seg.audioSourcePath ?: "",
-                directive = if (seg.shouldFreeze) PlaybackDirective.FREEZE_HOLD else PlaybackDirective.NORMAL_SYNC,
+                // B5 fix: Read directive string if available, fall back to shouldFreeze mapping
+                directive = seg.directive?.takeIf { it.isNotEmpty() }
+                    ?: if (seg.shouldFreeze) PlaybackDirective.FREEZE_HOLD else PlaybackDirective.NORMAL_SYNC,
                 segmentId = seg.segmentId,
                 audioDurationMs = seg.audioDurationMs,
                 hotspots = hotspotsList

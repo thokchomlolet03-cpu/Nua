@@ -120,7 +120,7 @@ class AudioDecoder {
                             for (c in 0 until sourceChannels) {
                                 sum += shortArray[i * sourceChannels + c].toInt()
                             }
-                            monoArray[i] = (sum / sourceChannels).toShort()
+                            monoArray[i] = ((sum + sourceChannels / 2) / sourceChannels).toShort()
                         }
 
                         // 2. Resample stream on-the-fly and write to outputStream

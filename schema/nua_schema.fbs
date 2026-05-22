@@ -40,6 +40,7 @@ table TimeSegment {
   translated_text:string;
   should_freeze:bool;
   hotspots:[Hotspot];
+  directive:string;
 }
 
 table LectureSession {
