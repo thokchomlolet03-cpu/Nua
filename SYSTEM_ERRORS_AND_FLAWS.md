@@ -1,8 +1,8 @@
 # Nua — System Errors, Flaws & Technical Debt Registry
 
-> **Revision**: 8 (v4.0 TRIZ Overhaul Complete)
+> **Revision**: 9 (v4.0 Final Audit Complete)
 > **Date**: 2026-05-22
-> **Status**: 🟢 All bugs resolved. 8/11 technical debt items eliminated in v4.0 overhaul.
+> **Status**: 🟢 All bugs resolved. 10/11 technical debt items eliminated in v4.0 overhaul.
 
 ---
 
@@ -25,6 +25,8 @@
 | 🟢 44-byte WAV header assumption | Dynamic RIFF chunk parser in `WavUtils.kt` |
 | 🟢 `allowBackup="true"` | Changed to `false` + `fullBackupContent="false"` |
 | 🟢 Phonetic duration missing | Added `estimatePhoneticDurationMs()` in `DubbingTtsEngine.kt` |
+| 🟢 `com.example.nua` namespace | Fully migrated to production namespace `org.nua.production.app` |
+| 🟢 Telemetry P2P mesh relay | Implemented dynamic `WifiDirectMeshManager` in `TelemetryStub.kt` |
 
 ---
 
@@ -59,6 +61,4 @@
 
 | Category | Item | Priority | Notes |
 |---|---|---|---|
-| **Build** | `org.nua.production.app` namespace | 🟢 Minor | Requires production domain decision |
-| **Telemetry** | P2P mesh relay stub | 🟢 Minor | Requires Wi-Fi Direct hardware testing |
 | **AI** | Quantized tutor model | 🟢 Minor | Requires dedicated model training pipeline |
