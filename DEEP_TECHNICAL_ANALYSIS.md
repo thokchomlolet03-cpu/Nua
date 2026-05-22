@@ -742,17 +742,20 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 ## 12. Known Limitations & Future Enhancements
 
 ### Active Bugs
+**None.** All bugs are resolved in the v4.0 production release.
 
-| ID | Severity | Component | Description |
-|---|---|---|---|
-| B1 | 🔴 Critical | `MainScreenViewModel.kt:173` | **Leaking `CoroutineScope`** — standalone scope not tied to `viewModelScope` |
-| B2 | 🟡 Moderate | `SessionManager.kt:76` | **Hotspots silently dropped** — `hotspotsOffset = 0` loses data on save |
-| B3 | 🟡 Moderate | `LiteRTTranslator.kt:134` | **Streaming mutex gap** — `translateStreaming()` bypasses `translationMutex` |
-| B4 | 🟡 Moderate | `PlayerViewModel.kt:71` | **Thread-unsafe quiz set** — `mutableSetOf()` risks `ConcurrentModificationException` |
-| B5 | 🟡 Moderate | `SessionManager.kt:223` | **`PAD_EMPTY` directive lost** — round-trip maps to `NORMAL_SYNC` |
-| B6 | 🟢 Minor | `SessionManager.kt:147-149` | **Dead mmap code** — `RandomAccessFile`/`FileChannel` opened but unused |
-| B7 | 🟢 Minor | `AudioDecoder.kt:123` | **Downmix truncation** — integer division loses ~0.5 LSB |
-| B8 | 🟢 Minor | `OfflineTutorEngine.kt:120` | **Aggressive partial match** — `"photosynthesis".contains("the")` pollutes scores |
+### Resolved Bugs (v4.0 Overhaul)
+
+| ID | Severity | Component | Description | Resolution |
+|---|---|---|---|---|
+| B1 | 🔴 Critical | `MainScreenViewModel.kt:173` | **Leaking `CoroutineScope`** | Replaced with `viewModelScope` to tie lifecycle to ViewModel |
+| B2 | 🟡 Moderate | `SessionManager.kt:76` | **Hotspots silently dropped** | Properly serialized hotspots list into FlatBuffers TimeSegment builder |
+| B3 | 🟡 Moderate | `LiteRTTranslator.kt:134` | **Streaming mutex gap** | Wrapped `translateStreaming()` in `translationMutex.withLock` |
+| B4 | 🟡 Moderate | `PlayerViewModel.kt:71` | **Thread-unsafe quiz set** | Converted to thread-safe `Collections.synchronizedSet` with synchronized access block |
+| B5 | 🟡 Moderate | `SessionManager.kt:223` | **`PAD_EMPTY` directive lost** | Serialized and deserialized `directive` string for lossless round-trip |
+| B6 | 🟢 Minor | `SessionManager.kt:147-149` | **Dead mmap code** | Removed dead `RandomAccessFile`/`FileChannel` wrappers |
+| B7 | 🟢 Minor | `AudioDecoder.kt:123` | **Downmix truncation** | Implemented proper rounded division `(sum + sourceChannels/2) / sourceChannels` |
+| B8 | 🟢 Minor | `OfflineTutorEngine.kt:120` | **Aggressive partial match** | Implemented exact token match logic filtering out short words |
 
 ### Architecture Improvements
 
