@@ -1,5 +1,8 @@
 # Nua 🎬🎙️ — Intelligent Video Lecture Translation & Dubbing Ecosystem
 
+> [!TIP]
+> **Status: 🟢 System Stabilized (v2.0)** - All architectural flaws, synchronization bugs, and pipeline security vulnerabilities have been successfully remediated.
+
 **Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
 
 The project solves a critical educational gap: while technical lectures are primarily in English, millions of students learn most effectively in **Hinglish** (Hindi sentence structure with scientific terms preserved in English) and other regional languages.
