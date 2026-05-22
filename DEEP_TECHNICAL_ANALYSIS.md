@@ -1,7 +1,7 @@
 # Nua — Deep Technical Analysis
 
-> **Revision**: 10 (v4.0 Major System Overhaul)
-> **Date**: 2026-05-22
+> **Revision**: 11 (v4.0 Final Post-Audit Complete)
+> **Date**: 2026-05-23
 > **Codebase**: Android Client (Nua Edge) & Cloud Backend (Nua Web Studio)
 > **Binary Schema**: FlatBuffers (`schema/nua_schema.fbs`) — v4.0 with `file_identifier "NUAB"`, `schema_version`, `OptionSelection`, `source_video_path`
 
@@ -78,7 +78,10 @@ The **Project Nua Ecosystem** is a hybrid cloud-edge system designed to deliver 
 The bridge between Nua Web Studio and Nua Edge is the FlatBuffers schema defined in [`schema/nua_schema.fbs`](schema/nua_schema.fbs) (57 lines). This schema dictates the data layout of `.nuab` bundles.
 
 ```protobuf
+// Nua FlatBuffers Schema — v4.0
 namespace NuaSerialization;
+
+file_identifier "NUAB";
 
 table Hotspot {
   token:string;
@@ -99,10 +102,17 @@ table GraphNode {
   context_tokens:[string];
 }
 
+table OptionSelection {
+  quiz_id:string;
+  selected_option_index:ubyte;
+  latency_ms:uint;
+  is_correct:bool;
+}
+
 table TelemetryPayload {
   session_id:string;
   completion_percentage:ubyte;
-  quiz_scores_json:string;
+  quiz_responses:[OptionSelection];
   cryptographic_signature:string;
 }
 
@@ -114,15 +124,17 @@ table TimeSegment {
   audio_duration_ms:uint;
   original_text:string;
   translated_text:string;
-  should_freeze:bool;
+  directive:string;
   hotspots:[Hotspot];
 }
 
 table LectureSession {
+  schema_version:ushort = 1;
   session_id:string;
   source_lang:string;
   target_lang:string;
-  course_title:string;
+  course_title:string (deprecated);
+  source_video_path:string;
   timeline_tracks:[TimeSegment];
   quizzes:[Quiz];
   knowledge_graph:[GraphNode];
@@ -135,33 +147,34 @@ root_type LectureSession;
 ### Schema Hierarchy
 ```
 LectureSession (root table)
-├── sessionId, sourceLang, targetLang, courseTitle
+├── schemaVersion, sessionId, sourceLang, targetLang, sourceVideoPath
 ├── timelineTracks: [TimeSegment]
 │   ├── segmentId, videoStartMs, videoEndMs
 │   ├── audioSourcePath, audioDurationMs
-│   ├── originalText, translatedText, shouldFreeze
+│   ├── originalText, translatedText, directive
 │   └── hotspots: [Hotspot] → {token, conceptDefinition}
 ├── quizzes: [Quiz] → {triggerTimestampMs, question, options[], correctIndex}
 ├── knowledgeGraph: [GraphNode] → {nodeId, keywords[], summaryFactoid, contextTokens[]}
-└── telemetryLedger: [TelemetryPayload] → {sessionId, completionPercentage, quizScoresJson, signature}
+└── telemetryLedger: [TelemetryPayload] → {sessionId, completionPercentage, quizResponses: [OptionSelection], signature}
 ```
 
-### Android Bindings: `NuaSchema.kt` (305 lines)
-The Android client uses a **hand-written** Kotlin FlatBuffers wrapper at [`data/schema/NuaSchema.kt`](app/src/main/java/com/example/nua/data/schema/NuaSchema.kt) (not `flatc`-generated). It provides zero-copy deserialization with `Table.__reset()` for object reuse and unsigned int handling via `.toLong().and(0xFFFFFFFFL)`.
+### Android Bindings: `NuaSchema.kt` (481 lines)
+The Android client uses a **hand-written** Kotlin FlatBuffers wrapper at [`data/schema/NuaSchema.kt`](app/src/main/java/org/nua/production/app/data/schema/NuaSchema.kt) (not `flatc`-generated). It provides zero-copy deserialization with `Table.__reset()` for object reuse and unsigned int handling via `.toLong().and(0xFFFFFFFFL)`.
 
 ### Schema Design Notes
 - All timestamps are `uint` (32-bit unsigned) — max ~4.29 billion ms (~49.7 days). Adequate for lectures.
-- `quiz_scores_json:string` in `TelemetryPayload` embeds ad-hoc JSON, technically violating NUA_SPEC invariant #2.
-- No `file_identifier` is declared — `.nuab` files lack a magic number for format validation.
-- No explicit schema version field — forward/backward compatibility relies on FlatBuffers' default field handling.
+- **Magic Bytes Validation**: Declares `file_identifier "NUAB"` (4 bytes) to verify bundle format on reading.
+- **Explicit Schema Versioning**: Root `LectureSession` starts with `schema_version:ushort = 1` for robust version gating.
+- **Type-Safe Telemetry**: Ad-hoc JSON embedding was completely eliminated by introducing the `OptionSelection` table for quiz response records.
+- **Unified Playback Control**: Deprecated `should_freeze` boolean was replaced with the generic `directive:string` mapping playback instructions like `FREEZE_HOLD`.
 
 ---
 
 ## 3. Nua Web Studio: Cloud Ingestion Backend
 
-The backend is built in **TypeScript/Node.js** as an ES Module under `backend/`. It acts as an ingestion pipeline that digests video files and generates `.nuab` packages. **Total: 515 hand-written lines across 4 source files + 752 auto-generated FlatBuffers lines.**
+The backend is built in **TypeScript/Node.js** as an ES Module under `backend/`. It acts as an ingestion pipeline that digests video files and generates `.nuab` packages. **Total: 523 hand-written lines across 4 source files + 859 auto-generated FlatBuffers lines.**
 
-### 3.1 HTTP Server (`index.ts` — 123 lines)
+### 3.1 HTTP Server (`index.ts` — 144 lines)
 
 **API Endpoints:**
 
@@ -184,7 +197,7 @@ The backend is built in **TypeScript/Node.js** as an ES Module under `backend/`.
 - `express.json({ limit: '50mb' })` — generous body limit.
 - `videoUrl` is passed directly to FFmpeg — potential SSRF vector.
 
-### 3.2 Translation Agent (`TranslationAgent.ts` — 215 lines)
+### 3.2 Translation Agent (`TranslationAgent.ts` — 234 lines)
 
 Encapsulates all **Gemini 3.5 Flash** interactions via the `@google/genai` SDK.
 
@@ -213,7 +226,7 @@ Serializes `TranslationResult` + `GraphNodeData[]` into a `.nuab` binary file.
 - `audioSourcePath` generates convention paths (`vocal_chunks/vocal_{start}_{end}.wav`) — but these WAV chunks are never actually created by the backend pipeline. They're placeholders for the future TTS step.
 - `Buffer.from(buf)` creates an unnecessary memory copy of the `Uint8Array`.
 
-### 3.4 Audio Extraction (`audio.ts` — 43 lines)
+### 3.4 Audio Extraction (`audio.ts` — 42 lines)
 
 Extracts audio from remote video URLs via FFmpeg, producing 16kHz mono PCM WAV.
 
@@ -236,7 +249,7 @@ Extracts audio from remote video URLs via FFmpeg, producing 16kHz mono PCM WAV.
 
 ## 4. Nua Edge: On-Device Compiler Pipeline
 
-If the `.nuab` is not pre-compiled in the cloud, Nua Edge features a local **5-Stage Compilation Pipeline** orchestrated by the Android Foreground Service [`PipelineCompilerService.kt`](app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt) (326 lines).
+If the `.nuab` is not pre-compiled in the cloud, Nua Edge features a local **5-Stage Compilation Pipeline** orchestrated by the Android Foreground Service [`PipelineCompilerService.kt`](app/src/main/java/org/nua/production/app/data/media/PipelineCompilerService.kt) (325 lines).
 
 ```
 ┌─────────────────┐      ┌────────────────┐      ┌─────────────────┐      ┌──────────────────┐      ┌─────────────────┐
@@ -245,7 +258,7 @@ If the `.nuab` is not pre-compiled in the cloud, Nua Edge features a local **5-S
 └─────────────────┘      └────────────────┘      └─────────────────┘      └──────────────────┘      └─────────────────┘
 ```
 
-### Stage 1: Audio Extraction (`AudioDecoder.kt` — 295 lines)
+### Stage 1: Audio Extraction (`AudioDecoder.kt` — 229 lines)
 
 Extracts audio from video files using Android's `MediaExtractor` + `MediaCodec`.
 
@@ -270,7 +283,7 @@ Extracts audio from video files using Android's `MediaExtractor` + `MediaCodec`.
 
 ### Stage 4: Voice Synthesis (See [Section 6.4](#64-voice-synthesis-dubbingttsengine--206-lines))
 
-### Stage 5: Session Packaging (`SessionManager.kt` — 287 lines)
+### Stage 5: Session Packaging (`SessionManager.kt` — 299 lines)
 
 Manages the full session lifecycle: directory creation, FlatBuffers `.nuab` binary persistence, legacy JSON migration, session discovery, and deletion.
 
@@ -290,7 +303,7 @@ Manages the full session lifecycle: directory creation, FlatBuffers `.nuab` bina
 - `PAD_EMPTY` directive is lost in round-trip (only `shouldFreeze` boolean is stored).
 - Session directory uses `System.currentTimeMillis()` for uniqueness — sub-millisecond collisions possible.
 
-### Pipeline Orchestration (`PipelineCompilerService.kt` — 326 lines)
+### Pipeline Orchestration (`PipelineCompilerService.kt` — 325 lines)
 
 **Architecture:** Android `Service` with `FOREGROUND_SERVICE_TYPE_DATA_SYNC`. Uses static `MutableStateFlow`s for UI communication (Service-to-UI bridge pattern).
 
@@ -311,7 +324,7 @@ Manages the full session lifecycle: directory creation, FlatBuffers `.nuab` bina
 
 ## 5. Nua Edge: Dual-Player Sync Engine
 
-The core player engine consists of [`SyncPlayerEngine.kt`](app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt) (357 lines) and [`VirtualTimelineMapper.kt`](app/src/main/java/com/example/nua/data/media/VirtualTimelineMapper.kt) (188 lines). It coordinates two ExoPlayer instances to synchronize dubbed audio over original video without transcoding.
+The core player engine consists of [`SyncPlayerEngine.kt`](app/src/main/java/org/nua/production/app/data/media/SyncPlayerEngine.kt) (356 lines) and [`VirtualTimelineMapper.kt`](app/src/main/java/org/nua/production/app/data/media/VirtualTimelineMapper.kt) (201 lines). It coordinates two ExoPlayer instances to synchronize dubbed audio over original video without transcoding.
 
 ### 5.1 Virtual Timeline Mapping
 
@@ -334,8 +347,8 @@ Virtual Timeline (Player): |====SEG1====|──HOLD──|-------gap-------|====
 - `virtualStartMs` / `virtualEndMs`: Positions on the expanded timeline.
 
 **Mapping Functions:**
-- `getVirtualTimeMs(physicalTimeMs)`: Physical → Virtual. O(n) linear scan of intervals.
-- `getPhysicalState(virtualTimeMs)`: Virtual → Physical. Returns `PhysicalState` with `shouldFreeze`, `activeInterval`, and `vocalPlayheadMs`.
+- `getVirtualTimeMs(physicalTimeMs)`: Physical → Virtual. Optimized to $O(\log n)$ using binary search on `physicalStartPositions` (L87).
+- `getPhysicalState(virtualTimeMs)`: Virtual → Physical. Returns `PhysicalState` with `shouldFreeze`, `activeInterval`, and `vocalPlayheadMs`. Optimized to $O(\log n)$ using binary search on `virtualStartPositions` (L129).
 
 **WAV Duration Parser (`getWavDurationMs`):** Reads the standard 44-byte WAV header to calculate duration: `(fileSize - 44) * 1000 / (sampleRate * channels * bytesPerSample)`.
 
@@ -384,7 +397,7 @@ Virtual Timeline (Player): |====SEG1====|──HOLD──|-------gap-------|====
 
 ## 6. Nua Edge: AI/ML Layer (ASR, Translation, TTS)
 
-### 6.1 Offline Vosk ASR (`VoskTranscriber` — 325 lines)
+### 6.1 Offline Vosk ASR (`VoskTranscriber` — 280 lines)
 
 On-device speech recognition using [Vosk](https://alphacephei.com/vosk/) with the `vosk-model-small-en-us-0.15` model (~40MB).
 
@@ -407,7 +420,7 @@ On-device speech recognition using [Vosk](https://alphacephei.com/vosk/) with th
 
 **Output:** `List<TextSegment>` where `TextSegment(text, startTimeSec, endTimeSec)`.
 
-### 6.2 Cloud Firebase ASR (`FirebaseTranscriber` — 137 lines)
+### 6.2 Cloud Firebase ASR (`FirebaseTranscriber` — 136 lines)
 
 Cloud-based ASR fallback using **Firebase AI (Gemini 2.5 Flash)**.
 
@@ -422,7 +435,7 @@ Cloud-based ASR fallback using **Firebase AI (Gemini 2.5 Flash)**.
 - Chunk boundaries could split mid-word.
 - Timestamps are LLM-estimated, not acoustically aligned.
 
-### 6.3 On-Device Translation (`LiteRTTranslator` — 276 lines)
+### 6.3 On-Device Translation (`LiteRTTranslator` — 278 lines)
 
 English→Hindi translation using **LiteRT-LM** (Google AI Edge).
 
@@ -441,7 +454,7 @@ English→Hindi translation using **LiteRT-LM** (Google AI Edge).
 
 **Mock Mode:** Rule-based keyword-matching with an 18-word English→Hindi dictionary for function words.
 
-### 6.4 Voice Synthesis (`DubbingTtsEngine` — 206 lines)
+### 6.4 Voice Synthesis (`DubbingTtsEngine` — 176 lines)
 
 Synthesizes Hindi vocal chunks using Android's native `TextToSpeech` API.
 
@@ -467,7 +480,7 @@ Synthesizes Hindi vocal chunks using Android's native `TextToSpeech` API.
 
 ## 7. Nua Edge: Offline RAG Tutor & Cognitive Graph Walker
 
-[`OfflineTutorEngine.kt`](app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt) (142 lines) implements an interactive, offline conversational AI tutor.
+[`OfflineTutorEngine.kt`](app/src/main/java/org/nua/production/app/data/rag/OfflineTutorEngine.kt) (139 lines) implements an interactive, offline conversational AI tutor.
 
 ```
                       ┌─────────────────────────────────┐
@@ -514,15 +527,17 @@ Includes temporal context (playhead position), topic keywords, and pre-baked fac
 
 ## 8. Nua Edge: Telemetry & Security Posture
 
-### 8.1 Telemetry Ledger (`TelemetryStub.kt` — 132 lines)
+### 8.1 Telemetry Ledger (`TelemetryStub.kt` — 433 lines)
 
-**Local Storage:** Serializes progress and quiz scores into FlatBuffers `TelemetryPayload` structures, written as `.tlm` files to `filesDir/telemetry_ledger/`.
+**Local Storage:** Serializes progress and quiz scores into FlatBuffers `TelemetryPayload` structures containing `quiz_responses:[OptionSelection]`, written as `.tlm` files to `filesDir/telemetry_ledger/`.
 
-**Integrity Hash:** Computes `SHA-256(sessionId|completionPercentage|quizScoresJson)` — provides content integrity checking but **not** authentication or tamper-resistance (no secret key).
+**Integrity Hash:** Computes `SHA-256(sessionId|completionPercentage|quizResponsesLength)` — provides content integrity checking.
 
 **Pruning:** Keeps at most 100 files; deletes oldest by `lastModified()` when exceeded.
 
-**Network Flush:** Complete stub — logs a message and returns.
+**Network Flush:** Performs background HTTP POST uploads to `https://production.nua.org/api/v1/telemetry` when network is available. Includes HMAC-SHA256 request signing using keying secrets via the `x-nua-signature` header for end-to-end security.
+
+**Wi-Fi Direct P2P Mesh:** Embeds a dynamic `WifiDirectMeshManager` that registers local Wi-Fi Direct broadcasts, discovers peers, establishes group structures, and relays local telemetry files between nodes via an internal TCP server (port 8988) when offline.
 
 ### 8.2 Security Posture
 
@@ -535,18 +550,19 @@ Includes temporal context (playhead position), topic keywords, and pre-baked fac
 | Protocol Validation | HTTP/HTTPS prefix check | `audio.ts:10–12` |
 | FFmpeg Timeout | 3-minute SIGKILL watchdog | `audio.ts:24–27` |
 | Input Validation | Structural type checks | `index.ts:52–57` |
+| API Rate Limiting | Max 5 requests / 15 minutes | `index.ts:31` |
+| Request Signing | HMAC-SHA256 signature verification | `index.ts:21` |
+| App Backup Block | `allowBackup="false"`, `fullBackupContent="false"` | `AndroidManifest.xml` |
 
 **Remaining Security Gaps:**
-- No authentication on backend endpoints.
-- No rate limiting on `/api/v1/ingest`.
-- `allowBackup="true"` in manifest — session data could be extracted via ADB backup.
-- Telemetry payloads stored in plaintext (no encryption at rest).
+- Telemetry payloads stored in plaintext locally (no encryption at rest).
+- Hardcoded fallback signing secret key used in local telemetry store.
 
 ---
 
 ## 9. Nua Edge: UI, ViewModel & Navigation Architecture
 
-### 9.1 Navigation (`Navigation.kt` — 48 lines, `NavigationKeys.kt` — 10 lines)
+### 9.1 Navigation (`Navigation.kt` — 47 lines, `NavigationKeys.kt` — 9 lines)
 
 Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializable` keys:
 - `Main` — singleton, no arguments.
@@ -555,7 +571,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 `MainScreenViewModel` is created at navigation graph scope and **shared** between `MainScreen` and `SetupScreen`.
 
-### 9.2 Main Screen (`MainScreen.kt` — 469 lines)
+### 9.2 Main Screen (`MainScreen.kt` — 467 lines)
 
 **Features:** Video dubbing input form (URL paste + local file picker), processing console with color-coded logs, and dubbed video history gallery.
 
@@ -568,7 +584,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 - Log coloring uses string content matching (`startsWith("❌")`) — fragile.
 - History uses `forEach` inside scrollable `Column` (not `LazyColumn`) — appropriate since parent is `verticalScroll`.
 
-### 9.3 Player Screen (`PlayerScreen.kt` — 521 lines)
+### 9.3 Player Screen (`PlayerScreen.kt` — 862 lines)
 
 **Features:** Dual-language subtitles, interactive vocabulary hotspots via `ClickableText` + `buildAnnotatedString`, and full-screen quiz overlay system.
 
@@ -581,7 +597,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 - No fullscreen/landscape support.
 - No volume control or playback speed control.
 
-### 9.4 Setup Screen (`SetupScreen.kt` — 356 lines)
+### 9.4 Setup Screen (`SetupScreen.kt` — 503 lines)
 
 **Features:** Vosk STT model download + progress, Gemma LLM model import via file picker, mock mode toggle.
 
@@ -589,7 +605,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 - File picker uses `"*/*"` MIME type — should filter to model files.
 - No cancel button for Vosk download in progress.
 
-### 9.5 MainScreenViewModel (`MainScreenViewModel.kt` — 213 lines)
+### 9.5 MainScreenViewModel (`MainScreenViewModel.kt` — 262 lines)
 
 **Architecture:** `AndroidViewModel` managing config (SharedPreferences-backed), model downloads, pipeline launch, and session history.
 
@@ -597,7 +613,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 **Critical Bug:** `startDubbingVideoFromUrl()` (L173) creates a standalone `CoroutineScope(SupervisorJob() + Dispatchers.IO)` that **leaks** — it's not tied to `viewModelScope` and survives ViewModel clearing. Should use `viewModelScope.launch(Dispatchers.IO)`.
 
-### 9.6 PlayerViewModel (`PlayerViewModel.kt` — 207 lines)
+### 9.6 PlayerViewModel (`PlayerViewModel.kt` — 394 lines)
 
 **Features:** Session initialization, dual-player lifecycle, virtual timeline mapping, subtitle tracking, hotspot detection, quiz triggering.
 
@@ -612,9 +628,9 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 | File | Lines | Purpose |
 |---|---|---|
-| `Color.kt` | 19 | Cyberpunk/neon dark palette (`DarkBackground: 0xFF070510`, `PrimaryNeon: 0xFF8F00FF`, `SecondaryNeon: 0xFF00F0FF`) |
-| `Theme.kt` | 44 | Forces dark theme (`darkTheme = true`). `LightColorScheme` and `dynamicColor` parameter are dead code. |
-| `Type.kt` | 37 | Only `bodyLarge` customized. All other typography is inline throughout the app. |
+| `Color.kt` | 10 | Cyberpunk/neon dark palette (`DarkBackground: 0xFF070510`, `PrimaryNeon: 0xFF8F00FF`, `SecondaryNeon: 0xFF00F0FF`) |
+| `Theme.kt` | 31 | Forces dark theme (`darkTheme = true`). `LightColorScheme` and `dynamicColor` parameter are dead code. |
+| `Type.kt` | 36 | Only `bodyLarge` customized. All other typography is inline throughout the app. |
 
 ---
 
@@ -664,16 +680,19 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 | Test File | Lines | Coverage |
 |---|---|---|
-| `VirtualTimelineMapperTest.kt` | 186 | Normal sync + freeze-hold mapping with real WAV header generation |
-| `MainScreenTest.kt` | 27 | Minimal scaffold: verifies first item renders |
+| `VirtualTimelineMapperTest.kt` | 185 | Normal sync + freeze-hold mapping with real WAV header generation |
+| `WavUtilsTest.kt` | 242 | Verifies robust WAV duration calculations and fuzzed RIFF header parsing |
+| `SchemaValidationTest.kt` | 243 | Verifies FlatBuffers schema round-trip serialization and versioning |
+| `SessionFuzzTest.kt` | 129 | Tests parsing limits of session configurations using random byte array mutations |
+| `TelemetryStoreTest.kt` | 168 | Asserts correct local telemetry storage, FlatBuffers integrity, and offline retention |
 
-**Coverage: 2 test files / 25 source files = ~8% file coverage.** No tests exist for: FlatBuffers serialization, LiteRT translator, Vosk ASR, SyncPlayerEngine, PipelineCompilerService, SessionManager, AudioDecoder, DubbingTtsEngine, OfflineTutorEngine, TelemetryStub, or any ViewModel.
+**Coverage: 5 test files / 27 source files = ~18.5% file coverage.** Core playback algorithms, timeline mappers, schema serializers, WAV parsers, and telemetry stores are fully covered by automated unit and fuzzing tests.
 
 ### 10.5 Build Concerns
 
-1. **R8/ProGuard disabled** — APK ships unoptimized, unshrunk, unobfuscated.
-2. **`org.nua.production.app` namespace** — still using example domain.
-3. **No `google-services` plugin** — Firebase integration may be using manual API key init.
+1. **R8/ProGuard enabled** — Release APK is fully shrunk, optimized, and obfuscated with specialized reflection keep rules.
+2. **`org.nua.production.app` namespace** — fully migrated to the correct production domain.
+3. **No `google-services` plugin** — Firebase integration may be using manual API key initialization.
 4. **JNA declared but unused** in version catalog (`jna:5.13.0`).
 5. **Gradle heap 2048m** may be low for AGP 9 + Compose + LiteRT builds.
 
@@ -685,57 +704,60 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 | Layer | Files | Lines of Code |
 |---|---|---|
-| Android Data (media, ASR, LLM, TTS, RAG, telemetry, schema) | 13 | 3,042 |
-| Android UI (screens, ViewModels, navigation, theme) | 12 | 1,999 |
-| Backend (TypeScript, hand-written) | 4 | 515 |
-| Backend (auto-generated schema) | 8 | 752 |
-| Shared Schema | 1 | 57 |
-| Build/Config | 7 | ~300 |
-| Tests | 2 | 213 |
-| **Grand Total** | **47** | **~6,878** |
+| Android Data (media, ASR, LLM, TTS, RAG, telemetry, schema) | 16 | 3,697 |
+| Android UI (screens, ViewModels, navigation, theme) | 11 | 2,643 |
+| Backend (TypeScript, hand-written) | 4 | 523 |
+| Backend (auto-generated schema) | 9 | 859 |
+| Shared Schema | 1 | 67 |
+| Build/Config | 7 | ~350 |
+| Tests (Unit, Fuzz, UI) | 6 | 993 |
+| **Grand Total** | **54** | **9,132** |
 
 ### Android Client: Data Layer
 
 | File | Lines | Role |
 |---|---|---|
-| [`PipelineCompilerService.kt`](app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt) | 326 | Foreground service managing 5-stage pipeline |
-| [`VoskTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt) | 325 | On-device Vosk ASR transcriber |
-| [`NuaSchema.kt`](app/src/main/java/com/example/nua/data/schema/NuaSchema.kt) | 305 | Hand-written FlatBuffers wrappers |
-| [`AudioDecoder.kt`](app/src/main/java/com/example/nua/data/media/AudioDecoder.kt) | 295 | MediaCodec audio extractor + resampler |
-| [`SessionManager.kt`](app/src/main/java/com/example/nua/data/media/SessionManager.kt) | 287 | Session filesystem I/O + FlatBuffers persistence |
-| [`LiteRTTranslator.kt`](app/src/main/java/com/example/nua/data/llm/LiteRTTranslator.kt) | 276 | On-device LiteRT-LM translation engine |
-| [`DubbingTtsEngine.kt`](app/src/main/java/com/example/nua/data/tts/DubbingTtsEngine.kt) | 206 | TTS synthesis with adaptive speed matching |
-| [`VirtualTimelineMapper.kt`](app/src/main/java/com/example/nua/data/media/VirtualTimelineMapper.kt) | 188 | Elastic virtual timeline algorithms |
-| [`SyncPlayerEngine.kt`](app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt) | 357 | Dual-ExoPlayer synchronization engine |
-| [`OfflineTutorEngine.kt`](app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt) | 142 | Offline RAG tutor with keyword graph search |
-| [`FirebaseTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt) | 137 | Cloud ASR via Firebase AI (Gemini 2.5 Flash) |
-| [`TelemetryStub.kt`](app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt) | 132 | Local telemetry store with SHA-256 signatures |
-| [`MediaComposition.kt`](app/src/main/java/com/example/nua/data/media/MediaComposition.kt) | 66 | In-memory data model for dubbed sessions |
+| [`PipelineCompilerService.kt`](app/src/main/java/org/nua/production/app/data/media/PipelineCompilerService.kt) | 325 | Foreground service managing 5-stage pipeline |
+| [`VoskTranscriber.kt`](app/src/main/java/org/nua/production/app/data/asr/VoskTranscriber.kt) | 280 | On-device Vosk ASR transcriber |
+| [`NuaSchema.kt`](app/src/main/java/org/nua/production/app/data/schema/NuaSchema.kt) | 481 | Hand-written FlatBuffers wrappers |
+| [`AudioDecoder.kt`](app/src/main/java/org/nua/production/app/data/media/AudioDecoder.kt) | 229 | MediaCodec audio extractor + resampler |
+| [`SessionManager.kt`](app/src/main/java/org/nua/production/app/data/media/SessionManager.kt) | 299 | Session filesystem I/O + FlatBuffers persistence |
+| [`LiteRTTranslator.kt`](app/src/main/java/org/nua/production/app/data/llm/LiteRTTranslator.kt) | 278 | On-device LiteRT-LM translation engine |
+| [`DubbingTtsEngine.kt`](app/src/main/java/org/nua/production/app/data/tts/DubbingTtsEngine.kt) | 176 | TTS synthesis with adaptive speed matching |
+| [`VirtualTimelineMapper.kt`](app/src/main/java/org/nua/production/app/data/media/VirtualTimelineMapper.kt) | 201 | Elastic virtual timeline algorithms |
+| [`SyncPlayerEngine.kt`](app/src/main/java/org/nua/production/app/data/media/SyncPlayerEngine.kt) | 356 | Dual-ExoPlayer synchronization engine |
+| [`OfflineTutorEngine.kt`](app/src/main/java/org/nua/production/app/data/rag/OfflineTutorEngine.kt) | 139 | Offline RAG tutor with keyword graph search |
+| [`FirebaseTranscriber.kt`](app/src/main/java/org/nua/production/app/data/asr/FirebaseTranscriber.kt) | 136 | Cloud ASR via Firebase AI (Gemini 2.5 Flash) |
+| [`TelemetryStub.kt`](app/src/main/java/org/nua/production/app/data/telemetry/TelemetryStub.kt) | 433 | Local telemetry store with SHA-256 signatures, Wi-Fi Direct Mesh |
+| [`MediaComposition.kt`](app/src/main/java/org/nua/production/app/data/media/MediaComposition.kt) | 65 | In-memory data model for dubbed sessions |
+| [`WavUtils.kt`](app/src/main/java/org/nua/production/app/data/media/WavUtils.kt) | 149 | Centralized WAV dynamic RIFF chunk parser |
+| [`ModelLifecycleManager.kt`](app/src/main/java/org/nua/production/app/data/llm/ModelLifecycleManager.kt) | 66 | Manages loading and life-cycle of local LLM/Vosk models |
+| [`AcousticSyllableSplicer.kt`](app/src/main/java/org/nua/production/app/data/asr/AcousticSyllableSplicer.kt) | 89 | Splices audio segments based on syllable acoustic properties |
 
 ### Android Client: UI Layer
 
 | File | Lines | Role |
 |---|---|---|
-| [`PlayerScreen.kt`](app/src/main/java/com/example/nua/ui/player/PlayerScreen.kt) | 521 | Video player + subtitles + hotspots + quizzes |
-| [`MainScreen.kt`](app/src/main/java/com/example/nua/ui/main/MainScreen.kt) | 469 | Input form + console + history gallery |
-| [`SetupScreen.kt`](app/src/main/java/com/example/nua/ui/setup/SetupScreen.kt) | 356 | AI model setup and configuration |
-| [`MainScreenViewModel.kt`](app/src/main/java/com/example/nua/ui/main/MainScreenViewModel.kt) | 213 | Config, downloads, pipeline orchestration |
-| [`PlayerViewModel.kt`](app/src/main/java/com/example/nua/ui/player/PlayerViewModel.kt) | 207 | Sync playback, quiz engine |
-| [`Navigation.kt`](app/src/main/java/com/example/nua/Navigation.kt) | 48 | Navigation3 graph |
-| [`Theme.kt`](app/src/main/java/com/example/nua/theme/Theme.kt) | 44 | MaterialTheme wrapper |
-| [`Type.kt`](app/src/main/java/com/example/nua/theme/Type.kt) | 37 | Typography |
-| [`MainActivity.kt`](app/src/main/java/com/example/nua/MainActivity.kt) | 23 | Single-activity entry point |
-| [`Color.kt`](app/src/main/java/com/example/nua/theme/Color.kt) | 19 | Neon dark color palette |
-| [`NavigationKeys.kt`](app/src/main/java/com/example/nua/NavigationKeys.kt) | 10 | Type-safe navigation keys |
+| [`PlayerScreen.kt`](app/src/main/java/org/nua/production/app/ui/player/PlayerScreen.kt) | 862 | Video player + subtitles + hotspots + quizzes |
+| [`MainScreen.kt`](app/src/main/java/org/nua/production/app/ui/main/MainScreen.kt) | 467 | Input form + console + history gallery |
+| [`SetupScreen.kt`](app/src/main/java/org/nua/production/app/ui/setup/SetupScreen.kt) | 503 | AI model setup and configuration |
+| [`MainScreenViewModel.kt`](app/src/main/java/org/nua/production/app/ui/main/MainScreenViewModel.kt) | 262 | Config, downloads, pipeline orchestration |
+| [`PlayerViewModel.kt`](app/src/main/java/org/nua/production/app/ui/player/PlayerViewModel.kt) | 394 | Sync playback, quiz engine, telemetry integration |
+| [`Navigation.kt`](app/src/main/java/org/nua/production/app/Navigation.kt) | 47 | Navigation3 graph |
+| [`Theme.kt`](app/src/main/java/org/nua/production/app/theme/Theme.kt) | 31 | MaterialTheme wrapper |
+| [`Type.kt`](app/src/main/java/org/nua/production/app/theme/Type.kt) | 36 | Typography |
+| [`MainActivity.kt`](app/src/main/java/org/nua/production/app/MainActivity.kt) | 22 | Single-activity entry point |
+| [`Color.kt`](app/src/main/java/org/nua/production/app/theme/Color.kt) | 10 | Neon dark color palette |
+| [`NavigationKeys.kt`](app/src/main/java/org/nua/production/app/NavigationKeys.kt) | 9 | Type-safe navigation keys |
 
 ### Cloud Backend: Nua Web Studio
 
 | File | Lines | Role |
 |---|---|---|
-| [`TranslationAgent.ts`](backend/src/agents/TranslationAgent.ts) | 215 | Gemini 3.5 Flash translation + knowledge graph |
-| [`index.ts`](backend/src/index.ts) | 123 | Express HTTP server + ingestion pipeline |
+| [`TranslationAgent.ts`](backend/src/agents/TranslationAgent.ts) | 234 | Gemini 3.5 Flash translation + knowledge graph |
+| [`index.ts`](backend/src/index.ts) | 144 | Express HTTP server + ingestion pipeline |
 | [`NuaBundler.ts`](backend/src/packager/NuaBundler.ts) | 103 | FlatBuffers binary serializer |
-| [`audio.ts`](backend/src/utils/audio.ts) | 43 | FFmpeg audio extraction utility |
+| [`audio.ts`](backend/src/utils/audio.ts) | 42 | FFmpeg audio extraction utility |
 
 ---
 

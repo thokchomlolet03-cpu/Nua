@@ -1,13 +1,13 @@
 # Nua — System Errors, Flaws & Technical Debt Registry
 
-> **Revision**: 9 (v4.0 Final Audit Complete)
-> **Date**: 2026-05-22
-> **Status**: 🟢 All bugs resolved. 10/11 technical debt items eliminated in v4.0 overhaul.
+> **Revision**: 11 (v4.0 Final Post-Audit Complete)
+> **Date**: 2026-05-23
+> **Status**: 🟢 All bugs and technical debt items resolved (15/15 items eliminated).
 
 ---
 
 ## Active Issues
-**None.** The system is fully stabilized.
+**None.** The system is fully stabilized and production-ready.
 
 ---
 
@@ -15,7 +15,7 @@
 
 | Former Debt Item | Resolution |
 |---|---|
-| 🔴 ~8% test coverage | Added `SchemaValidationTest.kt` (5 tests) + `WavUtilsTest.kt` (8 tests) |
+| 🔴 ~8% test coverage | Added `SchemaValidationTest.kt` (5 tests) + `WavUtilsTest.kt` (8 tests) + `TelemetryStoreTest.kt` (4 tests) |
 | 🟡 R8/ProGuard disabled | Enabled in `build.gradle.kts` with `proguard-rules.pro` |
 | 🟡 No backend authentication | HMAC-SHA256 signature verification via `x-nua-signature` header |
 | 🟡 No rate limiting | `express-rate-limit` (5 req/15min) on `/api/v1/ingest` |
@@ -28,6 +28,8 @@
 | 🟢 `com.example.nua` namespace | Fully migrated to production namespace `org.nua.production.app` |
 | 🟢 Telemetry P2P mesh relay | Implemented dynamic `WifiDirectMeshManager` in `TelemetryStub.kt` |
 | 🟢 Quantized tutor model | Automated compilation, quantization, and packaging pipeline via `tools/compile_tutor_model.py` |
+| 🟢 O(n) Playhead Scan | Optimized search in `VirtualTimelineMapper.kt` to $O(\log n)$ using binary search on pre-sorted arrays |
+| 🟢 Telemetry Integration | Integrated `LocalTelemetryStore` in `PlayerViewModel` and `PlayerScreen` to track completion and quiz option selections, flushing offline records on release |
 
 ---
 
