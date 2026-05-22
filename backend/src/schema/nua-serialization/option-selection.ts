@@ -29,7 +29,7 @@ quizId(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-selectedIndex():number {
+selectedOptionIndex():number {
   const offset = this.bb!.__offset(this.bb_pos, 6);
   return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
 }
@@ -52,8 +52,8 @@ static addQuizId(builder:flatbuffers.Builder, quizIdOffset:flatbuffers.Offset) {
   builder.addFieldOffset(0, quizIdOffset, 0);
 }
 
-static addSelectedIndex(builder:flatbuffers.Builder, selectedIndex:number) {
-  builder.addFieldInt8(1, selectedIndex, 0);
+static addSelectedOptionIndex(builder:flatbuffers.Builder, selectedOptionIndex:number) {
+  builder.addFieldInt8(1, selectedOptionIndex, 0);
 }
 
 static addLatencyMs(builder:flatbuffers.Builder, latencyMs:number) {
@@ -69,10 +69,10 @@ static endOptionSelection(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createOptionSelection(builder:flatbuffers.Builder, quizIdOffset:flatbuffers.Offset, selectedIndex:number, latencyMs:number, isCorrect:boolean):flatbuffers.Offset {
+static createOptionSelection(builder:flatbuffers.Builder, quizIdOffset:flatbuffers.Offset, selectedOptionIndex:number, latencyMs:number, isCorrect:boolean):flatbuffers.Offset {
   OptionSelection.startOptionSelection(builder);
   OptionSelection.addQuizId(builder, quizIdOffset);
-  OptionSelection.addSelectedIndex(builder, selectedIndex);
+  OptionSelection.addSelectedOptionIndex(builder, selectedOptionIndex);
   OptionSelection.addLatencyMs(builder, latencyMs);
   OptionSelection.addIsCorrect(builder, isCorrect);
   return OptionSelection.endOptionSelection(builder);

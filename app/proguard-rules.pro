@@ -1,7 +1,7 @@
 # ─── Nua ProGuard Rules ─────────────────────────────────────────────────────
 
 # FlatBuffers schema classes (zero-copy binary access via reflection)
--keep class com.example.nua.data.schema.** { *; }
+-keep class org.nua.production.app.data.schema.** { *; }
 -keepclassmembers class * extends com.google.flatbuffers.Table { *; }
 
 # Vosk ASR engine (JNI native methods)
@@ -16,9 +16,9 @@
 -keepclasseswithmembers class kotlinx.serialization.json.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
--keep,includedescriptorclasses class com.example.nua.**$$serializer { *; }
--keepclassmembers class com.example.nua.** { *** Companion; }
--keepclasseswithmembers class com.example.nua.** {
+-keep,includedescriptorclasses class org.nua.production.app.**$$serializer { *; }
+-keepclassmembers class org.nua.production.app.** { *** Companion; }
+-keepclasseswithmembers class org.nua.production.app.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 
@@ -30,3 +30,7 @@
 # Firebase / Google AI
 -dontwarn com.google.firebase.**
 -keep class com.google.firebase.** { *; }
+
+# FlatBuffers generated files outside main package
+-keep class NuaSerialization.** { *; }
+

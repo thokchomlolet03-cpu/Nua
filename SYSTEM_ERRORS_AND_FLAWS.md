@@ -59,6 +59,6 @@
 
 | Category | Item | Priority | Notes |
 |---|---|---|---|
-| **Build** | `com.example.nua` namespace | 🟢 Minor | Requires production domain decision |
+| **Build** | `org.nua.production.app` namespace | 🟢 Minor | Requires production domain decision |
 | **Telemetry** | P2P mesh relay stub | 🟢 Minor | Requires Wi-Fi Direct hardware testing |
 | **AI** | Quantized tutor model | 🟢 Minor | Requires dedicated model training pipeline |

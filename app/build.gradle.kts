@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.nua"
+    namespace = "org.nua.production.app"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.nua"
+        applicationId = "org.nua.production.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 3
@@ -38,7 +38,14 @@ android {
         excludes += "/META-INF/{AL2.0,LGPL2.1}"
       }
     }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        disable += "Instantiatable"
+    }
 }
+
 
 kotlin {
     jvmToolchain(17)

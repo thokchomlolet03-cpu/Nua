@@ -672,7 +672,7 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 ### 10.5 Build Concerns
 
 1. **R8/ProGuard disabled** — APK ships unoptimized, unshrunk, unobfuscated.
-2. **`com.example.nua` namespace** — still using example domain.
+2. **`org.nua.production.app` namespace** — still using example domain.
 3. **No `google-services` plugin** — Firebase integration may be using manual API key init.
 4. **JNA declared but unused** in version catalog (`jna:5.13.0`).
 5. **Gradle heap 2048m** may be low for AGP 9 + Compose + LiteRT builds.

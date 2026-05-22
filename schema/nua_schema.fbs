@@ -27,7 +27,7 @@ table GraphNode {
 
 table OptionSelection {
   quiz_id:string;
-  selected_index:ubyte;
+  selected_option_index:ubyte;
   latency_ms:uint;
   is_correct:bool;
 }

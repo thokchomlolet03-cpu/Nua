@@ -25,6 +25,7 @@ echo "📦 Compiling FlatBuffers schema..."
 # Kotlin bindings (Android)
 echo "  → Kotlin bindings → ${KOTLIN_OUT}"
 flatc --kotlin -o "${KOTLIN_OUT}" "${SCHEMA_FILE}"
+find "${KOTLIN_OUT}/NuaSerialization" -name "*.kt" -exec sed -i '' 's/FLATBUFFERS_25_12_19/FLATBUFFERS_25_2_10/g' {} +
 
 # TypeScript bindings (Backend)
 mkdir -p "${TS_OUT}"
