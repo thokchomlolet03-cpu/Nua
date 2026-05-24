@@ -90,6 +90,7 @@ class SyncPlayerEngine(context: Context) {
 
     private val handler = Handler(Looper.getMainLooper())
     private var isPlaying = false
+    private var adaptivePacingSlowdown = false
 
     // Callback for UI state updates
     var onStateUpdate: ((SyncState) -> Unit)? = null
@@ -108,6 +109,19 @@ class SyncPlayerEngine(context: Context) {
     fun setVideoSource(mediaItem: MediaItem) {
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.prepare()
+    }
+
+    fun setAdaptivePacing(slowDown: Boolean) {
+        adaptivePacingSlowdown = slowDown
+        if (!isFreezing) {
+            val baseSpeed = if (slowDown) 0.85f else 1.0f
+            if (kotlin.math.abs(videoPlayer.playbackParameters.speed - baseSpeed) > 0.01f) {
+                videoPlayer.playbackParameters = PlaybackParameters(baseSpeed)
+            }
+            if (kotlin.math.abs(audioPlayer.playbackParameters.speed - baseSpeed) > 0.01f) {
+                audioPlayer.playbackParameters = PlaybackParameters(baseSpeed)
+            }
+        }
     }
 
     private fun setupVocalEqualizer(audioSessionId: Int) {
@@ -209,12 +223,13 @@ class SyncPlayerEngine(context: Context) {
                 Log.d(TAG, "Hard freeze: drift ${durationDrift}ms exceeds threshold")
             }
             else -> {
-                // No drift: normal speed
-                if (kotlin.math.abs(videoPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
-                    videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+                // No drift: normal speed or adaptive pacing
+                val baseSpeed = if (adaptivePacingSlowdown) 0.85f else 1.0f
+                if (kotlin.math.abs(videoPlayer.playbackParameters.speed - baseSpeed) > 0.01f) {
+                    videoPlayer.playbackParameters = PlaybackParameters(baseSpeed)
                 }
-                if (kotlin.math.abs(audioPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
-                    audioPlayer.playbackParameters = PlaybackParameters(1.0f)
+                if (kotlin.math.abs(audioPlayer.playbackParameters.speed - baseSpeed) > 0.01f) {
+                    audioPlayer.playbackParameters = PlaybackParameters(baseSpeed)
                 }
             }
         }
@@ -234,8 +249,9 @@ class SyncPlayerEngine(context: Context) {
             Log.d(TAG, "Unfreeze: video resumed at 1.0x")
         } else {
             // Reset any clock-skewing
-            if (kotlin.math.abs(videoPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
-                videoPlayer.playbackParameters = PlaybackParameters(1.0f)
+            val baseSpeed = if (adaptivePacingSlowdown) 0.85f else 1.0f
+            if (kotlin.math.abs(videoPlayer.playbackParameters.speed - baseSpeed) > 0.01f) {
+                videoPlayer.playbackParameters = PlaybackParameters(baseSpeed)
             }
         }
         currentInterval = null

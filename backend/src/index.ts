@@ -8,6 +8,26 @@ import { extractAudioChannel } from './utils/audio.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import sqlite3 from 'sqlite3';
+
+// ─── Database ──────────────────────────────────────────────────────────
+
+const dbPath = path.join(os.tmpdir(), 'nua-enterprise.sqlite');
+const db = new sqlite3.Database(dbPath);
+db.serialize(() => {
+    db.run(`CREATE TABLE IF NOT EXISTS tenants (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        api_key TEXT UNIQUE,
+        credits_remaining INTEGER
+    )`);
+    // Seed dummy tenant if empty
+    db.get("SELECT COUNT(*) as count FROM tenants", (err: any, row: any) => {
+        if (!err && row.count === 0) {
+            db.run("INSERT INTO tenants (name, api_key, credits_remaining) VALUES ('Mock Institute', 'test-tenant-key', 50)");
+        }
+    });
+});
 
 // ─── Configuration ─────────────────────────────────────────────────────
 
@@ -81,6 +101,19 @@ const verifyHmacSignature = (req: any, res: any, next: any) => {
     next();
 };
 
+const verifyTenantLicense = (req: any, res: any, next: any) => {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey) return res.status(401).json({ error: 'Missing x-api-key header for Enterprise licensing' });
+
+    db.get("SELECT * FROM tenants WHERE api_key = ?", [apiKey], (err: any, row: any) => {
+        if (err || !row) return res.status(403).json({ error: 'Invalid organization API key' });
+        if (row.credits_remaining <= 0) return res.status(402).json({ error: 'Organization has exhausted processing credits' });
+        
+        req.tenant = row;
+        next();
+    });
+};
+
 // ─── Health Check ──────────────────────────────────────────────────────
 
 app.get('/health', (_req, res) => {
@@ -93,7 +126,7 @@ app.get('/health', (_req, res) => {
 
 // ─── Main Ingestion Endpoint ───────────────────────────────────────────
 
-app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, async (req, res) => {
+app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, verifyTenantLicense, async (req: any, res: any) => {
     let workDir: string | null = null;
 
     try {
@@ -141,6 +174,9 @@ app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, async (req, re
         } else {
             console.log('  Step 5/5: Skipping upload (mock mode or no GCS)');
         }
+
+        // Deduct 1 credit for processing
+        db.run("UPDATE tenants SET credits_remaining = credits_remaining - 1 WHERE id = ?", [req.tenant.id]);
 
         console.log(`✅ Ingestion complete: ${cdnUrl}`);
         return res.status(200).json({

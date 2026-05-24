@@ -11,6 +11,11 @@ import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pInfo
 import android.net.wifi.p2p.WifiP2pManager
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.flatbuffers.FlatBufferBuilder
 import org.nua.production.app.data.schema.OptionSelection
 import org.nua.production.app.data.schema.TelemetryPayload
@@ -83,6 +88,28 @@ class LocalTelemetryStore(
             meshManager.start()
         } catch (e: Throwable) {
             Log.w(TAG, "Wi-Fi Direct P2P mesh setup skipped (non-Android environment)", e)
+        }
+        enqueueBackgroundSync()
+    }
+
+    private fun enqueueBackgroundSync() {
+        try {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val syncRequest = OneTimeWorkRequestBuilder<TelemetryWorker>()
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "TelemetrySyncWork",
+                ExistingWorkPolicy.KEEP,
+                syncRequest
+            )
+            Log.d(TAG, "Enqueued background telemetry sync worker")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to enqueue WorkManager telemetry sync", e)
         }
     }
 

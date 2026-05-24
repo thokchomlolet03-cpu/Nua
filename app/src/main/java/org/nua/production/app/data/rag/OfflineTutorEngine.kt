@@ -119,23 +119,48 @@ class OfflineTutorEngine(private val context: Context) {
      */
     private fun findBestMatchingNode(prompt: String, session: LectureSession): GraphNode? {
         val userQueryTokensList = prompt.lowercase().split("\\W+".toRegex()).filter { it.length > 3 }
-        var bestNode: GraphNode? = null
-        var bestScore = 0
-
-        for (i in 0 until session.knowledgeGraphLength) {
+        
+        // Compute Document Frequencies (DF)
+        val dfMap = mutableMapOf<String, Int>()
+        val totalDocs = session.knowledgeGraphLength
+        for (i in 0 until totalDocs) {
             val node = session.knowledgeGraph(i) ?: continue
-            var score = 0
+            val uniqueTokensInDoc = mutableSetOf<String>()
             for (k in 0 until node.keywordsLength) {
                 val keyword = node.keywords(k)?.lowercase() ?: continue
-                val keywordTokens = keyword.split("\\W+".toRegex()).filter { it.length > 3 }
-                for (token in keywordTokens) {
-                    if (userQueryTokensList.contains(token)) {
-                        score++
-                    }
+                uniqueTokensInDoc.addAll(keyword.split("\\W+".toRegex()).filter { it.length > 3 })
+            }
+            uniqueTokensInDoc.forEach { token -> dfMap[token] = (dfMap[token] ?: 0) + 1 }
+        }
+
+        var bestNode: GraphNode? = null
+        var bestScore = 0.0
+
+        for (i in 0 until totalDocs) {
+            val node = session.knowledgeGraph(i) ?: continue
+            var tfIdfScore = 0.0
+            
+            // Compute Term Frequencies (TF) for this document
+            val tfMap = mutableMapOf<String, Int>()
+            var totalTokensInDoc = 0
+            for (k in 0 until node.keywordsLength) {
+                val keyword = node.keywords(k)?.lowercase() ?: continue
+                val tokens = keyword.split("\\W+".toRegex()).filter { it.length > 3 }
+                tokens.forEach { token -> 
+                    tfMap[token] = (tfMap[token] ?: 0) + 1 
+                    totalTokensInDoc++
                 }
             }
-            if (score > bestScore) {
-                bestScore = score
+
+            for (token in userQueryTokensList) {
+                val tf = (tfMap[token] ?: 0).toDouble() / totalTokensInDoc.coerceAtLeast(1)
+                val df = dfMap[token] ?: 0
+                val idf = kotlin.math.ln(totalDocs.toDouble() / (1 + df))
+                tfIdfScore += tf * idf
+            }
+
+            if (tfIdfScore > bestScore) {
+                bestScore = tfIdfScore
                 bestNode = node
             }
         }

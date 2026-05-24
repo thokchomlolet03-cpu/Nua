@@ -94,6 +94,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val shownQuizTimestamps: MutableSet<Long> = Collections.synchronizedSet(mutableSetOf())
     private var maxCompletionPercentage = 0
 
+    // Adaptive Pacing State
+    private var lastActiveIntervalId: String? = null
+    private val recentHotspotClicks = mutableListOf<Long>()
+
     fun initSession(sessionPath: String) {
         if (syncEngine != null) {
             releasePlayers()
@@ -157,6 +161,13 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
                         // Evaluate quiz triggers based on playhead position
                         checkQuizTriggers(state.virtualTimeMs)
+
+                        // Reset adaptive pacing on semantic boundary transition
+                        val currentIntervalId = state.activeInterval?.vocalAssetLocalPath
+                        if (currentIntervalId != lastActiveIntervalId) {
+                            lastActiveIntervalId = currentIntervalId
+                            syncEngine?.setAdaptivePacing(false)
+                        }
                     }
 
                     syncEngine = engine
@@ -244,9 +255,25 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                     Log.e("PlayerViewModel", "Failed to record quiz responses", e)
                 }
             }
+            if (!isCorrect) {
+                syncEngine?.setAdaptivePacing(true)
+            }
         }
         _activeQuiz.value = null
         play()
+    }
+
+    fun onHotspotClicked(hotspot: HotspotInfo) {
+        val now = System.currentTimeMillis()
+        recentHotspotClicks.add(now)
+        
+        // Remove clicks older than 15 seconds
+        recentHotspotClicks.removeAll { now - it > 15000 }
+        
+        // High engagement density: 3 or more hotspots clicked in 15 seconds
+        if (recentHotspotClicks.size >= 3) {
+            syncEngine?.setAdaptivePacing(true)
+        }
     }
 
     fun toggleTutor(active: Boolean) {
