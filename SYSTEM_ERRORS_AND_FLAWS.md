@@ -1,8 +1,8 @@
 # Nua — System Errors, Flaws & Technical Debt Registry
 
-> **Revision**: 11 (v4.0 Final Post-Audit Complete)
-> **Date**: 2026-05-23
-> **Status**: 🟢 All bugs and technical debt items resolved (15/15 items eliminated).
+> **Revision**: 12 (v4.1 Final Post-Audit Complete)
+> **Date**: 2026-05-24
+> **Status**: 🟢 All bugs and technical debt items resolved (18/18 items eliminated).
 
 ---
 
@@ -29,6 +29,9 @@
 | 🟡 HIGH | `audio.ts` | FFmpeg audio extraction SSRF | Implemented domain DNS resolution and IP checks blocking private/local addresses. |
 | 🟡 HIGH | `TranslationAgent.ts` | Unvalidated LLM response deserialization | Added runtime field structure and type validators for translated responses. |
 | 🟡 HIGH | `build.gradle.kts` | Lint warning suppressions | Set `abortOnError = true` and enabled release build checks. |
+| 🟡 HIGH | `Navigation.kt` | UnsafeOptInUsageError propagation from Compose router | Suppressed experimental API propagation via `@androidx.annotation.OptIn` on `MainNavigation`. |
+| 🟢 MINOR | `PlayerScreen.kt` | Incorrect generic marker applied to `@OptIn` block | Separated `@OptIn` parameters and directly annotated composable with `@androidx.media3.common.util.UnstableApi`. |
+| 🟢 MINOR | `PlayerScreen.kt` | Deprecated Compose Icon invocation | Migrated `Icons.Filled.Send` to `Icons.AutoMirrored.Filled.Send` and handled receiver mismatches. |
 
 ---
 
