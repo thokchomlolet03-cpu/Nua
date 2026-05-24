@@ -107,9 +107,13 @@ class GraphNode : Table() {
             nodeIdOffset: Int,
             keywordsVectorOffset: Int,
             summaryFactoidOffset: Int,
-            contextTokensVectorOffset: Int
+            contextTokensVectorOffset: Int,
+            idfTokensVectorOffset: Int,
+            idfValuesVectorOffset: Int
         ): Int {
-            builder.startTable(4)
+            builder.startTable(6)
+            builder.addOffset(5, idfValuesVectorOffset, 0)
+            builder.addOffset(4, idfTokensVectorOffset, 0)
             builder.addOffset(3, contextTokensVectorOffset, 0)
             builder.addOffset(2, summaryFactoidOffset, 0)
             builder.addOffset(1, keywordsVectorOffset, 0)
@@ -127,6 +131,16 @@ class GraphNode : Table() {
             builder.startVector(4, data.size, 4)
             for (i in data.indices.reversed()) builder.addOffset(data[i])
             return builder.endVector()
+        }
+
+        fun createIdfTokensVector(builder: FlatBufferBuilder, data: IntArray): Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.indices.reversed()) builder.addOffset(data[i])
+            return builder.endVector()
+        }
+
+        fun startIdfValuesVector(builder: FlatBufferBuilder, numElems: Int) {
+            builder.startVector(4, numElems, 4)
         }
     }
 
@@ -154,6 +168,22 @@ class GraphNode : Table() {
     }
     val contextTokensLength: Int get() {
         val o = __offset(10)
+        return if (o != 0) __vector_len(o) else 0
+    }
+    fun idfTokens(j: Int): String? {
+        val o = __offset(12)
+        return if (o != 0) __string(__vector(o) + j * 4) else null
+    }
+    val idfTokensLength: Int get() {
+        val o = __offset(12)
+        return if (o != 0) __vector_len(o) else 0
+    }
+    fun idfValues(j: Int): Float {
+        val o = __offset(14)
+        return if (o != 0) bb.getFloat(__vector(o) + j * 4) else 0.0f
+    }
+    val idfValuesLength: Int get() {
+        val o = __offset(14)
         return if (o != 0) __vector_len(o) else 0
     }
 }

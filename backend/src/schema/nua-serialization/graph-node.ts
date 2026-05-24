@@ -60,8 +60,35 @@ contextTokensLength():number {
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
+idfTokens(index: number):string
+idfTokens(index: number,optionalEncoding:flatbuffers.Encoding):string|Uint8Array
+idfTokens(index: number,optionalEncoding?:any):string|Uint8Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.__string(this.bb!.__vector(this.bb_pos + offset) + index * 4, optionalEncoding) : null;
+}
+
+idfTokensLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+idfValues(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readFloat32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
+}
+
+idfValuesLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+idfValuesArray():Float32Array|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? new Float32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+}
+
 static startGraphNode(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(6);
 }
 
 static addNodeId(builder:flatbuffers.Builder, nodeIdOffset:flatbuffers.Offset) {
@@ -104,17 +131,56 @@ static startContextTokensVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addIdfTokens(builder:flatbuffers.Builder, idfTokensOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(4, idfTokensOffset, 0);
+}
+
+static createIdfTokensVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startIdfTokensVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
+static addIdfValues(builder:flatbuffers.Builder, idfValuesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, idfValuesOffset, 0);
+}
+
+static createIdfValuesVector(builder:flatbuffers.Builder, data:number[]|Float32Array):flatbuffers.Offset;
+/**
+ * @deprecated This Uint8Array overload will be removed in the future.
+ */
+static createIdfValuesVector(builder:flatbuffers.Builder, data:number[]|Uint8Array):flatbuffers.Offset;
+static createIdfValuesVector(builder:flatbuffers.Builder, data:number[]|Float32Array|Uint8Array):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addFloat32(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startIdfValuesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
 static endGraphNode(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
 }
 
-static createGraphNode(builder:flatbuffers.Builder, nodeIdOffset:flatbuffers.Offset, keywordsOffset:flatbuffers.Offset, summaryFactoidOffset:flatbuffers.Offset, contextTokensOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createGraphNode(builder:flatbuffers.Builder, nodeIdOffset:flatbuffers.Offset, keywordsOffset:flatbuffers.Offset, summaryFactoidOffset:flatbuffers.Offset, contextTokensOffset:flatbuffers.Offset, idfTokensOffset:flatbuffers.Offset, idfValuesOffset:flatbuffers.Offset):flatbuffers.Offset {
   GraphNode.startGraphNode(builder);
   GraphNode.addNodeId(builder, nodeIdOffset);
   GraphNode.addKeywords(builder, keywordsOffset);
   GraphNode.addSummaryFactoid(builder, summaryFactoidOffset);
   GraphNode.addContextTokens(builder, contextTokensOffset);
+  GraphNode.addIdfTokens(builder, idfTokensOffset);
+  GraphNode.addIdfValues(builder, idfValuesOffset);
   return GraphNode.endGraphNode(builder);
 }
 }

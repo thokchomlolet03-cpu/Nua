@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { Storage } from '@google-cloud/storage';
 import { TranslationAgent } from './agents/TranslationAgent.js';
 import { NuaBundler } from './packager/NuaBundler.js';
+import { FastMediaQueue } from './utils/queue-mediator.js';
 import { extractAudioChannel } from './utils/audio.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -68,6 +69,15 @@ try {
 
 const translationAgent = new TranslationAgent(GEMINI_API_KEY || '');
 const bundler = new NuaBundler();
+const mediaIngestionQueue = new FastMediaQueue(
+    { maxConcurrentWorkers: 3 },
+    translationAgent,
+    bundler,
+    db,
+    storage,
+    IS_MOCK_MODE,
+    GCS_BUCKET
+);
 
 // ─── Security Middleware ───────────────────────────────────────────────
 
@@ -135,11 +145,9 @@ app.get('/health', (_req, res) => {
 // ─── Main Ingestion Endpoint ───────────────────────────────────────────
 
 app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, verifyTenantLicense, async (req: any, res: any) => {
-    let workDir: string | null = null;
-
     try {
         if (!req.body) throw new Error("Request body is missing");
-        const { videoUrl, targetLanguage = 'hi', courseContextDocs = '' } = req.body;
+        const { id, videoUrl, targetLanguage = 'hi', courseContextDocs = '' } = req.body;
 
         if (typeof videoUrl !== 'string' || !videoUrl.startsWith('http')) {
             return res.status(400).json({ status: 'ERROR', message: 'videoUrl must be a string starting with http' });
@@ -148,66 +156,26 @@ app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, verifyTenantLi
             return res.status(400).json({ status: 'ERROR', message: 'targetLanguage must be a string' });
         }
 
-        workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nua-'));
-        console.log(`📦 Processing: ${videoUrl} → ${targetLanguage} (workDir: ${workDir})`);
-        // Step 1: Extract audio from video
-        console.log('  Step 1/5: Extracting audio...');
-        const wavPath = path.join(workDir, 'extracted_audio.wav');
-        await extractAudioChannel(videoUrl, wavPath);
+        const lectureId = id || `req-${Date.now()}`;
+        const assetProcessingTask = {
+            lectureId,
+            targetSourceUrl: videoUrl,
+            targetLanguage,
+            courseContextDocs,
+            tenant: req.tenant,
+            timestamp: Date.now()
+        };
 
-        // Step 2: Transcribe + translate via Gemini 3.5 Flash (or mock)
-        console.log('  Step 2/5: Translating with Gemini 3.5 Flash...');
-        const translationResult = IS_MOCK_MODE
-            ? translationAgent.mockTranslate(targetLanguage)
-            : await translationAgent.translateLecture(wavPath, targetLanguage, courseContextDocs);
-
-        // Step 3: Pre-bake knowledge graph (cognitive decision trees)
-        console.log('  Step 3/5: Pre-baking knowledge graph...');
-        const knowledgeGraph = IS_MOCK_MODE
-            ? translationAgent.mockKnowledgeGraph()
-            : await translationAgent.compileKnowledgeGraph(translationResult.segments);
-
-        // Step 4: Serialize to FlatBuffers binary
-        console.log('  Step 4/5: Serializing to .nuab binary...');
-        const nuabPath = path.join(workDir, 'session.nuab');
-        bundler.serialize(translationResult, knowledgeGraph, targetLanguage, nuabPath);
-
-        // Step 5: Upload to Cloud CDN (if configured)
-        let cdnUrl = `file://${nuabPath}`;
-        if (storage && !IS_MOCK_MODE) {
-            console.log('  Step 5/5: Uploading to Cloud CDN...');
-            const destFilename = `packages/${path.basename(workDir)}.nuab`;
-            await storage.bucket(GCS_BUCKET).upload(nuabPath, { destination: destFilename });
-            cdnUrl = `https://storage.googleapis.com/${GCS_BUCKET}/${destFilename}`;
-        } else {
-            console.log('  Step 5/5: Skipping upload (mock mode or no GCS)');
-        }
-
-        // Deduct 1 credit for processing
-        db.run("UPDATE tenants SET credits_remaining = credits_remaining - 1 WHERE id = ?", [req.tenant.id], (err) => {
-            if (err) console.error('Failed to deduct credit:', err);
-        });
-
-        console.log(`✅ Ingestion complete: ${cdnUrl}`);
-        return res.status(200).json({
-            status: 'SUCCESS',
-            cdnUrl,
-            segmentCount: translationResult.segments.length,
-            graphNodeCount: knowledgeGraph.length,
-            mode: IS_MOCK_MODE ? 'MOCK' : 'PRODUCTION'
-        });
+        // Pushes work payloads out to the queue mediator, freeing up the network thread instantly
+        mediaIngestionQueue.enqueue(assetProcessingTask);
+        return res.status(202).json({ status: 'Processing task enqueued successfully' });
 
     } catch (error: any) {
-        console.error('❌ Ingestion failed:', error);
+        console.error('❌ Ingestion enqueue failed:', error);
         return res.status(500).json({
             status: 'ERROR',
             message: error.message || 'Unknown error'
         });
-    } finally {
-        // Cleanup work directory
-        if (workDir) {
-            try { fs.rmSync(workDir, { recursive: true, force: true }); } catch (_) {}
-        }
     }
 });
 

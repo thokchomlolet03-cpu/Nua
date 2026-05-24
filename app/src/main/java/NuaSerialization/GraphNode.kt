@@ -74,6 +74,32 @@ class GraphNode : Table() {
         get() {
             val o = __offset(10); return if (o != 0) __vector_len(o) else 0
         }
+    fun idfTokens(j: Int) : String? {
+        val o = __offset(12)
+        return if (o != 0) {
+            __string(__vector(o) + j * 4)
+        } else {
+            null
+        }
+    }
+    val idfTokensLength : Int
+        get() {
+            val o = __offset(12); return if (o != 0) __vector_len(o) else 0
+        }
+    fun idfValues(j: Int) : Float {
+        val o = __offset(14)
+        return if (o != 0) {
+            bb.getFloat(__vector(o) + j * 4)
+        } else {
+            0.0f
+        }
+    }
+    val idfValuesLength : Int
+        get() {
+            val o = __offset(14); return if (o != 0) __vector_len(o) else 0
+        }
+    val idfValuesAsByteBuffer : ByteBuffer? get() = __vector_as_bytebuffer(14, 4)
+    fun idfValuesInByteBuffer(_bb: ByteBuffer) : ByteBuffer? = __vector_in_bytebuffer(_bb, 14, 4)
     companion object {
         fun validateVersion() = Constants.FLATBUFFERS_25_2_10()
         fun getRootAsGraphNode(_bb: ByteBuffer): GraphNode = getRootAsGraphNode(_bb, GraphNode())
@@ -81,15 +107,17 @@ class GraphNode : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createGraphNode(builder: FlatBufferBuilder, nodeIdOffset: Int, keywordsOffset: Int, summaryFactoidOffset: Int, contextTokensOffset: Int) : Int {
-            builder.startTable(4)
+        fun createGraphNode(builder: FlatBufferBuilder, nodeIdOffset: Int, keywordsOffset: Int, summaryFactoidOffset: Int, contextTokensOffset: Int, idfTokensOffset: Int, idfValuesOffset: Int) : Int {
+            builder.startTable(6)
+            addIdfValues(builder, idfValuesOffset)
+            addIdfTokens(builder, idfTokensOffset)
             addContextTokens(builder, contextTokensOffset)
             addSummaryFactoid(builder, summaryFactoidOffset)
             addKeywords(builder, keywordsOffset)
             addNodeId(builder, nodeIdOffset)
             return endGraphNode(builder)
         }
-        fun startGraphNode(builder: FlatBufferBuilder) = builder.startTable(4)
+        fun startGraphNode(builder: FlatBufferBuilder) = builder.startTable(6)
         fun addNodeId(builder: FlatBufferBuilder, nodeId: Int) = builder.addOffset(0, nodeId, 0)
         fun addKeywords(builder: FlatBufferBuilder, keywords: Int) = builder.addOffset(1, keywords, 0)
         fun createKeywordsVector(builder: FlatBufferBuilder, data: IntArray) : Int {
@@ -110,6 +138,24 @@ class GraphNode : Table() {
             return builder.endVector()
         }
         fun startContextTokensVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
+        fun addIdfTokens(builder: FlatBufferBuilder, idfTokens: Int) = builder.addOffset(4, idfTokens, 0)
+        fun createIdfTokensVector(builder: FlatBufferBuilder, data: IntArray) : Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.size - 1 downTo 0) {
+                builder.addOffset(data[i])
+            }
+            return builder.endVector()
+        }
+        fun startIdfTokensVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
+        fun addIdfValues(builder: FlatBufferBuilder, idfValues: Int) = builder.addOffset(5, idfValues, 0)
+        fun createIdfValuesVector(builder: FlatBufferBuilder, data: FloatArray) : Int {
+            builder.startVector(4, data.size, 4)
+            for (i in data.size - 1 downTo 0) {
+                builder.addFloat(data[i])
+            }
+            return builder.endVector()
+        }
+        fun startIdfValuesVector(builder: FlatBufferBuilder, numElems: Int) = builder.startVector(4, numElems, 4)
         fun endGraphNode(builder: FlatBufferBuilder) : Int {
             val o = builder.endTable()
             return o

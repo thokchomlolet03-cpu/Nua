@@ -10,7 +10,13 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import android.content.IntentFilter
+import android.os.BatteryManager
 import androidx.core.app.NotificationCompat
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import org.nua.production.app.data.asr.VoskTranscriber
 import org.nua.production.app.data.asr.FirebaseTranscriber
 import org.nua.production.app.data.asr.TextSegment
@@ -117,6 +123,7 @@ class PipelineCompilerService : Service() {
                 addLog("Video imported to: ${localVideoFile.absolutePath}")
 
                 // 2. Decode original audio -> original_audio.wav
+                if (!checkBatteryAndPersist(sessionDir, "EXTRACTING")) { stopSelf(); return@launch }
                 updateStatus("Extracting Audio", 0.0f, "Step 1/5: Extracting and resampling original audio...")
                 val originalAudioWav = File(sessionDir, "original_audio.wav")
                 val decodeSuccess = audioDecoder.decodeVideoToWav(localVideoFile, originalAudioWav) { progress ->
@@ -131,6 +138,7 @@ class PipelineCompilerService : Service() {
                 addLog("Audio extracted successfully: ${originalAudioWav.length()} bytes")
 
                 // 3. Speech-to-Text Transcription (Vosk or Firebase AI Logic)
+                if (!checkBatteryAndPersist(sessionDir, "TRANSCRIBING")) { stopSelf(); return@launch }
                 val segments = if (asrMode == ASR_MODE_CLOUD) {
                     updateStatus("Transcribing", 0.0f, "Step 2/5: Transcribing speech in cloud with Firebase AI...")
                     firebaseTranscriber.transcribeWav(originalAudioWav, mockMode) { progress ->
@@ -150,6 +158,7 @@ class PipelineCompilerService : Service() {
                 addLog("Transcribed ${segments.size} speech segments.")
 
                 // 4. LLM Translation with Gemma
+                if (!checkBatteryAndPersist(sessionDir, "TRANSLATING")) { stopSelf(); return@launch }
                 updateStatus("Translating", 0.0f, "Step 3/5: Translating text using Gemma...")
                 if (!mockMode) {
                     if (gemmaModelPath.isNullOrEmpty()) {
@@ -166,6 +175,7 @@ class PipelineCompilerService : Service() {
                 }
 
                 // 5. TTS Voice Synthesis (with speed matching)
+                if (!checkBatteryAndPersist(sessionDir, "SYNTHESIZING")) { stopSelf(); return@launch }
                 updateStatus("Generating Voice", 0.0f, "Step 4/5: Generating dubbed audio voice track...")
                 val vocalChunksDir = sessionManager.getVocalChunksDir(sessionDir)
                 val playbackSegments = ArrayList<PlaybackSegment>()
@@ -281,6 +291,29 @@ class PipelineCompilerService : Service() {
                 }
             }
         }
+    }
+
+    private fun checkBatteryAndPersist(sessionDir: File, stage: String): Boolean {
+        File(sessionDir, "pipeline_state.json").writeText("{\"stage\":\"$stage\"}")
+        val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { ifilter ->
+            registerReceiver(null, ifilter)
+        }
+        val level: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        val batteryPct = level * 100 / scale.toFloat()
+        
+        if (batteryPct > 0 && batteryPct < 15.0f) {
+            Log.w(TAG, "Battery level $batteryPct% is too low. Halting compilation pipeline.")
+            updateStatus("Paused", 0f, "⏸️ Battery too low ($batteryPct%). Processing halted.")
+            
+            // Enqueue WorkManager to resume later
+            val workRequest = OneTimeWorkRequestBuilder<PipelineResumeWorker>()
+                .setConstraints(Constraints.Builder().setRequiresBatteryNotLow(true).build())
+                .build()
+            WorkManager.getInstance(this).enqueueUniqueWork("PipelineResume", ExistingWorkPolicy.REPLACE, workRequest)
+            return false
+        }
+        return true
     }
 
     private fun createNotificationChannel() {

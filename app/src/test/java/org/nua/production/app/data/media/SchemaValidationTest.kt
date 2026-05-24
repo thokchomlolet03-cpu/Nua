@@ -155,7 +155,10 @@ class SchemaValidationTest {
         val kwVec = GraphNode.createKeywordsVector(builder, intArrayOf(kw1, kw2))
         val ctx1 = builder.createString("biology")
         val ctxVec = GraphNode.createContextTokensVector(builder, intArrayOf(ctx1))
-        val graphNode = GraphNode.createGraphNode(builder, nodeIdOff, kwVec, factoidOff, ctxVec)
+        val idfTokensVec = GraphNode.createIdfTokensVector(builder, intArrayOf())
+        GraphNode.startIdfValuesVector(builder, 0)
+        val idfValuesVec = builder.endVector()
+        val graphNode = GraphNode.createGraphNode(builder, nodeIdOff, kwVec, factoidOff, ctxVec, idfTokensVec, idfValuesVec)
         val graphVec = LectureSession.createKnowledgeGraphVector(builder, intArrayOf(graphNode))
 
         // Build root

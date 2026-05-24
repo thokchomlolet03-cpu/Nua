@@ -115,13 +115,18 @@ class SessionManager(private val filesDir: File) {
             val kwVector = org.nua.production.app.data.schema.GraphNode.createKeywordsVector(builder, kwOffs)
             val ctxOffs = k.contextTokens.map { builder.createString(it) }.toIntArray()
             val ctxVector = org.nua.production.app.data.schema.GraphNode.createContextTokensVector(builder, ctxOffs)
+            val idfTokensVector = org.nua.production.app.data.schema.GraphNode.createIdfTokensVector(builder, intArrayOf())
+            org.nua.production.app.data.schema.GraphNode.startIdfValuesVector(builder, 0)
+            val idfValuesVector = builder.endVector()
 
             org.nua.production.app.data.schema.GraphNode.createGraphNode(
                 builder,
                 nodeIdOff,
                 kwVector,
                 summaryOff,
-                ctxVector
+                ctxVector,
+                idfTokensVector,
+                idfValuesVector
             )
         }.toIntArray()
         val kgVector = LectureSession.createKnowledgeGraphVector(builder, kgOffsets)

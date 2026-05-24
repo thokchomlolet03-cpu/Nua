@@ -52,10 +52,28 @@ export class NuaBundler {
         // Build segments vector
         const segmentsVector = LectureSession.createTimelineTracksVector(builder, segmentOffsets);
 
+        // Pre-compute IDF for all unique keywords in the knowledge graph
+        const totalDocs = knowledgeGraph.length;
+        const dfMap = new Map<string, number>();
+        
+        knowledgeGraph.forEach(node => {
+            const uniqueTokens = new Set<string>();
+            const tokens = node.summaryFactoid.toLowerCase().split(/\W+/).filter(t => t.length > 2);
+            (node.keywords || []).forEach(kw => {
+                kw.toLowerCase().split(/\W+/).filter(t => t.length > 2).forEach(t => uniqueTokens.add(t));
+            });
+            tokens.forEach(t => uniqueTokens.add(t));
+            
+            uniqueTokens.forEach(token => {
+                dfMap.set(token, (dfMap.get(token) || 0) + 1);
+            });
+        });
+
         // Build knowledge graph nodes
         const graphOffsets = knowledgeGraph.map(node => {
             const nodeIdOff = builder.createString(node.nodeId);
-            const factoidOff = builder.createString(node.summaryFactoid);
+            const safeFactoid = node.summaryFactoid || "";
+            const factoidOff = builder.createString(safeFactoid);
 
             const safeKeywords = node.keywords || [];
             const kwOffsets = safeKeywords.map(kw => builder.createString(kw));
@@ -65,13 +83,39 @@ export class NuaBundler {
             const ctxOffsets = safeContextTokens.map(ct => builder.createString(ct));
             const ctxVector = GraphNode.createContextTokensVector(builder, ctxOffsets);
 
-            return GraphNode.createGraphNode(
-                builder,
-                nodeIdOff,
-                kwVector,
-                factoidOff,
-                ctxVector
-            );
+            // Compute local IDF lists for this node
+            const uniqueTokens = new Set<string>();
+            const tokens = safeFactoid.toLowerCase().split(/\W+/).filter(t => t.length > 2);
+            safeKeywords.forEach(kw => {
+                kw.toLowerCase().split(/\W+/).filter(t => t.length > 2).forEach(t => uniqueTokens.add(t));
+            });
+            tokens.forEach(t => uniqueTokens.add(t));
+
+            const idfTokens: number[] = [];
+            const idfValues: number[] = [];
+            uniqueTokens.forEach(token => {
+                const df = dfMap.get(token) || 1;
+                const idf = Math.log(totalDocs / df);
+                idfTokens.push(builder.createString(token));
+                idfValues.push(idf);
+            });
+
+            GraphNode.startIdfValuesVector(builder, idfValues.length);
+            for (let i = idfValues.length - 1; i >= 0; i--) {
+                builder.addFloat32(idfValues[i]);
+            }
+            const idfValuesVector = builder.endVector();
+
+            const idfTokensVector = GraphNode.createIdfTokensVector(builder, idfTokens);
+
+            GraphNode.startGraphNode(builder);
+            GraphNode.addNodeId(builder, nodeIdOff);
+            GraphNode.addKeywords(builder, kwVector);
+            GraphNode.addSummaryFactoid(builder, factoidOff);
+            GraphNode.addContextTokens(builder, ctxVector);
+            GraphNode.addIdfTokens(builder, idfTokensVector);
+            GraphNode.addIdfValues(builder, idfValuesVector);
+            return GraphNode.endGraphNode(builder);
         });
 
         // Graph vector

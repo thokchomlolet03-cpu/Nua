@@ -23,6 +23,8 @@ table GraphNode {
   keywords:[string];
   summary_factoid:string;
   context_tokens:[string];
+  idf_tokens:[string];
+  idf_values:[float];
 }
 
 table OptionSelection {
