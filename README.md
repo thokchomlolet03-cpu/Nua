@@ -3,7 +3,7 @@
 > [!TIP]
 > **Status: 🟢 Production Ready (v4.3)** — Major TRIZ-driven architectural overhaul complete. Versioned FlatBuffers schema with typed telemetry, dynamic RIFF WAV parsing, O(log N) timeline binary search, HMAC-authenticated API, SSRF-secured extraction, Thread-safe Model Lifecycle, and R8-optimized build. All 44 out of 44 system bugs and technical debt items eliminated.
 
-**Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
+**Nua** (derived from *Nuances* — capturing the subtle nuances in language translations across the software ecosystem) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures.
 
 The project solves a critical educational gap: while technical lectures are primarily in English, millions of students learn most effectively in **Hinglish** (Hindi sentence structure with scientific terms preserved in English) and other regional languages.
 
