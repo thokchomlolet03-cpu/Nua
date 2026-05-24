@@ -1,13 +1,45 @@
 # Nua — System Errors, Flaws & Technical Debt Registry
 
-> **Revision**: 12 (v4.1 Final Post-Audit Complete)
+> **Revision**: 13 (v4.2 Deep Technical Audit)
 > **Date**: 2026-05-24
-> **Status**: 🟢 All bugs and technical debt items resolved (18/18 items eliminated).
+> **Status**: 🔴 26 Active Vulnerabilities and Structural Flaws identified.
 
 ---
 
-## Active Issues
-**None.** The system is fully stabilized, secure, and production-ready.
+## Active Issues (26)
+
+| Severity | Component | Issue |
+|---|---|---|
+| 🔴 CRITICAL | `audio.ts` | SSRF Bypass via non-standard IP encodings (integer IPs) |
+| 🔴 CRITICAL | `audio.ts` | Arbitrary File Read / SSRF via FFmpeg HLS Playlists |
+| 🔴 CRITICAL | `audio.ts` | TOCTOU DNS Rebinding SSRF |
+| 🔴 CRITICAL | `TelemetryStub.kt` | HMAC Cryptographic Vulnerability (Answers not hashed) |
+| 🔴 CRITICAL | `OfflineTutorEngine.kt` | NPU Concurrency Crash (Parallel inference execution) |
+| 🔴 CRITICAL | `SyncPlayerEngine.kt` | Drift correction math breaks ADR time-stretching |
+| 🔴 CRITICAL | `SyncPlayerEngine.kt` | Premature hard-unfreeze via `STATE_ENDED` |
+| 🔴 CRITICAL | `SyncPlayerEngine.kt` | `AudioEffect` (Equalizer) Native Resource Leak |
+| 🔴 CRITICAL | `PipelineCompilerService.kt` | Notification DDoS crashing System UI |
+| 🟡 HIGH | `index.ts` | Unhandled Promise Rejections (`null` body, `mkdtempSync`) |
+| 🟡 HIGH | `TelemetryStub.kt` | Thread Exhaustion DoS in P2P Server |
+| 🟡 HIGH | `TelemetryStub.kt` | Path Traversal Vulnerability in ledger payload writer |
+| 🟡 HIGH | `TelemetryStub.kt` | Uncaught SecurityException for Location Permissions |
+| 🟡 HIGH | `VoskTranscriber.kt` | Race Condition / Native Leak in `initModel()` |
+| 🟡 HIGH | `VoskTranscriber.kt` | Thread Safety / Native Crash in `close()` |
+| 🟡 HIGH | `LiteRTTranslator.kt` | Race Condition / Native Leak in `initModel()` |
+| 🟡 HIGH | `LiteRTTranslator.kt` | Thread Safety / Native Crash in `close()` |
+| 🟡 HIGH | `OfflineTutorEngine.kt` | Race Condition / Native Leak in `initializeEngine()` |
+| 🟡 HIGH | `OfflineTutorEngine.kt` | Thread Safety / Native Crash in `close()` |
+| 🟡 HIGH | `SyncPlayerEngine.kt` | Equalizer not recreated on `AudioSessionId` change |
+| 🟡 HIGH | `PipelineCompilerService.kt` | `FileChannel.transferTo` silent failure on >2GB files |
+| 🔵 MODERATE | `TranslationAgent.ts` | Prompt Injection via unsanitized context docs |
+| 🔵 MODERATE | `TranslationAgent.ts` | Brittle JSON parsing via `indexOf` extraction |
+| 🔵 MODERATE | `VoskTranscriber.kt` | FileOutputStream resource leaks in download/unzip |
+| 🔵 MODERATE | `TelemetryStub.kt` | Socket leak ignoring `errorStream` in `flushToServer` |
+| 🔵 MODERATE | `SyncPlayerEngine.kt` | `isSeeking` flag stuck state disabling drift correction |
+| 🔵 MODERATE | `SyncPlayerEngine.kt` | Hardcoded volume resetting breaks room tone soft-ducking |
+| 🟢 LOW | `TranslationAgent.ts` | Remote Resource Leak via duplicate uploads in `withRetry` |
+| 🟢 LOW | `VoskTranscriber.kt` | Logic Error / Audio Artifacts due to `InputStream.skip` |
+| 🟢 LOW | `LiteRTTranslator.kt` | Logic Error in mock punctuation stripping |
 
 ---
 
