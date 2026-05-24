@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
 import java.io.File
 
 /**
@@ -40,39 +42,47 @@ class LiteRTTranslator(private val context: Context) {
      * Model loading can take several seconds on first launch.
      */
     suspend fun initModel(modelPath: String): Boolean = withContext(Dispatchers.IO) {
-        if (currentModelPath == modelPath && engine != null) {
-            return@withContext true
-        }
+        translationMutex.withLock {
+            if (currentModelPath == modelPath && engine != null) {
+                return@withContext true
+            }
 
-        val modelFile = File(modelPath)
-        if (!modelFile.exists()) {
-            Log.e(TAG, "Model file does not exist: $modelPath")
-            return@withContext false
-        }
+            val modelFile = File(modelPath)
+            if (!modelFile.exists()) {
+                Log.e(TAG, "Model file does not exist: $modelPath")
+                return@withContext false
+            }
 
-        try {
-            Log.d(TAG, "Initializing LiteRT-LM engine from $modelPath")
-            close()
+            try {
+                Log.d(TAG, "Initializing LiteRT-LM engine from $modelPath")
+                try { engine?.close() } catch (_: Exception) {}
+                engine = null
+                currentModelPath = null
 
-            val config = EngineConfig(
-                modelPath = modelPath
-            )
-            engine = Engine(config).also { it.initialize() }
-            currentModelPath = modelPath
-            Log.d(TAG, "LiteRT-LM engine loaded successfully")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize LiteRT-LM engine", e)
-            false
+                val config = EngineConfig(
+                    modelPath = modelPath
+                )
+                engine = Engine(config).also { it.initialize() }
+                currentModelPath = modelPath
+                Log.d(TAG, "LiteRT-LM engine loaded successfully")
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize LiteRT-LM engine", e)
+                false
+            }
         }
     }
 
     fun isModelLoaded(): Boolean = engine != null
 
     fun close() {
-        try { engine?.close() } catch (_: Exception) {}
-        engine = null
-        currentModelPath = null
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+            translationMutex.withLock {
+                try { engine?.close() } catch (_: Exception) {}
+                engine = null
+                currentModelPath = null
+            }
+        }
     }
 
     /**
@@ -236,6 +246,7 @@ class LiteRTTranslator(private val context: Context) {
 
         val builder = StringBuilder()
         for (w in words) {
+            val punct = w.filter { it in setOf('.', ',', '!', '?', ';') }
             val cleanWord = w.lowercase().replace(Regex("[.,!?;]"), "")
             if (importantNouns.contains(cleanWord)) {
                 builder.append(w).append(" ")
@@ -265,7 +276,7 @@ class LiteRTTranslator(private val context: Context) {
                     "need" -> "need होती है"
                     else -> w
                 }
-                if (trans.isNotEmpty()) builder.append(trans).append(" ")
+                if (trans.isNotEmpty()) builder.append(trans).append(punct).append(" ")
             }
         }
 

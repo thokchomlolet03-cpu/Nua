@@ -94,19 +94,21 @@ app.get('/health', (_req, res) => {
 // ─── Main Ingestion Endpoint ───────────────────────────────────────────
 
 app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, async (req, res) => {
-    const { videoUrl, targetLanguage = 'hi', courseContextDocs = '' } = req.body;
-
-    if (typeof videoUrl !== 'string' || !videoUrl.startsWith('http')) {
-        return res.status(400).json({ status: 'ERROR', message: 'videoUrl must be a string starting with http' });
-    }
-    if (typeof targetLanguage !== 'string') {
-        return res.status(400).json({ status: 'ERROR', message: 'targetLanguage must be a string' });
-    }
-
-    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nua-'));
-    console.log(`📦 Processing: ${videoUrl} → ${targetLanguage} (workDir: ${workDir})`);
+    let workDir: string | null = null;
 
     try {
+        if (!req.body) throw new Error("Request body is missing");
+        const { videoUrl, targetLanguage = 'hi', courseContextDocs = '' } = req.body;
+
+        if (typeof videoUrl !== 'string' || !videoUrl.startsWith('http')) {
+            return res.status(400).json({ status: 'ERROR', message: 'videoUrl must be a string starting with http' });
+        }
+        if (typeof targetLanguage !== 'string') {
+            return res.status(400).json({ status: 'ERROR', message: 'targetLanguage must be a string' });
+        }
+
+        workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nua-'));
+        console.log(`📦 Processing: ${videoUrl} → ${targetLanguage} (workDir: ${workDir})`);
         // Step 1: Extract audio from video
         console.log('  Step 1/5: Extracting audio...');
         const wavPath = path.join(workDir, 'extracted_audio.wav');
@@ -157,7 +159,9 @@ app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, async (req, re
         });
     } finally {
         // Cleanup work directory
-        try { fs.rmSync(workDir, { recursive: true, force: true }); } catch (_) {}
+        if (workDir) {
+            try { fs.rmSync(workDir, { recursive: true, force: true }); } catch (_) {}
+        }
     }
 });
 

@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.media.audiofx.Equalizer
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
@@ -30,6 +32,7 @@ import java.io.File
  *
  * This engine must be created and used on the Main thread (ExoPlayer requirement).
  */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class SyncPlayerEngine(context: Context) {
 
     companion object {
@@ -45,15 +48,29 @@ class SyncPlayerEngine(context: Context) {
     }
 
     val videoPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
-        volume = 0f  // Fully muted by default — dubbed audio replaces original
+        volume = 0.05f  // Soft ducking to preserve room tone
         repeatMode = Player.REPEAT_MODE_OFF
     }
 
     val audioPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
         repeatMode = Player.REPEAT_MODE_OFF
         addListener(object : Player.Listener {
+            override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                if (audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
+                    setupVocalEqualizer(audioSessionId)
+                }
+            }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
+                    isSeeking = false
+                }
+            }
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
                     isSeeking = false
                 }
             }
@@ -61,6 +78,8 @@ class SyncPlayerEngine(context: Context) {
     }
 
     @Volatile private var isSeeking = false
+    private var vocalEqualizer: Equalizer? = null
+
 
     private var isFreezing = false
     private var currentInterval: TimelineInterval? = null
@@ -89,6 +108,33 @@ class SyncPlayerEngine(context: Context) {
     fun setVideoSource(mediaItem: MediaItem) {
         videoPlayer.setMediaItem(mediaItem)
         videoPlayer.prepare()
+    }
+
+    private fun setupVocalEqualizer(audioSessionId: Int) {
+        try {
+            vocalEqualizer?.release()
+            vocalEqualizer = Equalizer(0, audioSessionId).apply {
+                enabled = true
+            }
+            vocalEqualizer?.let { eq ->
+                val numBands = eq.numberOfBands
+                for (i in 0 until numBands) {
+                    val freq = eq.getCenterFreq(i.toShort())
+                    when {
+                        freq <= 80000 -> {
+                            // High-pass filter: cut <80Hz by -15dB
+                            eq.setBandLevel(i.toShort(), -1500)
+                        }
+                        freq in 2000000..4000000 -> {
+                            // Presence boost: +4dB between 2kHz-4kHz
+                            eq.setBandLevel(i.toShort(), 400)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to setup Vocal Equalizer: ${e.message}")
+        }
     }
 
     fun setMapper(timelineMapper: VirtualTimelineMapper) {
@@ -143,17 +189,17 @@ class SyncPlayerEngine(context: Context) {
 
         when {
             durationDrift in 1..FREEZE_THRESHOLD_MS -> {
-                // Clock Skewing Zone: slow video via Sonic pitch-invariant stretching
-                val scalingRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat()
-                val clampedRatio = scalingRatio.coerceAtLeast(MIN_VIDEO_SPEED)
+                // Video slows to `originalDur / vocalDur` (minimum 0.80x) while audio plays at 1.0x.
+                val videoScalingRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat()
+                val clampedVideoSpeed = videoScalingRatio.coerceAtLeast(MIN_VIDEO_SPEED)
                 
-                if (kotlin.math.abs(videoPlayer.playbackParameters.speed - clampedRatio) > 0.01f) {
-                    videoPlayer.playbackParameters = PlaybackParameters(clampedRatio)
+                if (kotlin.math.abs(videoPlayer.playbackParameters.speed - clampedVideoSpeed) > 0.01f) {
+                    videoPlayer.playbackParameters = PlaybackParameters(clampedVideoSpeed)
                 }
                 if (kotlin.math.abs(audioPlayer.playbackParameters.speed - 1.0f) > 0.01f) {
                     audioPlayer.playbackParameters = PlaybackParameters(1.0f)
                 }
-                Log.d(TAG, "Clock skew: video at ${clampedRatio}x (drift: ${durationDrift}ms)")
+                Log.d(TAG, "Clock skew: video at ${clampedVideoSpeed}x, audio at 1.0x (drift: ${durationDrift}ms)")
             }
             durationDrift > FREEZE_THRESHOLD_MS -> {
                 // Hard Freeze: pause video, let audio play through
@@ -212,7 +258,10 @@ class SyncPlayerEngine(context: Context) {
         if (isFreezing) {
             // During freeze: audio player drives the virtual clock
             val interval = currentInterval ?: return
-            if (audioPlayer.playbackState == Player.STATE_ENDED) {
+            val expectedIndex = vocalWindowIndices[interval.vocalAssetLocalPath] ?: -1
+            val isCurrentChunkFinished = (audioPlayer.currentMediaItemIndex > expectedIndex) || (audioPlayer.playbackState == Player.STATE_ENDED)
+            
+            if (isCurrentChunkFinished) {
                 // Unfreeze bug fix: exit hard-freeze when audio ends by stepping virtual timeline
                 virtualTimeMs = interval.virtualEndMs + 1
             } else {
@@ -251,9 +300,9 @@ class SyncPlayerEngine(context: Context) {
             evaluateSyncAlignment(state.physicalTimeMs, vocalDur, nativeDur)
         }
 
-        // Manage audio volume: 0f (fully muted) during dubbed chunks, 1.0f during silence/gaps
+        // Manage audio volume: 0.05f (soft ducking) during dubbed chunks, 1.0f during silence/gaps
         if (state.activeInterval != null) {
-            videoPlayer.volume = 0f
+            videoPlayer.volume = 0.05f
         } else {
             videoPlayer.volume = 1.0f
         }
@@ -352,5 +401,6 @@ class SyncPlayerEngine(context: Context) {
         handler.removeCallbacks(syncRunnable)
         videoPlayer.release()
         audioPlayer.release()
+        vocalEqualizer?.release()
     }
 }

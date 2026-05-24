@@ -77,7 +77,7 @@ class TelemetryStoreTest {
         assertEquals(0, payload.quizResponsesLength)
 
         // Verify cryptographic signature
-        val expectedHash = computeHmacSha256("$sessionId|$completionPercentage|0".toByteArray(), "fallback_secret")
+        val expectedHash = computeHmacSha256("$sessionId|$completionPercentage|".toByteArray(), "fallback_secret")
         assertEquals(expectedHash, payload.cryptographicSignature)
     }
 
@@ -124,7 +124,9 @@ class TelemetryStoreTest {
         assertTrue(!resp2.isCorrect)
 
         // Verify cryptographic signature
-        val expectedHash = computeHmacSha256("$sessionId|0|2".toByteArray(), "fallback_secret")
+        val sb = StringBuilder()
+        sb.append("q_1:2:1200:true,q_2:0:2500:false")
+        val expectedHash = computeHmacSha256("$sessionId|0|$sb".toByteArray(), "fallback_secret")
         assertEquals(expectedHash, payload.cryptographicSignature)
     }
 

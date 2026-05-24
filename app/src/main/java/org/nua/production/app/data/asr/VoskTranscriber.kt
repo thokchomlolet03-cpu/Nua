@@ -30,6 +30,7 @@ class VoskTranscriber(private val context: Context) {
     }
 
     private var voskModel: Model? = null
+    private val modelLock = Any()
 
     val modelDir: File
         get() = File(context.filesDir, UNZIP_DIR_NAME)
@@ -71,22 +72,21 @@ class VoskTranscriber(private val context: Context) {
                 val body = it.body ?: return false
                 val contentLength = body.contentLength()
                 val inputStream: InputStream = body.byteStream()
-                val outputStream = FileOutputStream(tempZipFile)
+                
+                FileOutputStream(tempZipFile).use { outputStream ->
+                    val data = ByteArray(8192)
+                    var totalBytesRead = 0L
+                    var bytesRead: Int
 
-                val data = ByteArray(8192)
-                var totalBytesRead = 0L
-                var bytesRead: Int
-
-                while (inputStream.read(data).also { bytesRead = it } != -1) {
-                    outputStream.write(data, 0, bytesRead)
-                    totalBytesRead += bytesRead
-                    if (contentLength > 0) {
-                        onProgress((totalBytesRead.toFloat() / contentLength.toFloat()) * 0.7f) // Download is 70% of work
+                    while (inputStream.read(data).also { bytesRead = it } != -1) {
+                        outputStream.write(data, 0, bytesRead)
+                        totalBytesRead += bytesRead
+                        if (contentLength > 0) {
+                            onProgress((totalBytesRead.toFloat() / contentLength.toFloat()) * 0.7f) // Download is 70% of work
+                        }
                     }
+                    outputStream.flush()
                 }
-
-                outputStream.flush()
-                outputStream.close()
                 inputStream.close()
             }
 
@@ -146,17 +146,16 @@ class VoskTranscriber(private val context: Context) {
                     throw Exception("Failed to create directory " + dir.absolutePath)
                 }
                 if (!zipEntry.isDirectory) {
-                    val fileOutputStream = FileOutputStream(file)
-                    var count: Int
-                    while (zipInputStream.read(buffer).also { count = it } != -1) {
-                        totalUncompressedBytes += count
-                        if (totalUncompressedBytes > 500 * 1024 * 1024L) {
-                            fileOutputStream.close()
-                            throw SecurityException("Zip bomb detected: Uncompressed size exceeds 500MB")
+                    FileOutputStream(file).use { fileOutputStream ->
+                        var count: Int
+                        while (zipInputStream.read(buffer).also { count = it } != -1) {
+                            totalUncompressedBytes += count
+                            if (totalUncompressedBytes > 500 * 1024 * 1024L) {
+                                throw SecurityException("Zip bomb detected: Uncompressed size exceeds 500MB")
+                            }
+                            fileOutputStream.write(buffer, 0, count)
                         }
-                        fileOutputStream.write(buffer, 0, count)
                     }
-                    fileOutputStream.close()
                 }
                 entriesProcessed++
                 onProgress((entriesProcessed.toFloat() / totalEntries.toFloat()).coerceAtMost(0.95f))
@@ -173,18 +172,20 @@ class VoskTranscriber(private val context: Context) {
      * Initializes the Vosk Model from the unzipped directory.
      */
     fun initModel(): Boolean {
-        if (voskModel != null) return true
-        if (!isModelDownloaded()) return false
+        synchronized(modelLock) {
+            if (voskModel != null) return true
+            if (!isModelDownloaded()) return false
 
-        return try {
-            val children = modelDir.listFiles() ?: return false
-            val innerDir = children.firstOrNull { it.isDirectory } ?: return false
-            Log.d(TAG, "Loading Vosk model from: ${innerDir.absolutePath}")
-            voskModel = Model(innerDir.absolutePath)
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load Vosk model", e)
-            false
+            return try {
+                val children = modelDir.listFiles() ?: return false
+                val innerDir = children.firstOrNull { it.isDirectory } ?: return false
+                Log.d(TAG, "Loading Vosk model from: ${innerDir.absolutePath}")
+                voskModel = Model(innerDir.absolutePath)
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load Vosk model", e)
+                false
+            }
         }
     }
 
@@ -193,61 +194,68 @@ class VoskTranscriber(private val context: Context) {
      * Call from a background thread.
      */
     fun transcribeWav(wavFile: File, onProgress: (Float) -> Unit): List<TextSegment> {
-        if (!initModel() || voskModel == null) {
-            Log.e(TAG, "Vosk model not initialized")
-            return emptyList()
-        }
-
-        val fileLength = wavFile.length()
-        if (fileLength <= 44) return emptyList()
-
-        val results = ArrayList<JSONObject>()
-        var recognizer: Recognizer? = null
-        var inputStream: FileInputStream? = null
-
-        try {
-            val rec = Recognizer(voskModel, 16000.0f)
-            recognizer = rec
-            rec.setWords(true) // Crucial for getting timestamps!
-
-            val dataOffset = try {
-                org.nua.production.app.data.media.WavUtils.findDataChunkOffset(wavFile)
-            } catch (e: Exception) {
-                44L
+        synchronized(modelLock) {
+            if (!initModel() || voskModel == null) {
+                Log.e(TAG, "Vosk model not initialized")
+                return emptyList()
             }
 
-            inputStream = FileInputStream(wavFile)
-            inputStream.skip(dataOffset)
+            val fileLength = wavFile.length()
+            if (fileLength <= 44) return emptyList()
 
-            val buffer = ByteArray(4096)
-            var bytesRead: Int
-            var totalProcessed = dataOffset
+            val results = ArrayList<JSONObject>()
+            var recognizer: Recognizer? = null
+            var inputStream: FileInputStream? = null
 
-            while (inputStream.read(buffer).also { bytesRead = it } >= 0) {
-                totalProcessed += bytesRead
-                val isFinal = rec.acceptWaveForm(buffer, bytesRead)
-                if (isFinal) {
-                    val resultStr = rec.result
-                    if (resultStr.isNotEmpty()) {
-                        results.add(JSONObject(resultStr))
-                    }
+            try {
+                val rec = Recognizer(voskModel, 16000.0f)
+                recognizer = rec
+                rec.setWords(true) // Crucial for getting timestamps!
+
+                val dataOffset = try {
+                    org.nua.production.app.data.media.WavUtils.findDataChunkOffset(wavFile)
+                } catch (e: Exception) {
+                    44L
                 }
-                onProgress((totalProcessed.toFloat() / fileLength.toFloat()).coerceIn(0f, 1f))
+
+                inputStream = FileInputStream(wavFile)
+                var bytesToSkip = dataOffset
+                while (bytesToSkip > 0) {
+                    val skipped = inputStream.skip(bytesToSkip)
+                    if (skipped <= 0) break
+                    bytesToSkip -= skipped
+                }
+
+                val buffer = ByteArray(4096)
+                var bytesRead: Int
+                var totalProcessed = dataOffset
+
+                while (inputStream.read(buffer).also { bytesRead = it } >= 0) {
+                    totalProcessed += bytesRead
+                    val isFinal = rec.acceptWaveForm(buffer, bytesRead)
+                    if (isFinal) {
+                        val resultStr = rec.result
+                        if (resultStr.isNotEmpty()) {
+                            results.add(JSONObject(resultStr))
+                        }
+                    }
+                    onProgress((totalProcessed.toFloat() / fileLength.toFloat()).coerceIn(0f, 1f))
+                }
+
+                val finalResultStr = rec.finalResult
+                if (finalResultStr.isNotEmpty()) {
+                    results.add(JSONObject(finalResultStr))
+                }
+
+                return segmentWords(results)
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error transcribing audio", e)
+                return emptyList()
+            } finally {
+                recognizer?.close()
+                inputStream?.close()
             }
-
-            val finalResultStr = rec.finalResult
-            if (finalResultStr.isNotEmpty()) {
-                results.add(JSONObject(finalResultStr))
-            }
-
-            return segmentWords(results)
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error transcribing audio", e)
-            return emptyList()
-        } finally {
-            recognizer?.close()
-            inputStream?.close()
         }
     }
 
@@ -274,7 +282,9 @@ class VoskTranscriber(private val context: Context) {
     }
 
     fun close() {
-        try { voskModel?.close() } catch (_: Exception) {}
-        voskModel = null
+        synchronized(modelLock) {
+            try { voskModel?.close() } catch (_: Exception) {}
+            voskModel = null
+        }
     }
 }

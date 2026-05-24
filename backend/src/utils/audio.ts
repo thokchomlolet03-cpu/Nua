@@ -26,7 +26,7 @@ function isPrivateIp(ip: string): boolean {
     return false;
 }
 
-async function validateVideoUrl(videoUrl: string): Promise<void> {
+async function validateVideoUrl(videoUrl: string): Promise<string> {
     if (!videoUrl.startsWith('http://') && !videoUrl.startsWith('https://')) {
         throw new Error("Invalid protocol. Only HTTP(S) URLs are allowed.");
     }
@@ -38,26 +38,18 @@ async function validateVideoUrl(videoUrl: string): Promise<void> {
         throw new Error("Invalid URL: Hostname is empty.");
     }
 
-    // If it's already an IP address, validate it directly
-    if (/^[0-9a-fA-F.:]+$/.test(hostname)) {
-        if (isPrivateIp(hostname)) {
-            throw new Error("Access to private/local IP addresses is forbidden.");
-        }
-        return;
+    // Ban non-standard integer IP encodings to prevent SSRF bypass
+    if (/^0x/i.test(hostname) || /^\d+$/.test(hostname)) {
+        throw new Error("Invalid URL: Non-standard IP encodings are forbidden.");
     }
 
-    // Resolve DNS
+    let resolvedIp = hostname;
     try {
-        const addresses = await dns.resolve(hostname).catch(async () => {
-            // fallback to lookup if resolve fails (e.g. localhost)
-            const lookupResult = await dns.lookup(hostname, { all: true });
-            return lookupResult.map(r => r.address);
-        });
-
-        for (const addr of addresses) {
-            if (isPrivateIp(addr)) {
-                throw new Error(`Access to private/local IP address ${addr} is forbidden.`);
-            }
+        const lookupResult = await dns.lookup(hostname);
+        resolvedIp = lookupResult.address;
+        
+        if (isPrivateIp(resolvedIp) || isPrivateIp(hostname)) {
+            throw new Error(`Access to private/local IP address is forbidden.`);
         }
     } catch (err: any) {
         if (err.message.includes('forbidden')) {
@@ -65,6 +57,10 @@ async function validateVideoUrl(videoUrl: string): Promise<void> {
         }
         throw new Error(`Failed to resolve host ${hostname}: ${err.message}`);
     }
+
+    // Return the URL rewritten with the resolved IP to prevent TOCTOU DNS Rebinding
+    parsedUrl.hostname = resolvedIp;
+    return parsedUrl.toString();
 }
 
 /**
@@ -73,10 +69,13 @@ async function validateVideoUrl(videoUrl: string): Promise<void> {
  * by the Android client's Vosk ASR pipeline.
  */
 export async function extractAudioChannel(videoUrl: string, destPath: string): Promise<void> {
-    await validateVideoUrl(videoUrl);
+    const safeUrl = await validateVideoUrl(videoUrl);
 
     return new Promise((resolve, reject) => {
-        const cmd = ffmpeg(videoUrl)
+        const cmd = ffmpeg(safeUrl)
+            .inputOptions([
+                '-protocol_whitelist', 'file,http,https,tcp,tls'
+            ])
             .outputOptions([
                 '-vn',                    // No video
                 '-acodec', 'pcm_s16le',   // 16-bit PCM

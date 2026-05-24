@@ -139,6 +139,9 @@ class LocalTelemetryStore(
                     }
 
                     val responseCode = connection.responseCode
+                    try { connection.inputStream?.close() } catch (_: Exception) {}
+                    try { connection.errorStream?.close() } catch (_: Exception) {}
+                    
                     if (responseCode in 200..299) {
                         file.delete()
                         successCount++
@@ -208,18 +211,26 @@ class LocalTelemetryStore(
                                 }
                             }
                             WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION -> {
-                                manager?.requestPeers(channel) { peers ->
-                                    val deviceList = peers.deviceList
-                                    for (device in deviceList) {
-                                        if (device.status == WifiP2pDevice.AVAILABLE) {
-                                            connectToPeer(device)
+                                try {
+                                    manager?.requestPeers(channel) { peers ->
+                                        val deviceList = peers.deviceList
+                                        for (device in deviceList) {
+                                            if (device.status == WifiP2pDevice.AVAILABLE) {
+                                                connectToPeer(device)
+                                            }
                                         }
                                     }
+                                } catch (e: SecurityException) {
+                                    Log.e(TAG, "Missing location permission for P2P discovery", e)
                                 }
                             }
                             WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
-                                manager?.requestConnectionInfo(channel) { info ->
-                                    onConnectionChanged(info)
+                                try {
+                                    manager?.requestConnectionInfo(channel) { info ->
+                                        onConnectionChanged(info)
+                                    }
+                                } catch (e: SecurityException) {
+                                    Log.e(TAG, "Missing location permission for P2P connection info", e)
                                 }
                             }
                         }
@@ -274,6 +285,8 @@ class LocalTelemetryStore(
             }
         }
 
+        private val executorService = java.util.concurrent.Executors.newFixedThreadPool(4)
+
         private fun startServer() {
             if (isServerRunning) return
             isServerRunning = true
@@ -282,7 +295,7 @@ class LocalTelemetryStore(
                     serverSocket = ServerSocket(8988)
                     while (isServerRunning) {
                         val client = serverSocket?.accept() ?: break
-                        Thread {
+                        executorService.execute {
                             try {
                                 val dos = DataOutputStream(client.getOutputStream())
                                 val dis = DataInputStream(client.getInputStream())
@@ -302,14 +315,14 @@ class LocalTelemetryStore(
                                     dos.flush()
                                     Log.w(TAG, "Rejecting unauthenticated connection on mesh telemetry socket")
                                     client.close()
-                                    return@Thread
+                                    return@execute
                                 }
                                 dos.writeByte(1) // Auth success flag
                                 dos.flush()
 
-                                val len = dis.readInt()
-                                if (len in 1..1024 * 1024) {
-                                    val bytes = ByteArray(len)
+                                val reqLen = dis.readInt()
+                                if (reqLen in 1..1024 * 1024) {
+                                    val bytes = ByteArray(reqLen)
                                     dis.readFully(bytes)
 
                                     // Parse and cryptographically verify before saving
@@ -322,8 +335,16 @@ class LocalTelemetryStore(
                                     val responsesLen = tp.quizResponsesLength
                                     val signature = tp.cryptographicSignature ?: ""
 
+                                    val sb = StringBuilder()
+                                    for (i in 0 until responsesLen) {
+                                        val qr = tp.quizResponses(i)
+                                        if (qr != null) {
+                                            sb.append("${qr.quizId}:${qr.selectedOptionIndex}:${qr.latencyMs}:${qr.isCorrect}")
+                                            if (i < responsesLen - 1) sb.append(",")
+                                        }
+                                    }
                                     val expectedHash = computeHmacSha256(
-                                        "$sessionId|$compPercent|$responsesLen".toByteArray(Charsets.UTF_8),
+                                        "$sessionId|$compPercent|$sb".toByteArray(Charsets.UTF_8),
                                         signingSecret
                                     )
                                     if (signature == expectedHash) {
@@ -338,7 +359,7 @@ class LocalTelemetryStore(
                             } finally {
                                 try { client.close() } catch (_: Exception) {}
                             }
-                        }.start()
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Mesh server socket error", e)
@@ -434,7 +455,13 @@ class LocalTelemetryStore(
         } else 0
 
         // Generate cryptographic signature (HMAC-SHA256 of content)
-        val content = "$sessionId|$completionPercentage|${quizResponses.size}"
+        val sb = StringBuilder()
+        for (i in quizResponses.indices) {
+            val qr = quizResponses[i]
+            sb.append("${qr.quizId}:${qr.selectedIndex.toUByte()}:${qr.latencyMs}:${qr.isCorrect}")
+            if (i < quizResponses.size - 1) sb.append(",")
+        }
+        val content = "$sessionId|$completionPercentage|$sb"
         val contentHash = computeHmacSha256(content.toByteArray(Charsets.UTF_8), signingSecret)
         val sigOff = builder.createString(contentHash)
 
@@ -450,7 +477,8 @@ class LocalTelemetryStore(
     }
 
     private fun writePayload(sessionId: String, eventType: String, data: ByteArray) {
-        val filename = "${sessionId}_${eventType}_${System.currentTimeMillis()}.tlm"
+        val safeSessionId = sessionId.replace(Regex("[^a-zA-Z0-9_-]"), "")
+        val filename = "${safeSessionId}_${eventType}_${System.currentTimeMillis()}.tlm"
         File(ledgerDir, filename).writeBytes(data)
         pruneOldPayloads()
     }

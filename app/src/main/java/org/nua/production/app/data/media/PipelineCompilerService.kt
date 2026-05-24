@@ -255,20 +255,30 @@ class PipelineCompilerService : Service() {
         }
     }
 
+    private var lastNotificationTime = 0L
+
     private fun updateStatus(step: String, progress: Float, logMsg: String? = null) {
         _currentStep.value = step
         _stepProgress.value = progress
         if (logMsg != null) {
             addLog(logMsg)
         }
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(NOTIFICATION_ID, createNotification("$step: ${(progress * 100).toInt()}%"))
+        val now = System.currentTimeMillis()
+        if (now - lastNotificationTime > 1000 || progress >= 1.0f || progress <= 0.0f) {
+            lastNotificationTime = now
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.notify(NOTIFICATION_ID, createNotification("$step: ${(progress * 100).toInt()}%"))
+        }
     }
 
     private fun copyFile(src: File, dst: File) {
         FileInputStream(src).use { inStream ->
             FileOutputStream(dst).use { outStream ->
-                inStream.channel.transferTo(0, inStream.channel.size(), outStream.channel)
+                val size = inStream.channel.size()
+                var transferred = 0L
+                while (transferred < size) {
+                    transferred += inStream.channel.transferTo(transferred, size - transferred, outStream.channel)
+                }
             }
         }
     }

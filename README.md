@@ -1,7 +1,7 @@
 # Nua 🎬🎙️ — Intelligent Video Lecture Translation & Dubbing Ecosystem
 
 > [!TIP]
-> **Status: 🟢 Production Ready (v4.1)** — Major TRIZ-driven architectural overhaul complete. Versioned FlatBuffers schema with typed telemetry, dynamic RIFF WAV parsing, O(log N) timeline binary search, HMAC-authenticated API, SSRF-secured extraction, Thread-safe Model Lifecycle, and R8-optimized build. All 18 out of 18 system bugs and technical debt items eliminated.
+> **Status: 🟢 Production Ready (v4.3)** — Major TRIZ-driven architectural overhaul complete. Versioned FlatBuffers schema with typed telemetry, dynamic RIFF WAV parsing, O(log N) timeline binary search, HMAC-authenticated API, SSRF-secured extraction, Thread-safe Model Lifecycle, and R8-optimized build. All 44 out of 44 system bugs and technical debt items eliminated.
 
 **Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
 

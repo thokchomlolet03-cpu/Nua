@@ -8,6 +8,10 @@ import org.nua.production.app.data.schema.LectureSession
 import org.nua.production.app.data.schema.GraphNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
 
 /**
  * Offline RAG (Retrieval-Augmented Generation) engine that walks pre-baked
@@ -29,18 +33,22 @@ class OfflineTutorEngine(private val context: Context) {
     }
 
     private var engine: Engine? = null
+    private val tutorMutex = Mutex()
 
     /**
      * Initializes the LiteRT-LM engine for tutoring queries.
      * Can share the same model as the translator, or use a specialized tutor model.
      */
     suspend fun initializeEngine(modelPath: String) = withContext(Dispatchers.IO) {
-        try {
-            val config = EngineConfig(modelPath = modelPath)
-            engine = Engine(config).also { it.initialize() }
-            Log.d(TAG, "Tutor engine initialized")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize tutor engine", e)
+        tutorMutex.withLock {
+            try {
+                try { engine?.close() } catch (_: Exception) {}
+                val config = EngineConfig(modelPath = modelPath)
+                engine = Engine(config).also { it.initialize() }
+                Log.d(TAG, "Tutor engine initialized")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize tutor engine", e)
+            }
         }
     }
 
@@ -57,10 +65,6 @@ class OfflineTutorEngine(private val context: Context) {
         session: LectureSession,
         playheadTimeMs: Long
     ): String = withContext(Dispatchers.IO) {
-        val lmEngine = engine
-        if (lmEngine == null) {
-            return@withContext "Tutor engine is not initialized. Please load a model first."
-        }
 
         // Step 1: Hierarchical graph walk — find the most relevant context node
         val matchingNode = findBestMatchingNode(userPrompt, session)
@@ -90,16 +94,22 @@ class OfflineTutorEngine(private val context: Context) {
         """.trimIndent()
 
         // Step 3: Generate response via local LLM
-        try {
-            val conversation = lmEngine.createConversation()
-            val responseBuilder = StringBuilder()
-            conversation.sendMessageAsync(structuredPrompt).collect { token ->
-                responseBuilder.append(token)
+        tutorMutex.withLock {
+            val lmEngine = engine
+            if (lmEngine == null) {
+                return@withContext "Tutor engine is not initialized. Please load a model first."
             }
-            responseBuilder.toString().trim()
-        } catch (e: Exception) {
-            Log.e(TAG, "Tutor query failed", e)
-            "Sorry, I couldn't process your question. Please try again."
+            try {
+                val conversation = lmEngine.createConversation()
+                val responseBuilder = StringBuilder()
+                conversation.sendMessageAsync(structuredPrompt).collect { token ->
+                    responseBuilder.append(token)
+                }
+                responseBuilder.toString().trim()
+            } catch (e: Exception) {
+                Log.e(TAG, "Tutor query failed", e)
+                "Sorry, I couldn't process your question. Please try again."
+            }
         }
     }
 
@@ -133,7 +143,11 @@ class OfflineTutorEngine(private val context: Context) {
     }
 
     fun close() {
-        try { engine?.close() } catch (_: Exception) {}
-        engine = null
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+            tutorMutex.withLock {
+                try { engine?.close() } catch (_: Exception) {}
+                engine = null
+            }
+        }
     }
 }
