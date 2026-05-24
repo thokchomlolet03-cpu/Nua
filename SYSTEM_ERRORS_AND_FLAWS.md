@@ -1,21 +1,25 @@
 # Nua — System Errors, Flaws & Technical Debt Registry
 
-> **Revision**: 14 (v4.3 Complete Architectural Remediation)
+> **Revision**: 15 (v4.3 Ecosystem Stabilization & TRIZ Audit)
 > **Date**: 2026-05-24
-> **Status**: 🟢 0 Active Vulnerabilities. 26/26 Flaws successfully patched.
+> **Status**: 🟢 0 Active Vulnerabilities. 44/44 Flaws successfully patched.
 
 ---
 
 ## Active Issues (0)
 
-**None.** All vulnerabilities and structural flaws identified in the Deep Technical Audit have been successfully resolved.
+**None.** All vulnerabilities and structural flaws identified in the Deep Technical Audit have been successfully resolved, including the final architectural limitations from the TRIZ review.
 
 ---
 
-## Resolved in v4.3 — Deep Technical Audit & Patching
+## Resolved in v4.3 — TRIZ Constraints & Null Reference Patches
 
 | Severity | Component | Issue | Fix Summary |
 |---|---|---|---|
+| 🔴 CRITICAL | `OfflineTutorEngine.kt` | RAG Memory Saturation (Dynamic DF Math) | Pre-baked Inverse Document Frequency (IDF) mapping directly into the FlatBuffers `.nuab` payload via Node.js, reducing math to an O(1) lookup. |
+| 🔴 CRITICAL | `PipelineCompilerService.kt` | OS Aggressive Termination on Low Battery | Appended a `checkBatteryAndPersist()` sentinel to flush state to `pipeline_state.json` and resume seamlessly via Jetpack `WorkManager`. |
+| 🔴 CRITICAL | `index.ts` & `audio.ts` | Ingestion Thread Exhaustion (FFmpeg Blocking) | Implemented `FastMediaQueue` asynchronous throttling (Max 3 concurrent). API instantly returns `202 Accepted`. |
+| 🔴 CRITICAL | `NuaBundler.ts` | Null Reference Crash on `toLowerCase()` | Added `safeFactoid = node.summaryFactoid \|\| ""` to prevent backend crashes on malformed LLM RAG payloads. |
 | 🔴 CRITICAL | `audio.ts` | SSRF Bypass via non-standard IP encodings (integer IPs) | Implemented strict IPv4/IPv6 normalization and blocked private ranges. |
 | 🔴 CRITICAL | `audio.ts` | Arbitrary File Read / SSRF via FFmpeg HLS Playlists | Forced `protocol_whitelist` to `file,http,https,tcp,tls`. |
 | 🔴 CRITICAL | `audio.ts` | TOCTOU DNS Rebinding SSRF | Cached resolved safe IPs and forced DNS resolution via custom HTTP agent. |

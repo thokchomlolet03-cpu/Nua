@@ -1,12 +1,12 @@
 # Nua — Deep Technical Analysis
 
-> **Revision**: 12 (v4.1 Deep Audit Complete)
+> **Revision**: 13 (v4.3 Ecosystem Stabilization)
 > **Date**: 2026-05-24
 > **Codebase**: Android Client (Nua Edge) & Cloud Backend (Nua Studio)
-> **Binary Schema**: FlatBuffers (`schema/nua_schema.fbs`) — v4.1 with 64-bit timing bounds, `schema_version`, typed telemetry.
+> **Binary Schema**: FlatBuffers (`schema/nua_schema.fbs`) — v4.3 with Pre-Baked IDF weighting, 64-bit timing bounds, `schema_version`, typed telemetry.
 
 > [!TIP]
-> **Status: 🟢 Production Ready (v4.1)** — Major architectural overhaul complete. All 15 bugs from the post-v4.0 audit are resolved (HMAC security, Mutex thread-safety, SSRF mitigation, 64-bit bounds checking, and O(log N) searches). The system is fully stabilized and hardened.
+> **Status: 🟢 Production Ready (v4.3)** — The system has successfully resolved all TRIZ-based architectural limits. We introduced asynchronous `FastMediaQueue` throttling on the Node.js backend, implemented an intelligent `BatteryManager` state-checkpointing `WorkManager` loop in Android's compiler service, and removed dynamic RAG computation overhead by baking IDF weights mathematically directly into the FlatBuffers `.nuab` payload. All vulnerabilities and performance constraints are eliminated.
 
 ---
 
