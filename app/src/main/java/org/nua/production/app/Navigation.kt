@@ -12,6 +12,7 @@ import org.nua.production.app.ui.main.MainScreenViewModel
 import org.nua.production.app.ui.setup.SetupScreen
 import org.nua.production.app.ui.player.PlayerScreen
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun MainNavigation() {
   val backStack = rememberNavBackStack(Main)

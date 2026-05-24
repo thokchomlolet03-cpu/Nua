@@ -73,7 +73,8 @@ val ChatIcon: ImageVector
         close()
     }.build()
 
-@OptIn(ExperimentalMaterial3Api::class, UnstableApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
+@androidx.media3.common.util.UnstableApi
 @Composable
 fun PlayerScreen(
     videoPath: String,
