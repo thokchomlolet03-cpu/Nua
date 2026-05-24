@@ -22,9 +22,9 @@ static getSizePrefixedRootAsQuiz(bb:flatbuffers.ByteBuffer, obj?:Quiz):Quiz {
   return (obj || new Quiz()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-triggerTimestampMs():number {
+triggerTimestampMs():bigint {
   const offset = this.bb!.__offset(this.bb_pos, 4);
-  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+  return offset ? this.bb!.readUint64(this.bb_pos + offset) : BigInt('0');
 }
 
 question():string|null
@@ -55,8 +55,8 @@ static startQuiz(builder:flatbuffers.Builder) {
   builder.startObject(4);
 }
 
-static addTriggerTimestampMs(builder:flatbuffers.Builder, triggerTimestampMs:number) {
-  builder.addFieldInt32(0, triggerTimestampMs, 0);
+static addTriggerTimestampMs(builder:flatbuffers.Builder, triggerTimestampMs:bigint) {
+  builder.addFieldInt64(0, triggerTimestampMs, BigInt('0'));
 }
 
 static addQuestion(builder:flatbuffers.Builder, questionOffset:flatbuffers.Offset) {
@@ -88,7 +88,7 @@ static endQuiz(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createQuiz(builder:flatbuffers.Builder, triggerTimestampMs:number, questionOffset:flatbuffers.Offset, optionsOffset:flatbuffers.Offset, correctIndex:number):flatbuffers.Offset {
+static createQuiz(builder:flatbuffers.Builder, triggerTimestampMs:bigint, questionOffset:flatbuffers.Offset, optionsOffset:flatbuffers.Offset, correctIndex:number):flatbuffers.Offset {
   Quiz.startQuiz(builder);
   Quiz.addTriggerTimestampMs(builder, triggerTimestampMs);
   Quiz.addQuestion(builder, questionOffset);

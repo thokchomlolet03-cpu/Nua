@@ -54,7 +54,7 @@ class Quiz : Table() {
 
         fun createQuiz(
             builder: FlatBufferBuilder,
-            triggerTimestampMsOffset: Long,
+            triggerTimestampMs: Long,
             questionOffset: Int,
             optionsVectorOffset: Int,
             correctIndex: UByte
@@ -62,7 +62,7 @@ class Quiz : Table() {
             builder.startTable(4)
             builder.addOffset(2, optionsVectorOffset, 0)
             builder.addOffset(1, questionOffset, 0)
-            builder.addInt(0, triggerTimestampMsOffset.toInt(), 0)
+            builder.addLong(0, triggerTimestampMs, 0L)
             builder.addByte(3, correctIndex.toByte(), 0)
             return builder.endTable()
         }
@@ -78,7 +78,7 @@ class Quiz : Table() {
 
     val triggerTimestampMs: Long get() {
         val o = __offset(4)
-        return if (o != 0) bb.getInt(o + bb_pos).toLong() and 0xFFFFFFFFL else 0L
+        return if (o != 0) bb.getLong(o + bb_pos) else 0L
     }
     val question: String? get() {
         val o = __offset(6)

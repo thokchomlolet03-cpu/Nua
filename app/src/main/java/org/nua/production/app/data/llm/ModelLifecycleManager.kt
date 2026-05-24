@@ -4,9 +4,13 @@ import android.content.Context
 import android.util.Log
 import org.nua.production.app.data.rag.OfflineTutorEngine
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
 /**
  * TRIZ Principle 15 (State Interleaving/Dynamism) & Principle 2 (Extraction)
  * Coordinates loading/unloading of translation and tutoring models to prevent out-of-memory crashes.
+ * Thread-safe singleton using Mutex for coroutine synchronization.
  */
 object ModelLifecycleManager {
     private const val TAG = "ModelLifecycleManager"
@@ -14,8 +18,10 @@ object ModelLifecycleManager {
     
     private var translatorInstance: LiteRTTranslator? = null
     private var tutorEngineInstance: OfflineTutorEngine? = null
+    
+    private val mutex = Mutex()
 
-    suspend fun switchToTutor(context: Context, tutorModelPath: String): OfflineTutorEngine {
+    suspend fun switchToTutor(context: Context, tutorModelPath: String): OfflineTutorEngine = mutex.withLock {
         Log.d(TAG, "switchToTutor requested. Current active model: $activeModelType")
         if (activeModelType == "TUTOR" && tutorEngineInstance != null) {
             return tutorEngineInstance!!
@@ -35,7 +41,7 @@ object ModelLifecycleManager {
         return engine
     }
 
-    suspend fun switchToTranslator(context: Context, translatorModelPath: String): LiteRTTranslator {
+    suspend fun switchToTranslator(context: Context, translatorModelPath: String): LiteRTTranslator = mutex.withLock {
         Log.d(TAG, "switchToTranslator requested. Current active model: $activeModelType")
         if (activeModelType == "TRANSLATOR" && translatorInstance != null) {
             return translatorInstance!!
@@ -55,7 +61,7 @@ object ModelLifecycleManager {
         return translator
     }
 
-    fun releaseAll() {
+    suspend fun releaseAll() = mutex.withLock {
         Log.d(TAG, "releaseAll requested. Unloading all models.")
         translatorInstance?.close()
         translatorInstance = null

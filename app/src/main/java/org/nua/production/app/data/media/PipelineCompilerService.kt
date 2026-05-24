@@ -45,6 +45,13 @@ class PipelineCompilerService : Service() {
         liteRTTranslator = LiteRTTranslator(this)
         ttsEngine = DubbingTtsEngine(this)
         createNotificationChannel()
+
+        // Reset companion object StateFlow fields to clear stale/crash states
+        _isProcessing.value = false
+        _currentStep.value = ""
+        _stepProgress.value = 0f
+        _logs.value = emptyList()
+        _completedSessionDir.value = null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -78,6 +85,8 @@ class PipelineCompilerService : Service() {
         serviceJob.cancel()
         ttsEngine.shutdown()
         liteRTTranslator.close()
+        // Reset process state flow
+        _isProcessing.value = false
     }
 
     private fun startCompilation(videoPath: String, gemmaModelPath: String?, mockMode: Boolean, asrMode: String) {

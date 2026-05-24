@@ -77,7 +77,7 @@ class TelemetryStoreTest {
         assertEquals(0, payload.quizResponsesLength)
 
         // Verify cryptographic signature
-        val expectedHash = sha256("$sessionId|$completionPercentage|0")
+        val expectedHash = computeHmacSha256("$sessionId|$completionPercentage|0".toByteArray(), "fallback_secret")
         assertEquals(expectedHash, payload.cryptographicSignature)
     }
 
@@ -124,7 +124,7 @@ class TelemetryStoreTest {
         assertTrue(!resp2.isCorrect)
 
         // Verify cryptographic signature
-        val expectedHash = sha256("$sessionId|0|2")
+        val expectedHash = computeHmacSha256("$sessionId|0|2".toByteArray(), "fallback_secret")
         assertEquals(expectedHash, payload.cryptographicSignature)
     }
 
@@ -164,5 +164,13 @@ class TelemetryStoreTest {
         val digest = MessageDigest.getInstance("SHA-256")
         val hash = digest.digest(input.toByteArray())
         return hash.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun computeHmacSha256(data: ByteArray, secret: String): String {
+        val keySpec = javax.crypto.spec.SecretKeySpec(secret.toByteArray(Charsets.UTF_8), "HmacSHA256")
+        val mac = javax.crypto.Mac.getInstance("HmacSHA256")
+        mac.init(keySpec)
+        val rawHmac = mac.doFinal(data)
+        return rawHmac.joinToString("") { "%02x".format(it) }
     }
 }

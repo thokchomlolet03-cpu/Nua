@@ -16,13 +16,55 @@ data class TimelineInterval(
     val hotspots: List<HotspotInfo> = emptyList()
 )
 
-class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
+class VirtualTimelineMapper(val intervals: List<TimelineInterval>) {
     
     companion object {
         private const val TAG = "VirtualTimelineMapper"
+
+        fun create(composition: MediaComposition, sessionDir: File): VirtualTimelineMapper {
+            val list = ArrayList<TimelineInterval>()
+            var cumulativeHold = 0L
+            
+            for (seg in composition.segments) {
+                val originalStart = seg.startMs
+                val originalEnd = seg.endMs
+                val originalDur = originalEnd - originalStart
+
+                val file = File(sessionDir, seg.vocalAssetLocalPath)
+                val vocalDur = if (seg.audioDurationMs != null && seg.audioDurationMs > 0) {
+                    seg.audioDurationMs
+                } else if (file.exists()) {
+                    WavUtils.getWavDurationMs(file, originalDur)
+                } else {
+                    originalDur
+                }
+
+                val hold = (vocalDur - originalDur).coerceAtLeast(0L)
+                val vStart = originalStart + cumulativeHold
+                val vEnd = vStart + maxOf(originalDur, vocalDur)
+
+                list.add(
+                    TimelineInterval(
+                        originalStartMs = originalStart,
+                        originalEndMs = originalEnd,
+                        vocalDurationMs = vocalDur,
+                        holdMs = hold,
+                        cumulativeHoldBeforeMs = cumulativeHold,
+                        virtualStartMs = vStart,
+                        virtualEndMs = vEnd,
+                        vocalAssetLocalPath = seg.vocalAssetLocalPath,
+                        originalText = seg.originalText,
+                        translatedText = seg.translatedText,
+                        hotspots = seg.hotspots
+                    )
+                )
+
+                cumulativeHold += hold
+            }
+            return VirtualTimelineMapper(list)
+        }
     }
 
-    val intervals: List<TimelineInterval>
     val totalVirtualDurationMs: Long
     private val physicalStartPositions: LongArray
     private val virtualStartPositions: LongArray
@@ -30,55 +72,14 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
     private val cumulativeHoldsAtEnd: LongArray
 
     init {
-        val list = ArrayList<TimelineInterval>()
-        var cumulativeHold = 0L
-        
-        for (seg in composition.segments) {
-            val originalStart = seg.startMs
-            val originalEnd = seg.endMs
-            val originalDur = originalEnd - originalStart
+        physicalStartPositions = intervals.map { it.originalStartMs }.toLongArray()
+        virtualStartPositions = intervals.map { it.virtualStartMs }.toLongArray()
+        virtualEndPositions = intervals.map { it.virtualEndMs }.toLongArray()
+        cumulativeHoldsAtEnd = intervals.map { it.cumulativeHoldBeforeMs + it.holdMs }.toLongArray()
 
-            // Use the pre-calculated audio duration from segment metadata if available
-            val file = File(sessionDir, seg.vocalAssetLocalPath)
-            val vocalDur = if (seg.audioDurationMs != null && seg.audioDurationMs > 0) {
-                seg.audioDurationMs
-            } else if (file.exists()) {
-                getWavDurationMs(file, originalDur)
-            } else {
-                originalDur
-            }
-
-            val hold = (vocalDur - originalDur).coerceAtLeast(0L)
-            val vStart = originalStart + cumulativeHold
-            val vEnd = vStart + maxOf(originalDur, vocalDur)
-
-            list.add(
-                TimelineInterval(
-                    originalStartMs = originalStart,
-                    originalEndMs = originalEnd,
-                    vocalDurationMs = vocalDur,
-                    holdMs = hold,
-                    cumulativeHoldBeforeMs = cumulativeHold,
-                    virtualStartMs = vStart,
-                    virtualEndMs = vEnd,
-                    vocalAssetLocalPath = seg.vocalAssetLocalPath,
-                    originalText = seg.originalText,
-                    translatedText = seg.translatedText,
-                    hotspots = seg.hotspots
-                )
-            )
-
-            cumulativeHold += hold
-        }
-        intervals = list
-        physicalStartPositions = list.map { it.originalStartMs }.toLongArray()
-        virtualStartPositions = list.map { it.virtualStartMs }.toLongArray()
-        virtualEndPositions = list.map { it.virtualEndMs }.toLongArray()
-        cumulativeHoldsAtEnd = list.map { it.cumulativeHoldBeforeMs + it.holdMs }.toLongArray()
-
-        // Find total original duration. Assume last segment's end or extract from media
-        val lastOriginalEnd = composition.segments.lastOrNull()?.endMs ?: 0L
-        totalVirtualDurationMs = lastOriginalEnd + cumulativeHold
+        val lastOriginalEnd = intervals.lastOrNull()?.originalEndMs ?: 0L
+        val totalHold = intervals.lastOrNull()?.let { it.cumulativeHoldBeforeMs + it.holdMs } ?: 0L
+        totalVirtualDurationMs = lastOriginalEnd + totalHold
     }
 
     /**
@@ -195,7 +196,4 @@ class VirtualTimelineMapper(composition: MediaComposition, sessionDir: File) {
         )
     }
 
-    private fun getWavDurationMs(file: File, fallbackMs: Long): Long {
-        return WavUtils.getWavDurationMs(file, fallbackMs)
-    }
 }

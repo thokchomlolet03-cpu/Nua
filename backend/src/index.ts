@@ -24,7 +24,12 @@ if (IS_MOCK_MODE) {
 // ─── Services ──────────────────────────────────────────────────────────
 
 const app = express();
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({
+    limit: '50mb',
+    verify: (req: any, _res, buf) => {
+        req.rawBody = buf;
+    }
+}));
 
 let storage: Storage | null = null;
 try {
@@ -48,11 +53,31 @@ const verifyHmacSignature = (req: any, res: any, next: any) => {
     const signature = req.headers['x-nua-signature'];
     if (!signature) return res.status(401).json({ error: 'Missing security signature metadata' });
 
-    const computedHmac = crypto.createHmac('sha256', process.env.SIGNING_SECRET || 'fallback_secret')
-                               .update(JSON.stringify(req.body))
+    const signingSecret = process.env.SIGNING_SECRET;
+    if (!signingSecret) {
+        console.error('❌ SIGNING_SECRET is not configured on the server.');
+        return res.status(500).json({ error: 'Server misconfiguration: SIGNING_SECRET is not configured' });
+    }
+
+    if (!req.rawBody) {
+        return res.status(400).json({ error: 'Missing request body for signature verification' });
+    }
+
+    const computedHmac = crypto.createHmac('sha256', signingSecret)
+                               .update(req.rawBody)
                                .digest('hex');
 
-    if (signature !== computedHmac) return res.status(403).json({ error: 'Access signature verification failure' });
+    try {
+        const signatureBuffer = Buffer.from(signature, 'hex');
+        const computedHmacBuffer = Buffer.from(computedHmac, 'hex');
+
+        if (signatureBuffer.length !== computedHmacBuffer.length ||
+            !crypto.timingSafeEqual(signatureBuffer, computedHmacBuffer)) {
+            return res.status(403).json({ error: 'Access signature verification failure' });
+        }
+    } catch (e) {
+        return res.status(403).json({ error: 'Access signature verification failure' });
+    }
     next();
 };
 

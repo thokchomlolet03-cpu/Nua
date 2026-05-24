@@ -28,10 +28,10 @@ class Quiz : Table() {
         __init(_i, _bb)
         return this
     }
-    val triggerTimestampMs : UInt
+    val triggerTimestampMs : ULong
         get() {
             val o = __offset(4)
-            return if(o != 0) bb.getInt(o + bb_pos).toUInt() else 0u
+            return if(o != 0) bb.getLong(o + bb_pos).toULong() else 0UL
         }
     val question : String?
         get() {
@@ -68,16 +68,16 @@ class Quiz : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun createQuiz(builder: FlatBufferBuilder, triggerTimestampMs: UInt, questionOffset: Int, optionsOffset: Int, correctIndex: UByte) : Int {
+        fun createQuiz(builder: FlatBufferBuilder, triggerTimestampMs: ULong, questionOffset: Int, optionsOffset: Int, correctIndex: UByte) : Int {
             builder.startTable(4)
+            addTriggerTimestampMs(builder, triggerTimestampMs)
             addOptions(builder, optionsOffset)
             addQuestion(builder, questionOffset)
-            addTriggerTimestampMs(builder, triggerTimestampMs)
             addCorrectIndex(builder, correctIndex)
             return endQuiz(builder)
         }
         fun startQuiz(builder: FlatBufferBuilder) = builder.startTable(4)
-        fun addTriggerTimestampMs(builder: FlatBufferBuilder, triggerTimestampMs: UInt) = builder.addInt(0, triggerTimestampMs.toInt(), 0)
+        fun addTriggerTimestampMs(builder: FlatBufferBuilder, triggerTimestampMs: ULong) = builder.addLong(0, triggerTimestampMs.toLong(), 0)
         fun addQuestion(builder: FlatBufferBuilder, question: Int) = builder.addOffset(1, question, 0)
         fun addOptions(builder: FlatBufferBuilder, options: Int) = builder.addOffset(2, options, 0)
         fun createOptionsVector(builder: FlatBufferBuilder, data: IntArray) : Int {

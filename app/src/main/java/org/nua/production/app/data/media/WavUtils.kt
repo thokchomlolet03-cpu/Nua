@@ -32,7 +32,7 @@ object WavUtils {
                 if (chunkId == "data") {
                     return raf.filePointer // Position right after 'data' + size
                 }
-                raf.skipBytes(chunkSize.toInt())
+                raf.seek(raf.filePointer + chunkSize)
             }
             throw IllegalArgumentException("Invalid RIFF WAV: no 'data' chunk found")
         } finally {
@@ -76,7 +76,7 @@ object WavUtils {
                             dataSize = chunkSize
                             break
                         }
-                        else -> raf.skipBytes(chunkSize.toInt())
+                        else -> raf.seek(raf.filePointer + chunkSize)
                     }
                 }
 

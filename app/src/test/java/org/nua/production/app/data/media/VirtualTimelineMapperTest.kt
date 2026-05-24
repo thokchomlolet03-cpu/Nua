@@ -26,7 +26,7 @@ class VirtualTimelineMapperTest {
 
         // Using a temporary empty folder so files don't exist and it uses default duration
         val dummyDir = File("dummy_session")
-        val mapper = VirtualTimelineMapper(composition, dummyDir)
+        val mapper = VirtualTimelineMapper.create(composition, dummyDir)
 
         // 1. Verify durations
         assertEquals(6000L, mapper.totalVirtualDurationMs)
@@ -74,7 +74,7 @@ class VirtualTimelineMapperTest {
                 segments = listOf(segment)
             )
 
-            val mapper = VirtualTimelineMapper(composition, tempDir)
+            val mapper = VirtualTimelineMapper.create(composition, tempDir)
 
             // 1. Durations: original ended at 3000ms. Cumulative hold is 4000 - 2000 = 2000ms.
             // Total virtual duration = 3000 + 2000 = 5000ms.

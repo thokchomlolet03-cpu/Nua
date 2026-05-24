@@ -560,10 +560,21 @@ fun VideoPlayerAndSubtitles(
                                     startIndex = text.indexOf(token, endIndex)
                                 }
                             }
-                            ranges.sortBy { it.start }
+                            // Sort by start position ascending, and then by end position descending
+                            ranges.sortWith(compareBy<HotspotRange> { it.start }.thenByDescending { it.end })
+
+                            // Filter out overlapping ranges to avoid string corruptions
+                            val filteredRanges = mutableListOf<HotspotRange>()
+                            var lastEnd = 0
+                            for (range in ranges) {
+                                if (range.start >= lastEnd) {
+                                    filteredRanges.add(range)
+                                    lastEnd = range.end
+                                }
+                            }
 
                             var cursor = 0
-                            for (range in ranges) {
+                            for (range in filteredRanges) {
                                 if (range.start > cursor) {
                                     append(text.substring(cursor, range.start))
                                 }

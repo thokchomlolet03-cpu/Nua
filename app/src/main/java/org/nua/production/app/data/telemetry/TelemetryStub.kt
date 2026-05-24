@@ -62,7 +62,10 @@ interface TelemetryContract {
  * Wi-Fi Direct Mesh and Local storage implementation of the telemetry contract.
  * Periodically discovers peers in background to share and aggregate telemetry log files.
  */
-class LocalTelemetryStore(private val context: Context) : TelemetryContract {
+class LocalTelemetryStore(
+    private val context: Context,
+    private val signingSecret: String = "fallback_secret"
+) : TelemetryContract {
 
     companion object {
         private const val TAG = "TelemetryStore"
@@ -120,7 +123,7 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
                 if (!file.name.endsWith(".tlm")) continue
                 try {
                     val bytes = file.readBytes()
-                    val hmac = computeHmacSha256(bytes, "fallback_secret")
+                    val hmac = computeHmacSha256(bytes, signingSecret)
 
                     val url = URL("https://production.nua.org/api/v1/telemetry")
                     val connection = url.openConnection() as HttpURLConnection
@@ -281,7 +284,29 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
                         val client = serverSocket?.accept() ?: break
                         Thread {
                             try {
+                                val dos = DataOutputStream(client.getOutputStream())
                                 val dis = DataInputStream(client.getInputStream())
+
+                                // 1. Random challenge-response handshake to authenticate the peer
+                                val challenge = ByteArray(16)
+                                java.security.SecureRandom().nextBytes(challenge)
+                                dos.write(challenge)
+                                dos.flush()
+
+                                val clientResponse = ByteArray(32) // HMAC-SHA256 signature is 32 bytes
+                                dis.readFully(clientResponse)
+
+                                val expectedChallengeHmac = computeHmacBytes(challenge, signingSecret)
+                                if (!java.security.MessageDigest.isEqual(clientResponse, expectedChallengeHmac)) {
+                                    dos.writeByte(0) // Auth failed flag
+                                    dos.flush()
+                                    Log.w(TAG, "Rejecting unauthenticated connection on mesh telemetry socket")
+                                    client.close()
+                                    return@Thread
+                                }
+                                dos.writeByte(1) // Auth success flag
+                                dos.flush()
+
                                 val len = dis.readInt()
                                 if (len in 1..1024 * 1024) {
                                     val bytes = ByteArray(len)
@@ -297,12 +322,15 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
                                     val responsesLen = tp.quizResponsesLength
                                     val signature = tp.cryptographicSignature ?: ""
 
-                                    val expectedHash = sha256("$sessionId|$compPercent|$responsesLen")
+                                    val expectedHash = computeHmacSha256(
+                                        "$sessionId|$compPercent|$responsesLen".toByteArray(Charsets.UTF_8),
+                                        signingSecret
+                                    )
                                     if (signature == expectedHash) {
                                         writePayload(sessionId, "mesh_received", bytes)
                                         Log.i(TAG, "Valid telemetry mesh packet saved for $sessionId")
                                     } else {
-                                        Log.w(TAG, "Discarded invalid/untrusted mesh telemetry payload")
+                                        Log.w(TAG, "Discarded invalid/untrusted mesh telemetry payload (HMAC mismatch)")
                                     }
                                 }
                             } catch (e: Exception) {
@@ -337,6 +365,23 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
                         socket = Socket()
                         socket.connect(InetSocketAddress(ownerIp, 8988), 5000)
                         val dos = DataOutputStream(socket.getOutputStream())
+                        val dis = DataInputStream(socket.getInputStream())
+
+                        // 1. Solve the random challenge
+                        val challenge = ByteArray(16)
+                        dis.readFully(challenge)
+
+                        val responseHmac = computeHmacBytes(challenge, signingSecret)
+                        dos.write(responseHmac)
+                        dos.flush()
+
+                        val authResult = dis.readByte()
+                        if (authResult.toInt() != 1) {
+                            Log.w(TAG, "Mesh group owner rejected authentication handshake")
+                            socket.close()
+                            continue
+                        }
+
                         val bytes = file.readBytes()
                         dos.writeInt(bytes.size)
                         dos.write(bytes)
@@ -388,8 +433,9 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
             TelemetryPayload.createQuizResponsesVector(builder, responseOffsets)
         } else 0
 
-        // Generate cryptographic signature (SHA-256 of content)
-        val contentHash = sha256("$sessionId|$completionPercentage|${quizResponses.size}")
+        // Generate cryptographic signature (HMAC-SHA256 of content)
+        val content = "$sessionId|$completionPercentage|${quizResponses.size}"
+        val contentHash = computeHmacSha256(content.toByteArray(Charsets.UTF_8), signingSecret)
         val sigOff = builder.createString(contentHash)
 
         val root = TelemetryPayload.createTelemetryPayload(
@@ -423,11 +469,15 @@ class LocalTelemetryStore(private val context: Context) : TelemetryContract {
         return hash.joinToString("") { "%02x".format(it) }
     }
 
-    private fun computeHmacSha256(data: ByteArray, secret: String): String {
+    private fun computeHmacBytes(data: ByteArray, secret: String): ByteArray {
         val keySpec = SecretKeySpec(secret.toByteArray(Charsets.UTF_8), "HmacSHA256")
         val mac = Mac.getInstance("HmacSHA256")
         mac.init(keySpec)
-        val rawHmac = mac.doFinal(data)
+        return mac.doFinal(data)
+    }
+
+    private fun computeHmacSha256(data: ByteArray, secret: String): String {
+        val rawHmac = computeHmacBytes(data, secret)
         return rawHmac.joinToString("") { "%02x".format(it) }
     }
 }

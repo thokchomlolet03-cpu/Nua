@@ -12,7 +12,7 @@ table Hotspot {
 }
 
 table Quiz {
-  trigger_timestamp_ms:uint;
+  trigger_timestamp_ms:ulong;
   question:string;
   options:[string];
   correct_index:ubyte;

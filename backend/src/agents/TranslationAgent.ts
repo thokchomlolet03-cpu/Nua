@@ -23,6 +23,82 @@ export interface GraphNodeData {
     contextTokens: string[];
 }
 
+function validateSegments(data: any): TranslationSegment[] {
+    if (!Array.isArray(data)) {
+        throw new Error('LLM output is not a JSON array');
+    }
+    const validated: TranslationSegment[] = [];
+    for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        if (!item || typeof item !== 'object') {
+            throw new Error(`Segment at index ${i} is not an object`);
+        }
+        
+        const segmentId = typeof item.segmentId === 'string' ? item.segmentId : `seg_${i}`;
+        const videoStartMs = Number(item.videoStartMs);
+        const videoEndMs = Number(item.videoEndMs);
+        const originalText = typeof item.originalText === 'string' ? item.originalText : '';
+        const translatedText = typeof item.translatedText === 'string' ? item.translatedText : '';
+        const audioDurationMs = Number(item.audioDurationMs);
+        
+        if (isNaN(videoStartMs) || videoStartMs < 0) {
+            throw new Error(`Segment at index ${i} has invalid videoStartMs: ${item.videoStartMs}`);
+        }
+        if (isNaN(videoEndMs) || videoEndMs < videoStartMs) {
+            throw new Error(`Segment at index ${i} has invalid videoEndMs: ${item.videoEndMs}`);
+        }
+        if (isNaN(audioDurationMs) || audioDurationMs < 0) {
+            throw new Error(`Segment at index ${i} has invalid audioDurationMs: ${item.audioDurationMs}`);
+        }
+        
+        validated.push({
+            segmentId,
+            videoStartMs,
+            videoEndMs,
+            originalText,
+            translatedText,
+            audioDurationMs
+        });
+    }
+    return validated;
+}
+
+function validateGraphNodes(data: any): GraphNodeData[] {
+    if (!Array.isArray(data)) {
+        return [];
+    }
+    const validated: GraphNodeData[] = [];
+    for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        if (!item || typeof item !== 'object') continue;
+        
+        const nodeId = typeof item.nodeId === 'string' ? item.nodeId : `node_${i}`;
+        const summaryFactoid = typeof item.summaryFactoid === 'string' ? item.summaryFactoid : '';
+        
+        const keywords: string[] = [];
+        if (Array.isArray(item.keywords)) {
+            for (const kw of item.keywords) {
+                if (typeof kw === 'string') keywords.push(kw);
+            }
+        }
+        
+        const contextTokens: string[] = [];
+        if (Array.isArray(item.contextTokens)) {
+            for (const ct of item.contextTokens) {
+                if (typeof ct === 'string') contextTokens.push(ct);
+            }
+        }
+        
+        validated.push({
+            nodeId,
+            keywords,
+            summaryFactoid,
+            contextTokens
+        });
+    }
+    return validated;
+}
+
 /**
  * Multi-turn translation agent using Gemini 3.5 Flash.
  * 
@@ -113,7 +189,8 @@ Output ONLY valid JSON. No explanations.`;
                 throw new Error('Failed to extract JSON array from Gemini response');
             }
             const jsonStr = text.substring(firstBracket, lastBracket + 1);
-            const segments: TranslationSegment[] = JSON.parse(jsonStr);
+            const rawSegments = JSON.parse(jsonStr);
+            const segments = validateSegments(rawSegments);
 
             return {
                 segments,
@@ -173,7 +250,8 @@ Output ONLY valid JSON array. No explanations.`;
             const firstBracket = text.indexOf('[');
             const lastBracket = text.lastIndexOf(']');
             if (firstBracket === -1 || lastBracket === -1 || lastBracket < firstBracket) return [];
-            return JSON.parse(text.substring(firstBracket, lastBracket + 1));
+            const rawNodes = JSON.parse(text.substring(firstBracket, lastBracket + 1));
+            return validateGraphNodes(rawNodes);
         } catch {
             return [];
         }

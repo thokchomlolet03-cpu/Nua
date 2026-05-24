@@ -20,6 +20,7 @@ import org.nua.production.app.data.schema.LectureSession
 import org.nua.production.app.data.telemetry.LocalTelemetryStore
 import org.nua.production.app.data.telemetry.QuizResponse
 import org.nua.production.app.data.telemetry.TelemetryContract
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,7 +117,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                 composition = comp
                 rawSession = sessionManager.loadManifestBinary(dir)
 
-                val map = VirtualTimelineMapper(comp, dir)
+                val map = VirtualTimelineMapper.create(comp, dir)
                 mapper = map
 
                 // Reset quiz progress state
@@ -367,12 +368,16 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         val pct = maxCompletionPercentage
         if (comp != null && pct > 0) {
             val sessionId = comp.videoId
-            viewModelScope.launch(Dispatchers.IO) {
+            try {
+                telemetryStore.recordCompletion(sessionId, pct)
+            } catch (e: Exception) {
+                Log.e("PlayerViewModel", "Failed to record completion telemetry", e)
+            }
+            CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    telemetryStore.recordCompletion(sessionId, pct)
                     telemetryStore.flushToServer()
                 } catch (e: Exception) {
-                    Log.e("PlayerViewModel", "Failed to record completion telemetry", e)
+                    Log.e("PlayerViewModel", "Failed to flush telemetry", e)
                 }
             }
         }
@@ -382,7 +387,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         syncEngine?.release()
         syncEngine = null
         _isPlaying.value = false
-        viewModelScope.launch(Dispatchers.IO) {
+        CoroutineScope(Dispatchers.IO).launch {
             ModelLifecycleManager.releaseAll()
         }
     }
