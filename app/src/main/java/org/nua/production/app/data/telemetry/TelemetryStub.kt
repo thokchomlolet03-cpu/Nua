@@ -453,6 +453,7 @@ class LocalTelemetryStore(
                 receiver?.let { context.unregisterReceiver(it) }
             } catch (_: Exception) {}
             receiver = null
+            executorService.shutdown()
         }
     }
 

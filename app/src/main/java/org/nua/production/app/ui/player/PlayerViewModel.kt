@@ -92,7 +92,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private var composition: MediaComposition? = null
 
     private val shownQuizTimestamps: MutableSet<Long> = Collections.synchronizedSet(mutableSetOf())
-    private var maxCompletionPercentage = 0
+    private val maxCompletionPercentage = java.util.concurrent.atomic.AtomicInteger(0)
 
     // Adaptive Pacing State
     private var lastActiveIntervalId: String? = null
@@ -126,7 +126,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
                 // Reset quiz progress state
                 shownQuizTimestamps.clear()
-                maxCompletionPercentage = 0
+                maxCompletionPercentage.set(0)
 
                 withContext(Dispatchers.Main) {
                     _totalDurationMs.value = map.totalVirtualDurationMs
@@ -154,8 +154,9 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                         val totalDur = _totalDurationMs.value
                         if (totalDur > 0) {
                             val pct = (state.virtualTimeMs * 100 / totalDur).toInt().coerceIn(0, 100)
-                            if (pct > maxCompletionPercentage) {
-                                maxCompletionPercentage = pct
+                            while (true) {
+                                val current = maxCompletionPercentage.get()
+                                if (pct <= current || maxCompletionPercentage.compareAndSet(current, pct)) break
                             }
                         }
 
@@ -392,7 +393,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun releasePlayers() {
         val comp = composition
-        val pct = maxCompletionPercentage
+        val pct = maxCompletionPercentage.get()
         if (comp != null && pct > 0) {
             val sessionId = comp.videoId
             try {
@@ -408,7 +409,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                 }
             }
         }
-        maxCompletionPercentage = 0
+        maxCompletionPercentage.set(0)
         shownQuizTimestamps.clear()
 
         syncEngine?.release()

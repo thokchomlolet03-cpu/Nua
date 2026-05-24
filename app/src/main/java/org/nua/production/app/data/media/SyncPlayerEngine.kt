@@ -204,7 +204,7 @@ class SyncPlayerEngine(context: Context) {
         when {
             durationDrift in 1..FREEZE_THRESHOLD_MS -> {
                 // Video slows to `originalDur / vocalDur` (minimum 0.80x) while audio plays at 1.0x.
-                val videoScalingRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat()
+                val videoScalingRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat().coerceAtLeast(1f)
                 val clampedVideoSpeed = videoScalingRatio.coerceAtLeast(MIN_VIDEO_SPEED)
                 
                 if (kotlin.math.abs(videoPlayer.playbackParameters.speed - clampedVideoSpeed) > 0.01f) {
@@ -280,6 +280,7 @@ class SyncPlayerEngine(context: Context) {
             if (isCurrentChunkFinished) {
                 // Unfreeze bug fix: exit hard-freeze when audio ends by stepping virtual timeline
                 virtualTimeMs = interval.virtualEndMs + 1
+                handleAudioSegmentComplete()
             } else {
                 val audioPos = audioPlayer.currentPosition
                 virtualTimeMs = interval.virtualStartMs + audioPos
