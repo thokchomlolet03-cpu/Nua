@@ -763,8 +763,20 @@ Uses **Jetpack Navigation3** (`androidx.navigation3`) with type-safe `@Serializa
 
 ## 12. Known Limitations & Future Enhancements
 
-### Active Bugs
-**None.** All bugs are resolved in the v4.0 production release.
+### Active Bugs (Discovered in Post-v4.0 Audit)
+The parallel subagent code audit identified 100+ new issues across the ecosystem (9 Critical, 30 High, 48 Moderate, 29 Low).
+
+| ID | Severity | Component | Description |
+|---|---|---|---|
+| A1 | 🔴 Critical | `TelemetryStub.kt` | Hardcoded HMAC fallback and unauthenticated socket (port 8988) allow telemetry forgery. |
+| A2 | 🔴 Critical | `PlayerViewModel.kt:365` | `releasePlayers()` uses cancelled `viewModelScope` on clearing, leaking models and losing telemetry. |
+| A3 | 🔴 Critical | `PlayerScreen.kt:547` | Corrupted text rendering due to overlapping hotspot ranges. |
+| A4 | 🔴 Critical | `PipelineCompilerService.kt:304` | Static `StateFlow` state survives service death, permanently blocking pipeline if it crashes. |
+| A5 | 🔴 Critical | `ModelLifecycleManager.kt` | Race conditions in singleton due to coroutine access without synchronization. |
+| A6 | 🔴 Critical | `index.ts:51` | Hardcoded fallback HMAC secret bypasses API security. |
+| A7 | 🟡 High | `VirtualTimelineMapper.kt:42` | Main thread blocking file I/O causes ANRs on session initialization. |
+| A8 | 🟡 High | `WavUtils.kt:35` | `skipBytes` truncates >2GB WAV chunks, causing infinite loop. |
+| A9 | 🟡 High | `audio.ts:14` | FFmpeg fetches unvalidated user URLs, opening SSRF vector. |
 
 ### Resolved Bugs (v4.0 Overhaul)
 

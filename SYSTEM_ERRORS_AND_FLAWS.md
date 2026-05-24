@@ -7,7 +7,24 @@
 ---
 
 ## Active Issues
-**None.** The system is fully stabilized and production-ready.
+**100+ Issues Discovered During Deep Post-v4.0 Audit:**
+
+| Severity | Component | Issue |
+|---|---|---|
+| 🔴 CRITICAL | `TelemetryStub.kt` | Hardcoded HMAC secret (`"fallback_secret"`) and unauthenticated server socket on port 8988 bypass security. |
+| 🔴 CRITICAL | `TelemetryStub.kt` | SHA-256 used as cryptographic signature is trivially forgeable (not a real MAC). |
+| 🔴 CRITICAL | `ModelLifecycleManager.kt` | Object singleton accessed from coroutines with no synchronization, causing race conditions on model load/release. |
+| 🔴 CRITICAL | `PlayerScreen.kt` | Overlapping hotspot ranges produce corrupted AnnotatedString. `cursor` logic fails to skip overlaps. |
+| 🔴 CRITICAL | `PlayerViewModel.kt` | `releasePlayers()` in `onCleared()` uses cancelled `viewModelScope`. Completion telemetry lost; models leaked. |
+| 🔴 CRITICAL | `PipelineCompilerService.kt` | Static `MutableStateFlow` fields in companion object survive Service destruction, permanently blocking compilation. |
+| 🔴 CRITICAL | `index.ts` | Hardcoded fallback HMAC secret (`'fallback_secret'`) bypasses authentication if env var unset. |
+| 🔴 CRITICAL | `NuaSchema.kt` | `Quiz.triggerTimestampMs` uses 32-bit Int for timestamp, truncating values over ~24 days. |
+| 🟡 HIGH | `VirtualTimelineMapper.kt` | File I/O (reading WAV headers) in constructor runs on main thread, risking ANRs. |
+| 🟡 HIGH | `WavUtils.kt` | `skipBytes` with `chunkSize.toInt()` truncates chunks >2GB leading to infinite loop. |
+| 🟡 HIGH | `index.ts` | Timing-unsafe HMAC comparison and HMAC calculated on re-serialized JSON body. |
+| 🟡 HIGH | `audio.ts` | SSRF vulnerability: ffmpeg fetches user-controlled `videoUrl` directly without host validation. |
+| 🟡 HIGH | `TranslationAgent.ts` | Unvalidated LLM JSON parsed directly to typed array (no runtime schema validation). |
+| 🟡 HIGH | `build.gradle.kts` | Lint is configured to suppress errors (`abortOnError = false`), ignoring critical security warnings. |
 
 ---
 
