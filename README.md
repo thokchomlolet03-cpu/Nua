@@ -1,7 +1,7 @@
 # Nua 🎬🎙️ — Intelligent Video Lecture Translation & Dubbing Ecosystem
 
 > [!TIP]
-> **Status: 🟢 Production Ready (v4.0)** — Major TRIZ-driven architectural overhaul complete. Versioned FlatBuffers schema with typed telemetry, dynamic RIFF WAV parsing, O(log n) timeline binary search, HMAC-authenticated API, R8-optimized build. All 24 bugs resolved. 8/11 technical debt items eliminated.
+> **Status: 🟢 Production Ready (v4.1)** — Major TRIZ-driven architectural overhaul complete. Versioned FlatBuffers schema with typed telemetry, dynamic RIFF WAV parsing, O(log N) timeline binary search, HMAC-authenticated API, SSRF-secured extraction, Thread-safe Model Lifecycle, and R8-optimized build. All 18 out of 18 system bugs and technical debt items eliminated.
 
 **Nua** (meaning *New* or *Renewed*) is a complete, offline-first translation, dubbing, and interactive tutoring ecosystem for educational video lectures. 
 
@@ -58,7 +58,7 @@ nua/                                  <-- Monorepo Root Workspace
 │   │   └── packager/                 <-- FlatBuffers bundle generator
 │   └── package.json
 └── app/                              <-- Nua Edge (Android app module)
-    └── src/main/java/com/example/nua/
+    └── src/main/java/org/nua/production/app/
         ├── data/                     <-- LiteRT-LM, Sync Engine, Vosk, AudioDecoder
         └── ui/                       <-- Compose layouts, Player with Quiz overlays
 ```
@@ -148,23 +148,23 @@ The compiled APK will be output to: `app/build/outputs/apk/debug/app-debug.apk`.
 | Android Data (media, ASR, LLM, TTS, RAG, telemetry, schema) | 13 | 3,042 |
 | Android UI (screens, ViewModels, navigation, theme) | 12 | 1,999 |
 | Backend (TypeScript) | 4 | 515 |
-| Shared Schema | 1 | 57 |
-| Tests | 2 | 213 |
-| **Total** | **~47** | **~6,878** |
+| Shared Schema | 1 | 68 |
+| Tests | 7 | 258 |
+| **Total** | **~52** | **~7,100** |
 
 ### Android Client (Nua Edge)
-- [`AudioDecoder.kt`](app/src/main/java/com/example/nua/data/media/AudioDecoder.kt): Linear-interpolating media resampler.
-- [`VoskTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/VoskTranscriber.kt) / [`FirebaseTranscriber.kt`](app/src/main/java/com/example/nua/data/asr/FirebaseTranscriber.kt): Transcription engines.
-- [`LiteRTTranslator.kt`](app/src/main/java/com/example/nua/data/llm/LiteRTTranslator.kt): On-device LiteRT-LM translation.
-- [`DubbingTtsEngine.kt`](app/src/main/java/com/example/nua/data/tts/DubbingTtsEngine.kt): Text-to-speech synchronization.
-- [`SyncPlayerEngine.kt`](app/src/main/java/com/example/nua/data/media/SyncPlayerEngine.kt): Dual-player ExoPlayer coordinator.
-- [`VirtualTimelineMapper.kt`](app/src/main/java/com/example/nua/data/media/VirtualTimelineMapper.kt): Timeline mappings and freeze calculations.
-- [`OfflineTutorEngine.kt`](app/src/main/java/com/example/nua/data/rag/OfflineTutorEngine.kt): Pre-baked graph walking conversational RAG.
-- [`TelemetryStub.kt`](app/src/main/java/com/example/nua/data/telemetry/TelemetryStub.kt): Local telemetry ledger with SHA-256 signatures.
-- [`SessionManager.kt`](app/src/main/java/com/example/nua/data/media/SessionManager.kt): Session persistence and FlatBuffers I/O.
-- [`NuaSchema.kt`](app/src/main/java/com/example/nua/data/schema/NuaSchema.kt): Hand-written FlatBuffers wrappers.
-- [`PipelineCompilerService.kt`](app/src/main/java/com/example/nua/data/media/PipelineCompilerService.kt): 5-stage foreground compilation service.
-- [`MediaComposition.kt`](app/src/main/java/com/example/nua/data/media/MediaComposition.kt): In-memory session data model.
+- [`AudioDecoder.kt`](app/src/main/java/org/nua/production/app/data/media/AudioDecoder.kt): Linear-interpolating media resampler.
+- [`VoskTranscriber.kt`](app/src/main/java/org/nua/production/app/data/asr/VoskTranscriber.kt) / [`FirebaseTranscriber.kt`](app/src/main/java/org/nua/production/app/data/asr/FirebaseTranscriber.kt): Transcription engines.
+- [`LiteRTTranslator.kt`](app/src/main/java/org/nua/production/app/data/llm/LiteRTTranslator.kt): On-device LiteRT-LM translation.
+- [`DubbingTtsEngine.kt`](app/src/main/java/org/nua/production/app/data/tts/DubbingTtsEngine.kt): Text-to-speech synchronization.
+- [`SyncPlayerEngine.kt`](app/src/main/java/org/nua/production/app/data/media/SyncPlayerEngine.kt): Dual-player ExoPlayer coordinator.
+- [`VirtualTimelineMapper.kt`](app/src/main/java/org/nua/production/app/data/media/VirtualTimelineMapper.kt): Timeline mappings and freeze calculations.
+- [`OfflineTutorEngine.kt`](app/src/main/java/org/nua/production/app/data/rag/OfflineTutorEngine.kt): Pre-baked graph walking conversational RAG.
+- [`TelemetryStub.kt`](app/src/main/java/org/nua/production/app/data/telemetry/TelemetryStub.kt): Local telemetry ledger with HMAC-SHA-256 signatures and Socket Auth.
+- [`SessionManager.kt`](app/src/main/java/org/nua/production/app/data/media/SessionManager.kt): Session persistence and FlatBuffers I/O.
+- [`NuaSchema.kt`](app/src/main/java/org/nua/production/app/data/schema/NuaSchema.kt): Hand-written FlatBuffers wrappers.
+- [`PipelineCompilerService.kt`](app/src/main/java/org/nua/production/app/data/media/PipelineCompilerService.kt): 5-stage foreground compilation service.
+- [`MediaComposition.kt`](app/src/main/java/org/nua/production/app/data/media/MediaComposition.kt): In-memory session data model.
 
 ### Cloud Ingestion (Nua Web Studio)
 - [`index.ts`](backend/src/index.ts): Express routing and ingestion pipelines.

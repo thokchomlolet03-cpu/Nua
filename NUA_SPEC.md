@@ -1,4 +1,4 @@
-# NUA_SPEC.md — Architectural Boundaries
+# NUA_SPEC.md — Architectural Boundaries (v4.1)
 
 ## System Boundary: Nua Ecosystem
 
