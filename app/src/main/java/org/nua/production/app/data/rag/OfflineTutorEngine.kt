@@ -10,8 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Offline RAG (Retrieval-Augmented Generation) engine that walks pre-baked
@@ -168,7 +169,7 @@ class OfflineTutorEngine(private val context: Context) {
     }
 
     fun close() {
-        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+        CoroutineScope(Dispatchers.IO).launch {
             tutorMutex.withLock {
                 try { engine?.close() } catch (_: Exception) {}
                 engine = null

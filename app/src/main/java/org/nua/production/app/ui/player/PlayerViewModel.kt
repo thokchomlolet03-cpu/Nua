@@ -96,7 +96,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     // Adaptive Pacing State
     private var lastActiveIntervalId: String? = null
-    private val recentHotspotClicks = mutableListOf<Long>()
+    private val recentHotspotClicks = java.util.concurrent.CopyOnWriteArrayList<Long>()
 
     fun initSession(sessionPath: String) {
         if (syncEngine != null) {

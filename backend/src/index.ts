@@ -20,11 +20,11 @@ db.serialize(() => {
         name TEXT,
         api_key TEXT UNIQUE,
         credits_remaining INTEGER
-    )`);
+    )`, (err) => { if (err) console.error('DB Init Error:', err); });
     // Seed dummy tenant if empty
     db.get("SELECT COUNT(*) as count FROM tenants", (err: any, row: any) => {
-        if (!err && row.count === 0) {
-            db.run("INSERT INTO tenants (name, api_key, credits_remaining) VALUES ('Mock Institute', 'test-tenant-key', 50)");
+        if (!err && row && row.count === 0) {
+            db.run("INSERT INTO tenants (name, api_key, credits_remaining) VALUES ('Mock Institute', 'test-tenant-key', 50)", (err) => { if (err) console.error(err); });
         }
     });
 });
@@ -50,6 +50,14 @@ app.use(express.json({
         req.rawBody = buf;
     }
 }));
+
+// Handle malformed JSON
+app.use((err: any, req: any, res: any, next: any) => {
+    if (err instanceof SyntaxError && 'body' in err) {
+        return res.status(400).json({ error: 'Malformed JSON payload' });
+    }
+    next(err);
+});
 
 let storage: Storage | null = null;
 try {
@@ -103,7 +111,7 @@ const verifyHmacSignature = (req: any, res: any, next: any) => {
 
 const verifyTenantLicense = (req: any, res: any, next: any) => {
     const apiKey = req.headers['x-api-key'];
-    if (!apiKey) return res.status(401).json({ error: 'Missing x-api-key header for Enterprise licensing' });
+    if (!apiKey || typeof apiKey !== 'string') return res.status(401).json({ error: 'Missing or invalid x-api-key header for Enterprise licensing' });
 
     db.get("SELECT * FROM tenants WHERE api_key = ?", [apiKey], (err: any, row: any) => {
         if (err || !row) return res.status(403).json({ error: 'Invalid organization API key' });
@@ -176,7 +184,9 @@ app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, verifyTenantLi
         }
 
         // Deduct 1 credit for processing
-        db.run("UPDATE tenants SET credits_remaining = credits_remaining - 1 WHERE id = ?", [req.tenant.id]);
+        db.run("UPDATE tenants SET credits_remaining = credits_remaining - 1 WHERE id = ?", [req.tenant.id], (err) => {
+            if (err) console.error('Failed to deduct credit:', err);
+        });
 
         console.log(`✅ Ingestion complete: ${cdnUrl}`);
         return res.status(200).json({
