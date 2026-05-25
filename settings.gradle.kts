@@ -31,3 +31,4 @@ plugins {
 
 rootProject.name = "Nua"
 include(":app")
+include(":models")

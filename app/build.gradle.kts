@@ -15,6 +15,8 @@ android {
         versionName = "4.0"
     }
 
+    assetPacks += mutableSetOf(":models")
+
     signingConfigs {
         create("release") {
             storeFile = System.getenv("KEYSTORE_FILE")?.let { file(it) }
@@ -110,6 +112,9 @@ dependencies {
 
   // Network (model downloads, video URL fetching)
   implementation(libs.okhttp)
+
+  // Play Asset Delivery (PAD)
+  implementation("com.google.android.play:asset-delivery-ktx:2.2.2")
 
   // JSON Serialization (kept for legacy manifest migration)
   implementation(libs.kotlinx.serialization.json)

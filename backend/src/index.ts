@@ -9,26 +9,27 @@ import { extractAudioChannel } from './utils/audio.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import sqlite3 from 'sqlite3';
+import { Firestore } from '@google-cloud/firestore';
 
 // ─── Database ──────────────────────────────────────────────────────────
 
-const dbPath = path.join(os.tmpdir(), 'nua-enterprise.sqlite');
-const db = new sqlite3.Database(dbPath);
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS tenants (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        api_key TEXT UNIQUE,
-        credits_remaining INTEGER
-    )`, (err) => { if (err) console.error('DB Init Error:', err); });
-    // Seed dummy tenant if empty
-    db.get("SELECT COUNT(*) as count FROM tenants", (err: any, row: any) => {
-        if (!err && row && row.count === 0) {
-            db.run("INSERT INTO tenants (name, api_key, credits_remaining) VALUES ('Mock Institute', 'test-tenant-key', 50)", (err) => { if (err) console.error(err); });
+const db = new Firestore();
+async function initDb() {
+    try {
+        const tenantsSnapshot = await db.collection('tenants').limit(1).get();
+        if (tenantsSnapshot.empty) {
+            await db.collection('tenants').doc('test-tenant-id').set({
+                id: 'test-tenant-id',
+                name: 'Mock Institute',
+                api_key: 'test-tenant-key',
+                credits_remaining: 50
+            });
         }
-    });
-});
+    } catch (err) {
+        console.error('DB Init Error:', err);
+    }
+}
+initDb();
 
 // ─── Configuration ─────────────────────────────────────────────────────
 
@@ -119,17 +120,23 @@ const verifyHmacSignature = (req: any, res: any, next: any) => {
     next();
 };
 
-const verifyTenantLicense = (req: any, res: any, next: any) => {
+const verifyTenantLicense = async (req: any, res: any, next: any) => {
     const apiKey = req.headers['x-api-key'];
     if (!apiKey || typeof apiKey !== 'string') return res.status(401).json({ error: 'Missing or invalid x-api-key header for Enterprise licensing' });
 
-    db.get("SELECT * FROM tenants WHERE api_key = ?", [apiKey], (err: any, row: any) => {
-        if (err || !row) return res.status(403).json({ error: 'Invalid organization API key' });
+    try {
+        const snapshot = await db.collection('tenants').where('api_key', '==', apiKey).limit(1).get();
+        if (snapshot.empty) return res.status(403).json({ error: 'Invalid organization API key' });
+        
+        const doc = snapshot.docs[0];
+        const row = doc.data();
         if (row.credits_remaining <= 0) return res.status(402).json({ error: 'Organization has exhausted processing credits' });
         
-        req.tenant = row;
+        req.tenant = { ...row, _docId: doc.id };
         next();
-    });
+    } catch (e) {
+        return res.status(500).json({ error: 'Database error verifying license' });
+    }
 };
 
 // ─── Health Check ──────────────────────────────────────────────────────

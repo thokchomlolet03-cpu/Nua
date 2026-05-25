@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { Storage } from '@google-cloud/storage';
-import sqlite3 from 'sqlite3';
+import { Firestore, FieldValue } from '@google-cloud/firestore';
 
 export interface MediaTask {
     lectureId: string;
@@ -23,7 +23,7 @@ export class FastMediaQueue {
 
     private translationAgent: TranslationAgent;
     private bundler: NuaBundler;
-    private db: sqlite3.Database;
+    private db: Firestore;
     private storage: Storage | null;
     private isMockMode: boolean;
     private gcsBucket: string;
@@ -32,7 +32,7 @@ export class FastMediaQueue {
         options: { maxConcurrentWorkers: number },
         translationAgent: TranslationAgent,
         bundler: NuaBundler,
-        db: sqlite3.Database,
+        db: Firestore,
         storage: Storage | null,
         isMockMode: boolean,
         gcsBucket: string
@@ -103,9 +103,11 @@ export class FastMediaQueue {
                 console.log('  Step 5/5: Skipping upload (mock mode or no GCS)');
             }
 
-            this.db.run("UPDATE tenants SET credits_remaining = credits_remaining - 1 WHERE id = ?", [tenant.id], (err) => {
-                if (err) console.error('Failed to deduct credit:', err);
-            });
+            if (tenant._docId) {
+                this.db.collection('tenants').doc(tenant._docId).update({
+                    credits_remaining: FieldValue.increment(-1)
+                }).catch(err => console.error('Failed to deduct credit:', err));
+            }
 
             console.log(`✅ [FastMediaQueue] Ingestion complete: ${cdnUrl}`);
         } finally {
