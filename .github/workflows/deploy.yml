@@ -39,6 +39,7 @@ jobs:
         working-directory: ./backend
         run: |
           gcloud run deploy nua-web-studio \
+            --quiet \
             --source . \
             --region us-central1 \
             --allow-unauthenticated \
