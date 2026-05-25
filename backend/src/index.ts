@@ -149,6 +149,21 @@ app.get('/health', (_req, res) => {
     });
 });
 
+// ─── Featured Content API ────────────────────────────────────────────────
+app.get('/api/v1/featured', async (_req, res) => {
+    try {
+        const snapshot = await db.collection('featured_lectures').get();
+        const featured = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        res.json({ status: 'OK', data: featured });
+    } catch (error: any) {
+        console.error('❌ Failed to fetch featured lectures:', error);
+        res.status(500).json({ status: 'ERROR', message: 'Database error' });
+    }
+});
+
 // ─── Main Ingestion Endpoint ───────────────────────────────────────────
 
 app.post('/api/v1/ingest', ingestionLimiter, verifyHmacSignature, verifyTenantLicense, async (req: any, res: any) => {
