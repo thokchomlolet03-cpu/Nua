@@ -1,0 +1,2 @@
+# This file ensures the assets directory is tracked by Git, preventing Android build crashes.
+# Place your LiteRT models here.
