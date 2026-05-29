@@ -1,3 +1,5 @@
+import java.util.zip.ZipFile
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.compiler)
@@ -9,7 +11,7 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "org.nua.production.app"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 3
         versionName = "4.0"
@@ -18,6 +20,13 @@ android {
             cmake {
                 // Whisper relies on NEON/FP16 CPU acceleration natively on Android
             }
+        }
+
+        ndk {
+            // Hardened System Fix: Mandate 64-bit compilation environments exclusively
+            // Drops armeabi-v7a (32-bit ARM) and x86 (32-bit Emulator) to eliminate runtime crashes
+            abiFilters.clear()
+            abiFilters.addAll(setOf("arm64-v8a", "x86_64"))
         }
     }
 
@@ -61,6 +70,16 @@ android {
       resources {
         excludes += "/META-INF/{AL2.0,LGPL2.1}"
       }
+    }
+
+    splits {
+        // Configure explicit APK split options to safeguard distribution sizes
+        abi {
+            isEnable = false
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = false
+        }
     }
 
     lint {
@@ -140,3 +159,47 @@ dependencies {
   androidTestImplementation(libs.androidx.test.runner)
   androidTestImplementation(libs.androidx.test.espresso.core)
 }
+
+tasks.register("verifyApk64BitExclusivity") {
+    group = "verification"
+    description = "Statically audits compiled APK outputs to ensure zero legacy 32-bit native library leaks exist."
+    
+    dependsOn("assembleDebug")
+    
+    val apkFileProvider = layout.buildDirectory.file("outputs/apk/debug/app-debug.apk")
+    
+    doLast {
+        val debugApk = apkFileProvider.get().asFile
+        
+        if (!debugApk.exists()) {
+            throw GradleException("Verification Failure: Compiled app-debug.apk not found. Run ./gradlew assembleDebug first.")
+        }
+        
+        var legacy32BitLeakFound = false
+        val invalidPaths = mutableListOf<String>()
+        
+        // Open the compiled binary artifact structure using Java's zip file provider
+        ZipFile(debugApk).use { zip ->
+            val entries = zip.entries()
+            while (entries.hasMoreElements()) {
+                val entry = entries.nextElement()
+                val path = entry.name
+                
+                // Assert that no 32-bit directory branches exist inside the compilation tree
+                if (path.contains("lib/armeabi-v7a/") || path.contains("lib/x86/")) {
+                    legacy32BitLeakFound = true
+                    invalidPaths.add(path)
+                }
+            }
+        }
+        
+        if (legacy32BitLeakFound) {
+            System.err.println("CRITICAL BUILD SECURITY VULNERABILITY DETECTED")
+            invalidPaths.forEach { System.err.println(" leaked legacy 32-bit artifact: $it") }
+            throw GradleException("Verification Failure: Legacy 32-bit binaries detected in distribution package. Exclusive 64-bit target rules violated.")
+        } else {
+            println("SUCCESS: Static binary audit completed cleanly. Zero 32-bit compilation vectors found inside the package file structure.")
+        }
+    }
+}
+

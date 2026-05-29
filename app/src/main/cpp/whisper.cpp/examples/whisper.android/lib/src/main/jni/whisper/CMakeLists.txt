@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.10)
 
 project(whisper.cpp)
 
+# Hardened System Fix: Mandate 64-bit compilation environments exclusively
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+    # Modern 64-bit ARM
+elseif(ANDROID_ABI STREQUAL "x86_64")
+    # Modern 64-bit x86 Emulator
+else()
+    # Fail compilation early if an unauthorized architecture bypasses Gradle filters
+    message(FATAL_ERROR "Unsupported or legacy 32-bit target ABI architecture: ${ANDROID_ABI}")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(WHISPER_LIB_DIR ${CMAKE_SOURCE_DIR}/../../../../../../..)
 
@@ -41,11 +51,11 @@ function(build_library target_name)
     target_compile_definitions(${target_name} PRIVATE WHISPER_VERSION="${WHISPER_VERSION}")
 
     if (${target_name} STREQUAL "whisper_v8fp16_va")
-        target_compile_options(${target_name} PRIVATE -march=armv8.2-a+fp16)
+        target_compile_options(${target_name} PRIVATE -march=armv8.2-a+fp16 -fPIC)
+        target_compile_definitions(${target_name} PRIVATE WHISPER_USE_NEON)
         set(GGML_COMPILE_OPTIONS                      -march=armv8.2-a+fp16)
-    elseif (${target_name} STREQUAL "whisper_vfpv4")
-        target_compile_options(${target_name} PRIVATE -mfpu=neon-vfpv4)
-        set(GGML_COMPILE_OPTIONS                      -mfpu=neon-vfpv4)
+    elseif (ANDROID_ABI STREQUAL "x86_64")
+        target_compile_options(${target_name} PRIVATE -mavx -mavx2 -mfma -fPIC)
     endif ()
 
     if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -72,8 +82,6 @@ endfunction()
 
 if (${ANDROID_ABI} STREQUAL "arm64-v8a")
     build_library("whisper_v8fp16_va")
-elseif (${ANDROID_ABI} STREQUAL "armeabi-v7a")
-    build_library("whisper_vfpv4")
 endif ()
 
 build_library("whisper") # Default target
