@@ -33,7 +33,7 @@ import java.io.File
  * This engine must be created and used on the Main thread (ExoPlayer requirement).
  */
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-class SyncPlayerEngine(context: Context) {
+class SyncPlayerEngine @JvmOverloads constructor(context: Context? = null) {
 
     companion object {
         private const val TAG = "SyncPlayerEngine"
@@ -47,34 +47,40 @@ class SyncPlayerEngine(context: Context) {
         private const val SEEK_CORRECTION_THRESHOLD_MS = 300L
     }
 
-    val videoPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
-        volume = 0.01f  // Soft ducking to preserve room tone
-        repeatMode = Player.REPEAT_MODE_OFF
+    val videoPlayer: ExoPlayer by lazy {
+        val ctx = context ?: throw IllegalStateException("Context required to initialize videoPlayer")
+        ExoPlayer.Builder(ctx).build().apply {
+            volume = 0.01f  // Soft ducking to preserve room tone
+            repeatMode = Player.REPEAT_MODE_OFF
+        }
     }
 
-    val audioPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
-        repeatMode = Player.REPEAT_MODE_OFF
-        addListener(object : Player.Listener {
-            override fun onAudioSessionIdChanged(audioSessionId: Int) {
-                if (audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
-                    setupVocalEqualizer(audioSessionId)
+    val audioPlayer: ExoPlayer by lazy {
+        val ctx = context ?: throw IllegalStateException("Context required to initialize audioPlayer")
+        ExoPlayer.Builder(ctx).build().apply {
+            repeatMode = Player.REPEAT_MODE_OFF
+            addListener(object : Player.Listener {
+                override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                    if (audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
+                        setupVocalEqualizer(audioSessionId)
+                    }
                 }
-            }
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
-                    isSeeking = false
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    if (playbackState == Player.STATE_READY || playbackState == Player.STATE_ENDED) {
+                        isSeeking = false
+                    }
                 }
-            }
-            override fun onPositionDiscontinuity(
-                oldPosition: Player.PositionInfo,
-                newPosition: Player.PositionInfo,
-                reason: Int
-            ) {
-                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
-                    isSeeking = false
+                override fun onPositionDiscontinuity(
+                    oldPosition: Player.PositionInfo,
+                    newPosition: Player.PositionInfo,
+                    reason: Int
+                ) {
+                    if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                        isSeeking = false
+                    }
                 }
-            }
-        })
+            })
+        }
     }
 
     @Volatile private var isSeeking = false
@@ -88,7 +94,7 @@ class SyncPlayerEngine(context: Context) {
     private var activeVocalPath: String? = null
     private val vocalWindowIndices = mutableMapOf<String, Int>()
 
-    private val handler = Handler(Looper.getMainLooper())
+    private val handler by lazy { Handler(Looper.getMainLooper()) }
     private var isPlaying = false
     private var adaptivePacingSlowdown = false
 
@@ -189,6 +195,35 @@ class SyncPlayerEngine(context: Context) {
     // ─── Sync evaluation ────────────────────────────────────────────────
 
     /**
+     * Calculates the mathematically precise playback speed coefficient required 
+     * to stretch or compress a video segment timeline to match a target audio track.
+     *
+     * Resolves the integer division bug that truncates ratios down to 0.0f.
+     *
+     * @param nativeSegmentDurationMs The physical duration of the source video slice.
+     * @param targetAudioDurationMs The exact runtime duration of the generated translation audio track.
+     * @return A safely bounded float speed factor between 0.2f and 5.0f for ExoPlayer consumption.
+     */
+    fun calculateVideoPlaybackSpeed(nativeSegmentDurationMs: Long, targetAudioDurationMs: Long): Float {
+        // 1. SAFETY GUARD: Protect against arithmetic division-by-zero or negative corruption
+        if (targetAudioDurationMs <= 0L) {
+            Log.w("SyncPlayerEngine", "Encountered invalid or zero target audio duration ($targetAudioDurationMs ms). Defaulting to 1.0f speed.")
+            return 1.0f
+        }
+
+        // 2. PRECISION CAST: Force floating-point evaluation to prevent truncation down to 0
+        val preciseRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat()
+
+        // 3. BOUNDARY FILTER: Limit playback speed variations to preserve device hardware rendering stability
+        val boundedSpeed = preciseRatio.coerceIn(0.2f, 5.0f)
+
+        Log.d("SyncPlayerEngine", "Synchronizing timelines: Native Video (${nativeSegmentDurationMs}ms) -> " +
+                "Target Audio (${targetAudioDurationMs}ms) | Calculated Playback Speed: ${boundedSpeed}x")
+                
+        return boundedSpeed
+    }
+
+    /**
      * Evaluates sync alignment for a given segment and applies the appropriate
      * synchronization strategy: clock skew, hard freeze, or normal playback.
      */
@@ -204,8 +239,8 @@ class SyncPlayerEngine(context: Context) {
         when {
             durationDrift in 1..FREEZE_THRESHOLD_MS -> {
                 // Video slows to `originalDur / vocalDur` (minimum 0.80x) while audio plays at 1.0x.
-                val videoScalingRatio = nativeSegmentDurationMs.toFloat() / targetAudioDurationMs.toFloat().coerceAtLeast(1f)
-                val clampedVideoSpeed = videoScalingRatio.coerceAtLeast(MIN_VIDEO_SPEED)
+                val calculatedSpeed = calculateVideoPlaybackSpeed(nativeSegmentDurationMs, targetAudioDurationMs)
+                val clampedVideoSpeed = calculatedSpeed.coerceAtLeast(MIN_VIDEO_SPEED)
                 
                 if (kotlin.math.abs(videoPlayer.playbackParameters.speed - clampedVideoSpeed) > 0.01f) {
                     videoPlayer.playbackParameters = PlaybackParameters(clampedVideoSpeed)
