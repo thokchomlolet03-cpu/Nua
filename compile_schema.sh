@@ -25,7 +25,17 @@ echo "📦 Compiling FlatBuffers schema..."
 # Kotlin bindings (Android)
 echo "  → Kotlin bindings → ${KOTLIN_OUT}"
 flatc --kotlin -o "${KOTLIN_OUT}" "${SCHEMA_FILE}"
-find "${KOTLIN_OUT}" -name "*.kt" -exec sed -i '' 's/FLATBUFFERS_25_12_19/FLATBUFFERS_25_2_10/g' {} +
+
+# Cross-platform environment gate for FlatBuffers version verification alignment
+# Maps generated FLATBUFFERS_<version> checks to match project dependency version 25.2.10
+REGEX_PATTERN='s/FLATBUFFERS_[0-9]+_[0-9]+_[0-9]+/FLATBUFFERS_25_2_10/g'
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS / BSD sed
+    find "${KOTLIN_OUT}" -name "*.kt" -exec sed -i '' -E "$REGEX_PATTERN" {} +
+else
+    # Linux / GNU sed
+    find "${KOTLIN_OUT}" -name "*.kt" -exec sed -i -E "$REGEX_PATTERN" {} +
+fi
 
 # TypeScript bindings (Backend)
 mkdir -p "${TS_OUT}"
