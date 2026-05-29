@@ -67,3 +67,15 @@ table LectureSession {
 }
 
 root_type LectureSession;
+
+namespace org.nua.production.app.data.schema;
+
+table TelemetryRecord {
+    session_id:string;
+    completion_percentage:int;
+    sequence_version:ulong;
+    timestamp:ulong;
+}
+
+root_type TelemetryRecord;
+

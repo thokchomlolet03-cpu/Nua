@@ -28,10 +28,6 @@ static getSizePrefixedRootAsLectureSession(bb:flatbuffers.ByteBuffer, obj?:Lectu
   return (obj || new LectureSession()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
 }
 
-static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('NUAB');
-}
-
 schemaVersion():number {
   const offset = this.bb!.__offset(this.bb_pos, 4);
   return offset ? this.bb!.readUint16(this.bb_pos + offset) : 1;
@@ -196,14 +192,6 @@ static startTelemetryLedgerVector(builder:flatbuffers.Builder, numElems:number) 
 static endLectureSession(builder:flatbuffers.Builder):flatbuffers.Offset {
   const offset = builder.endObject();
   return offset;
-}
-
-static finishLectureSessionBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'NUAB');
-}
-
-static finishSizePrefixedLectureSessionBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'NUAB', true);
 }
 
 static createLectureSession(builder:flatbuffers.Builder, schemaVersion:number, sessionIdOffset:flatbuffers.Offset, sourceLangOffset:flatbuffers.Offset, targetLangOffset:flatbuffers.Offset, sourceVideoPathOffset:flatbuffers.Offset, timelineTracksOffset:flatbuffers.Offset, quizzesOffset:flatbuffers.Offset, knowledgeGraphOffset:flatbuffers.Offset, telemetryLedgerOffset:flatbuffers.Offset):flatbuffers.Offset {

@@ -136,7 +136,6 @@ class LectureSession : Table() {
             _bb.order(ByteOrder.LITTLE_ENDIAN)
             return (obj.__assign(_bb.getInt(_bb.position()) + _bb.position(), _bb))
         }
-        fun LectureSessionBufferHasIdentifier(_bb: ByteBuffer) : Boolean = __has_identifier(_bb, "NUAB")
         fun createLectureSession(builder: FlatBufferBuilder, schemaVersion: UShort, sessionIdOffset: Int, sourceLangOffset: Int, targetLangOffset: Int, sourceVideoPathOffset: Int, timelineTracksOffset: Int, quizzesOffset: Int, knowledgeGraphOffset: Int, telemetryLedgerOffset: Int) : Int {
             builder.startTable(10)
             addTelemetryLedger(builder, telemetryLedgerOffset)
@@ -196,7 +195,5 @@ class LectureSession : Table() {
             val o = builder.endTable()
             return o
         }
-        fun finishLectureSessionBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finish(offset, "NUAB")
-        fun finishSizePrefixedLectureSessionBuffer(builder: FlatBufferBuilder, offset: Int) = builder.finishSizePrefixed(offset, "NUAB")
     }
 }
