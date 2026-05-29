@@ -2,7 +2,9 @@ package org.nua.production.app.ui.player
 
 import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.util.Log
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
@@ -20,8 +22,8 @@ import org.nua.production.app.data.schema.LectureSession
 import org.nua.production.app.data.telemetry.LocalTelemetryStore
 import org.nua.production.app.data.telemetry.QuizResponse
 import org.nua.production.app.data.telemetry.TelemetryContract
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +32,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Collections
 
-data class ChatMessage(val role: String, val text: String)
+data class ChatMessage(
+    val role: String,
+    val text: String,
+    val thinkingText: String? = null,
+    val imageUri: String? = null,
+    val audioUri: String? = null
+)
 
 class PlayerViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -39,6 +47,43 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val telemetryStore: TelemetryContract = LocalTelemetryStore(context)
 
     private var syncEngine: SyncPlayerEngine? = null
+
+    private val actionReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                "org.nua.production.app.ACTION_SEEK_TO" -> {
+                    val timeMs = intent.getLongExtra("time_ms", 0L)
+                    seekTo(timeMs)
+                }
+                "org.nua.production.app.ACTION_TRIGGER_QUIZ" -> {
+                    // For demo purposes, we trigger the first quiz or force check
+                    checkQuizTriggers(virtualTimeMs.value)
+                }
+                "org.nua.production.app.ACTION_BOOKMARK" -> {
+                    // Bookmarking logic could be added here to save to a local DB
+                    val timeMs = intent.getLongExtra("time_ms", 0L)
+                    val note = intent.getStringExtra("note") ?: ""
+                    Log.d("PlayerViewModel", "Bookmark received: $timeMs ms - $note")
+                }
+            }
+        }
+    }
+
+    init {
+        val filter = android.content.IntentFilter().apply {
+            addAction("org.nua.production.app.ACTION_SEEK_TO")
+            addAction("org.nua.production.app.ACTION_TRIGGER_QUIZ")
+            addAction("org.nua.production.app.ACTION_BOOKMARK")
+        }
+        // In Android 14+ local broadcasts are typically handled via flow or context-registered receivers.
+        // We use ContextCompat registerReceiver to receive these local broadcasts.
+        androidx.core.content.ContextCompat.registerReceiver(
+            context,
+            actionReceiver,
+            filter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
 
     // Expose ExoPlayers from engine for AndroidView rendering
     val videoPlayer: ExoPlayer? get() = syncEngine?.videoPlayer
@@ -79,6 +124,13 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val _isTutorActive = MutableStateFlow(false)
     val isTutorActive: StateFlow<Boolean> = _isTutorActive.asStateFlow()
 
+    // Voice recording states
+    private var mediaRecorder: android.media.MediaRecorder? = null
+    private var recordFile: File? = null
+
+    private val _isRecordingVoice = MutableStateFlow(false)
+    val isRecordingVoice: StateFlow<Boolean> = _isRecordingVoice.asStateFlow()
+
     private val _tutorMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val tutorMessages: StateFlow<List<ChatMessage>> = _tutorMessages.asStateFlow()
 
@@ -96,7 +148,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     // Adaptive Pacing State
     private var lastActiveIntervalId: String? = null
-    private val recentHotspotClicks = java.util.concurrent.CopyOnWriteArrayList<Long>()
+    private val recentHotspotClicks = mutableListOf<Long>()
 
     fun initSession(sessionPath: String) {
         if (syncEngine != null) {
@@ -266,14 +318,16 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun onHotspotClicked(hotspot: HotspotInfo) {
         val now = System.currentTimeMillis()
-        recentHotspotClicks.add(now)
-        
-        // Remove clicks older than 15 seconds
-        recentHotspotClicks.removeAll { now - it > 15000 }
-        
-        // High engagement density: 3 or more hotspots clicked in 15 seconds
-        if (recentHotspotClicks.size >= 3) {
-            syncEngine?.setAdaptivePacing(true)
+        synchronized(recentHotspotClicks) {
+            recentHotspotClicks.add(now)
+            
+            // Remove clicks older than 15 seconds
+            recentHotspotClicks.removeAll { now - it > 15000 }
+            
+            // High engagement density: 3 or more hotspots clicked in 15 seconds
+            if (recentHotspotClicks.size >= 3) {
+                syncEngine?.setAdaptivePacing(true)
+            }
         }
     }
 
@@ -329,11 +383,16 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun askTutor(question: String) {
-        if (question.isBlank()) return
+    fun askTutor(question: String, imageUri: String? = null, audioUri: String? = null) {
+        if (question.isBlank() && imageUri == null && audioUri == null) return
 
-        // Append user message
-        val userMsg = ChatMessage(role = "user", text = question)
+        // Append user message with attachments
+        val userMsg = ChatMessage(
+            role = "user",
+            text = if (question.isNotBlank()) question else if (audioUri != null) "[Voice Query]" else "[Photo Attachment]",
+            imageUri = imageUri,
+            audioUri = audioUri
+        )
         _tutorMessages.value = _tutorMessages.value + userMsg
         _isTutorTyping.value = true
 
@@ -368,13 +427,31 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
                     return@launch
                 }
 
+                // Prepend image/audio contextual prompt details (e.g. OCR text)
+                var finalPrompt = question
+                if (imageUri != null) {
+                    // TODO: Integrate on-device OCR (e.g. ML Kit Text Recognition) to extract real text from images.
+                    // For now, indicate to the LLM that a photo was attached without fabricating content.
+                    finalPrompt = "[The student attached a photo/screenshot for reference. Please answer based on the lecture context and the student's question.]\n$finalPrompt"
+                }
+                if (audioUri != null) {
+                    finalPrompt = "[Voice Query]: $finalPrompt"
+                }
+
                 val playheadMs = _virtualTimeMs.value
-                val response = tutorEngine.executeGraphQuery(question, session, playheadMs)
+                val finalResponse = tutorEngine.executeGraphQuery(finalPrompt, session, playheadMs)
+
+                // Parse <thinking> block if it exists
+                val thinkingRegex = "<thinking>(.*?)</thinking>".toRegex(RegexOption.DOT_MATCHES_ALL)
+                val thinkingMatch = thinkingRegex.find(finalResponse)
+                val thinkingText = thinkingMatch?.groups?.get(1)?.value?.trim()
+                val finalText = finalResponse.replace(thinkingRegex, "").trim()
 
                 withContext(Dispatchers.Main) {
                     _tutorMessages.value = _tutorMessages.value + ChatMessage(
                         role = "tutor",
-                        text = response
+                        text = finalText,
+                        thinkingText = thinkingText
                     )
                     _isTutorTyping.value = false
                 }
@@ -391,6 +468,63 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    fun startVoiceRecording() {
+        if (_isRecordingVoice.value) return
+        try {
+            val file = File(context.cacheDir, "tutor_voice_record_${System.currentTimeMillis()}.m4a")
+            recordFile = file
+            
+            val recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                android.media.MediaRecorder(context)
+            } else {
+                @Suppress("DEPRECATION")
+                android.media.MediaRecorder()
+            }
+            
+            recorder.setAudioSource(android.media.MediaRecorder.AudioSource.MIC)
+            recorder.setOutputFormat(android.media.MediaRecorder.OutputFormat.MPEG_4)
+            recorder.setAudioEncoder(android.media.MediaRecorder.AudioEncoder.AAC)
+            recorder.setOutputFile(file.absolutePath)
+            
+            recorder.prepare()
+            recorder.start()
+            
+            mediaRecorder = recorder
+            _isRecordingVoice.value = true
+            Log.d("PlayerViewModel", "Voice recording started: ${file.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("PlayerViewModel", "Failed to start voice recording", e)
+        }
+    }
+
+    fun stopVoiceRecording(): String? {
+        if (!_isRecordingVoice.value) return null
+        var path: String? = null
+        try {
+            mediaRecorder?.let {
+                it.stop()
+                it.release()
+            }
+            path = recordFile?.absolutePath
+            Log.d("PlayerViewModel", "Voice recording stopped. File: $path")
+        } catch (e: Exception) {
+            Log.e("PlayerViewModel", "Failed to stop voice recording", e)
+        } finally {
+            mediaRecorder = null
+            recordFile = null
+            _isRecordingVoice.value = false
+        }
+        return path
+    }
+
+    fun askAboutConcept(concept: String, definition: String) {
+        if (!_isTutorActive.value) {
+            toggleTutor(true)
+        }
+        val prompt = "Explain this concept in detail in the context of our lecture:\nConcept: $concept\nDescription: $definition"
+        askTutor(prompt)
+    }
+
     fun releasePlayers() {
         val comp = composition
         val pct = maxCompletionPercentage.get()
@@ -401,7 +535,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             } catch (e: Exception) {
                 Log.e("PlayerViewModel", "Failed to record completion telemetry", e)
             }
-            CoroutineScope(Dispatchers.IO).launch {
+            viewModelScope.launch(NonCancellable + Dispatchers.IO) {
                 try {
                     telemetryStore.flushToServer()
                 } catch (e: Exception) {
@@ -415,13 +549,18 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         syncEngine?.release()
         syncEngine = null
         _isPlaying.value = false
-        CoroutineScope(Dispatchers.IO).launch {
+        viewModelScope.launch(NonCancellable + Dispatchers.IO) {
             ModelLifecycleManager.releaseAll()
         }
     }
 
     override fun onCleared() {
         super.onCleared()
+        try {
+            context.unregisterReceiver(actionReceiver)
+        } catch (e: Exception) {
+            Log.e("PlayerViewModel", "Error unregistering receiver", e)
+        }
         releasePlayers()
     }
 }

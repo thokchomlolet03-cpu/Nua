@@ -5,6 +5,6 @@ plugins {
 assetPack {
     packName.set("models")
     dynamicDelivery {
-        deliveryType.set("install-time")
+        deliveryType.set("on-demand")
     }
 }

@@ -48,7 +48,7 @@ class SyncPlayerEngine(context: Context) {
     }
 
     val videoPlayer: ExoPlayer = ExoPlayer.Builder(context).build().apply {
-        volume = 0.05f  // Soft ducking to preserve room tone
+        volume = 0.01f  // Soft ducking to preserve room tone
         repeatMode = Player.REPEAT_MODE_OFF
     }
 
@@ -81,7 +81,7 @@ class SyncPlayerEngine(context: Context) {
     private var vocalEqualizer: Equalizer? = null
 
 
-    private var isFreezing = false
+    @Volatile private var isFreezing = false
     private var currentInterval: TimelineInterval? = null
     private var mapper: VirtualTimelineMapper? = null
     private var sessionDir: File? = null
@@ -317,9 +317,9 @@ class SyncPlayerEngine(context: Context) {
             evaluateSyncAlignment(state.physicalTimeMs, vocalDur, nativeDur)
         }
 
-        // Manage audio volume: 0.05f (soft ducking) during dubbed chunks, 1.0f during silence/gaps
+        // Manage audio volume: 0.01f (soft ducking) during dubbed chunks, 1.0f during silence/gaps
         if (state.activeInterval != null) {
-            videoPlayer.volume = 0.05f
+            videoPlayer.volume = 0.01f
         } else {
             videoPlayer.volume = 1.0f
         }
@@ -415,7 +415,7 @@ class SyncPlayerEngine(context: Context) {
 
     fun release() {
         isPlaying = false
-        handler.removeCallbacks(syncRunnable)
+        handler.removeCallbacksAndMessages(null)
         videoPlayer.release()
         audioPlayer.release()
         vocalEqualizer?.release()

@@ -115,10 +115,15 @@ object WavUtils {
         val header = ByteArray(44)
         val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
 
+        // Clamp sizes to Int.MAX_VALUE to prevent negative wrap on >2GB PCM data.
+        // The RIFF spec uses unsigned 32-bit, but Java's putInt() is signed.
+        val clampedRiffSize = (pcmDataLength + 36).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+        val clampedDataSize = pcmDataLength.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+
         // RIFF chunk
         buffer.put('R'.code.toByte()); buffer.put('I'.code.toByte())
         buffer.put('F'.code.toByte()); buffer.put('F'.code.toByte())
-        buffer.putInt((pcmDataLength + 36).toInt())
+        buffer.putInt(clampedRiffSize)
         buffer.put('W'.code.toByte()); buffer.put('A'.code.toByte())
         buffer.put('V'.code.toByte()); buffer.put('E'.code.toByte())
 
@@ -136,7 +141,7 @@ object WavUtils {
         // data sub-chunk
         buffer.put('d'.code.toByte()); buffer.put('a'.code.toByte())
         buffer.put('t'.code.toByte()); buffer.put('a'.code.toByte())
-        buffer.putInt(pcmDataLength.toInt())
+        buffer.putInt(clampedDataSize)
 
         val raf = RandomAccessFile(file, "rw")
         try {

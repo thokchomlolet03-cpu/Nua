@@ -165,6 +165,24 @@ class DubbingTtsEngine(private val context: Context) {
         return ((wordCount / baselineWordsPerMinute) * 60.0f * 1000.0f).toLong() + (syllableCount * 45L)
     }
 
+    /**
+     * Speaks text immediately for the Voice Agent UI.
+     */
+    fun speakText(text: String) {
+        if (!waitForInit() || tts == null) return
+        val params = Bundle().apply {
+            putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UUID.randomUUID().toString())
+        }
+        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, UUID.randomUUID().toString())
+    }
+
+    /**
+     * Stops currently speaking text.
+     */
+    fun stopSpeaking() {
+        tts?.stop()
+    }
+
     fun shutdown() {
         try {
             tts?.shutdown()

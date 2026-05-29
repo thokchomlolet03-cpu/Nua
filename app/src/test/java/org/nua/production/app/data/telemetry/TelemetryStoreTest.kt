@@ -46,7 +46,7 @@ class TelemetryStoreTest {
     @Before
     fun setUp() {
         mockContext = TestMockContext(tempFolder.newFolder("files"))
-        telemetryStore = LocalTelemetryStore(mockContext)
+        telemetryStore = LocalTelemetryStore(mockContext, "fallback_secret")
     }
 
     @Test

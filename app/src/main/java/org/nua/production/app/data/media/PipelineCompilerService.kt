@@ -17,7 +17,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import org.nua.production.app.data.asr.VoskTranscriber
+import org.nua.production.app.data.asr.WhisperTranscriber
 import org.nua.production.app.data.asr.FirebaseTranscriber
 import org.nua.production.app.data.asr.TextSegment
 import org.nua.production.app.data.llm.LiteRTTranslator
@@ -37,7 +37,7 @@ class PipelineCompilerService : Service() {
 
     private lateinit var sessionManager: SessionManager
     private lateinit var audioDecoder: AudioDecoder
-    private lateinit var voskTranscriber: VoskTranscriber
+    private lateinit var whisperTranscriber: WhisperTranscriber
     private lateinit var firebaseTranscriber: FirebaseTranscriber
     private lateinit var liteRTTranslator: LiteRTTranslator
     private lateinit var ttsEngine: DubbingTtsEngine
@@ -46,7 +46,7 @@ class PipelineCompilerService : Service() {
         super.onCreate()
         sessionManager = SessionManager(filesDir)
         audioDecoder = AudioDecoder()
-        voskTranscriber = VoskTranscriber(this)
+        whisperTranscriber = WhisperTranscriber(this)
         firebaseTranscriber = FirebaseTranscriber(this)
         liteRTTranslator = LiteRTTranslator(this)
         ttsEngine = DubbingTtsEngine(this)
@@ -122,39 +122,99 @@ class PipelineCompilerService : Service() {
                 copyFile(inputFile, localVideoFile)
                 addLog("Video imported to: ${localVideoFile.absolutePath}")
 
-                // 2. Decode original audio -> original_audio.wav
-                if (!checkBatteryAndPersist(sessionDir, "EXTRACTING")) { stopSelf(); return@launch }
-                updateStatus("Extracting Audio", 0.0f, "Step 1/5: Extracting and resampling original audio...")
+                // 2 & 3. Streaming Extraction and Transcription
+                updateStatus("Extracting & Transcribing", 0.0f, "Step 1 & 2: Extracting audio and transcribing concurrently...")
                 val originalAudioWav = File(sessionDir, "original_audio.wav")
-                val decodeSuccess = audioDecoder.decodeVideoToWav(localVideoFile, originalAudioWav) { progress ->
-                    updateStatus("Extracting Audio", progress)
+                val audioChannel = kotlinx.coroutines.channels.Channel<org.nua.production.app.data.asr.AudioChunk>(capacity = 1, onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.SUSPEND)
+                
+                // Launch transcription concurrently
+                val transcriptionJob = async(Dispatchers.IO) {
+                    runCatching {
+                        if (asrMode == ASR_MODE_CLOUD) {
+                            // For cloud, we still wait for full file then upload
+                            // Drain channel to prevent memory leak
+                            for (c in audioChannel) {}
+                            updateStatus("Transcribing", 0.0f, "Step 2: Transcribing speech in cloud with Firebase AI...")
+                            var cloudSegments: List<TextSegment> = emptyList()
+                            firebaseTranscriber.transcribeWav(originalAudioWav, mockMode) { progress ->
+                                updateStatus("Transcribing (Cloud)", progress)
+                                cloudSegments = emptyList() // FirebaseTranscriber is stubbed to return empty list or use callbacks
+                            }
+                            cloudSegments
+                        } else {
+                            if (mockMode) {
+                                for (c in audioChannel) {}
+                                emptyList<TextSegment>()
+                            } else {
+                                if (!whisperTranscriber.isModelDownloaded()) {
+                                    throw Exception("Whisper language model is not downloaded. Please download in Setup first.")
+                                }
+                                whisperTranscriber.transcribeStream(audioChannel)
+                            }
+                        }
+                    }
                 }
+
+                // Failsafe: if transcription finishes early (error), close the channel
+                // to unblock the slicer and decoder, preventing a deadlock
+                val failsafeJob = launch {
+                    val result = transcriptionJob.await()
+                    if (result.isFailure) {
+                        Log.w(TAG, "Transcription failed early, closing audio channel to unblock extraction")
+                        audioChannel.close()
+                    }
+                }
+
+                // Run extraction which feeds the channel
+                val decodeSuccess = audioDecoder.decodeVideoToWav(localVideoFile, originalAudioWav, audioChannel) { progress ->
+                    // Extractor is fast, let's scale it to the first 10% of progress
+                    updateStatus("Extracting Audio", progress * 0.1f, null)
+                }
+
+                failsafeJob.cancel() // Extraction completed, failsafe no longer needed
 
                 if (!decodeSuccess || !originalAudioWav.exists()) {
                     updateStatus("Error", 0f, "❌ Failed to extract audio track from video.")
                     stopSelf()
                     return@launch
                 }
-                addLog("Audio extracted successfully: ${originalAudioWav.length()} bytes")
-
-                // 3. Speech-to-Text Transcription (Vosk or Firebase AI Logic)
-                if (!checkBatteryAndPersist(sessionDir, "TRANSCRIBING")) { stopSelf(); return@launch }
-                val segments = if (asrMode == ASR_MODE_CLOUD) {
-                    updateStatus("Transcribing", 0.0f, "Step 2/5: Transcribing speech in cloud with Firebase AI...")
-                    firebaseTranscriber.transcribeWav(originalAudioWav, mockMode) { progress ->
-                        updateStatus("Transcribing (Cloud)", progress)
-                    }
-                } else {
-                    updateStatus("Transcribing", 0.0f, "Step 2/5: Transcribing speech offline with Vosk...")
-                    if (!mockMode && !voskTranscriber.isModelDownloaded()) {
-                        updateStatus("Error", 0f, "❌ Vosk language model is not downloaded. Please download in Setup first.")
-                        stopSelf()
-                        return@launch
-                    }
-                    voskTranscriber.transcribeWav(originalAudioWav) { progress ->
-                        updateStatus("Transcribing (Local)", progress)
+                
+                // Launch background coroutine to smoothly update the progress UI using an asymptotic function for transcription
+                val progressJob = serviceScope.launch(Dispatchers.Main) {
+                    var elapsedSeconds = 0
+                    val T = 120f // Approximate time for 5 min video on budget device
+                    var lastLogMessage = ""
+                    while (isActive) {
+                        delay(1000)
+                        elapsedSeconds++
+                        val t = elapsedSeconds.toFloat()
+                        
+                        // Start progress from 10% (after extraction) and smoothly go to 95%
+                        val progressPct = 0.1f + 0.85f * (1.0f - Math.exp(-2.4 * (t.toDouble() / T.toDouble())).toFloat())
+                        
+                        val logMsg = "Step 2: Transcribing speech offline with Whisper... (Processing chunks...)"
+                        
+                        if (logMsg != lastLogMessage) {
+                            updateStatus("Transcribing", progressPct, logMsg)
+                            lastLogMessage = logMsg
+                        } else {
+                            updateStatus("Transcribing", progressPct, null)
+                        }
                     }
                 }
+                
+                // Wait for transcription to finish processing the streamed chunks
+                val segments = try {
+                    transcriptionJob.await().getOrThrow()
+                } catch (e: Exception) {
+                    progressJob.cancel()
+                    updateStatus("Error", 0f, "❌ Transcription failed: ${e.message}")
+                    stopSelf()
+                    return@launch
+                } finally {
+                    progressJob.cancel()
+                }
+                
                 addLog("Transcribed ${segments.size} speech segments.")
 
                 // 4. LLM Translation with Gemma
@@ -284,10 +344,10 @@ class PipelineCompilerService : Service() {
     private fun copyFile(src: File, dst: File) {
         FileInputStream(src).use { inStream ->
             FileOutputStream(dst).use { outStream ->
-                val size = inStream.channel.size()
-                var transferred = 0L
-                while (transferred < size) {
-                    transferred += inStream.channel.transferTo(transferred, size - transferred, outStream.channel)
+                val buffer = ByteArray(8 * 1024 * 1024) // 8MB buffer
+                var bytesRead: Int
+                while (inStream.read(buffer).also { bytesRead = it } != -1) {
+                    outStream.write(buffer, 0, bytesRead)
                 }
             }
         }
@@ -371,6 +431,12 @@ class PipelineCompilerService : Service() {
         fun addLog(msg: String) {
             synchronized(_logs) {
                 _logs.value = _logs.value + msg
+            }
+        }
+
+        fun clearLogs() {
+            synchronized(_logs) {
+                _logs.value = emptyList()
             }
         }
     }

@@ -39,16 +39,26 @@ fun SetupScreen(
     val mockMode by viewModel.mockMode.collectAsStateWithLifecycle()
     val gemmaModelPath by viewModel.gemmaModelPath.collectAsStateWithLifecycle()
     val tutorModelPath by viewModel.tutorModelPath.collectAsStateWithLifecycle()
+    val deviceTier by viewModel.deviceTier.collectAsStateWithLifecycle()
     
-    val isVoskDownloaded by viewModel.isVoskModelDownloaded.collectAsStateWithLifecycle()
-    val isDownloadingVosk by viewModel.isDownloadingVosk.collectAsStateWithLifecycle()
-    val voskProgress by viewModel.voskDownloadProgress.collectAsStateWithLifecycle()
+    val isWhisperReady by viewModel.isWhisperReady.collectAsStateWithLifecycle()
+
+    val isDownloadingGemma by viewModel.isDownloadingGemma.collectAsStateWithLifecycle()
+    val gemmaDownloadProgress by viewModel.gemmaDownloadProgress.collectAsStateWithLifecycle()
+    val gemmaDownloadError by viewModel.gemmaDownloadError.collectAsStateWithLifecycle()
+    val gemmaDownloadStatus by viewModel.gemmaDownloadStatus.collectAsStateWithLifecycle()
+
+    val isDownloadingTutor by viewModel.isDownloadingTutor.collectAsStateWithLifecycle()
+    val tutorDownloadProgress by viewModel.tutorDownloadProgress.collectAsStateWithLifecycle()
+    val tutorDownloadStatus by viewModel.tutorDownloadStatus.collectAsStateWithLifecycle()
 
     var isImportingGemma by remember { mutableStateOf(false) }
     var importStatusMessage by remember { mutableStateOf<String?>(null) }
+    var importProgressState by remember { mutableStateOf(0f) }
 
     var isImportingTutor by remember { mutableStateOf(false) }
     var tutorImportStatusMessage by remember { mutableStateOf<String?>(null) }
+    var tutorImportProgressState by remember { mutableStateOf(0f) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -61,7 +71,7 @@ fun SetupScreen(
                 importStatusMessage = if (success) {
                     "Gemma model imported successfully!"
                 } else {
-                    "Failed to import model. Ensure it is a valid .bin file."
+                    "Failed to import model. Ensure it is a valid .bin or .litertlm file."
                 }
             }
         }
@@ -78,7 +88,7 @@ fun SetupScreen(
                 tutorImportStatusMessage = if (success) {
                     "Tutor model imported successfully!"
                 } else {
-                    "Failed to import model. Ensure it is a valid .bin file."
+                    "Failed to import model. Ensure it is a valid .bin or .litertlm file."
                 }
             }
         }
@@ -147,7 +157,7 @@ fun SetupScreen(
                 }
             }
 
-            // 1. Vosk Model Card
+            // 1. Whisper Model Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -164,13 +174,13 @@ fun SetupScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Vosk English acoustic model (~40MB) is required to transcribe original video speech.",
+                        "Whisper English acoustic model (~40MB) is required to transcribe original video speech.",
                         fontSize = 13.sp,
                         color = Color.LightGray
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    if (isVoskDownloaded) {
+                    if (isWhisperReady) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -181,37 +191,26 @@ fun SetupScreen(
                                 tint = Color.Green
                             )
                             Text(
-                                "Model Ready (English small)",
+                                "Model Ready (Whisper Bundled)",
                                 color = Color.Green,
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
                     } else {
-                        if (isDownloadingVosk) {
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(
-                                    "Downloading Vosk Model: ${String.format("%.1f%%", voskProgress * 100)}",
-                                    fontSize = 13.sp,
-                                    color = SecondaryNeon
-                                )
-                                LinearProgressIndicator(
-                                    progress = { voskProgress },
-                                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
-                                    color = SecondaryNeon,
-                                    trackColor = Color.White.copy(alpha = 0.1f),
-                                )
-                            }
-                        } else {
-                            Button(
-                                onClick = { viewModel.downloadVoskModel() },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = SecondaryNeon,
-                                    contentColor = Color.Black
-                                ),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text("Download Vosk Model", fontWeight = FontWeight.Bold)
-                            }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Missing",
+                                tint = Color.Red
+                            )
+                            Text(
+                                "Error: Whisper model missing from APK assets.",
+                                color = Color.Red,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
@@ -255,9 +254,14 @@ fun SetupScreen(
                         }
                     }
 
+                    val isPremium = deviceTier == org.nua.production.app.data.schema.DeviceTier.PREMIUM
+                    val engineName = if (isPremium) "Gemma 4 E2B Vision Engine" else "Gemma 2B Base Engine"
+                    val engineSize = if (isPremium) "2.8GB" else "1.2GB"
+
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "On-device translation uses the quantized Gemma 2B model (~1.2GB) in MediaPipe format.",
+                        if (isPremium) "On-device processing requires the Premium $engineName (~$engineSize)." 
+                        else "On-device translation uses the quantized $engineName (~$engineSize) in MediaPipe format.",
                         fontSize = 13.sp,
                         color = Color.LightGray
                     )
@@ -325,34 +329,119 @@ fun SetupScreen(
                                 }
                             }
 
-                            if (isImportingGemma) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = PrimaryNeon,
-                                        strokeWidth = 2.dp
-                                    )
+                            if (isDownloadingGemma) {
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Text(
-                                        importStatusMessage ?: "Importing...",
+                                        "Downloading Premium AI Engine: ${String.format("%.1f%%", gemmaDownloadProgress * 100)}",
                                         fontSize = 13.sp,
-                                        color = Color.LightGray
+                                        color = PrimaryNeon
+                                    )
+                                    LinearProgressIndicator(
+                                        progress = { gemmaDownloadProgress },
+                                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                                        color = PrimaryNeon,
+                                        trackColor = Color.White.copy(alpha = 0.1f),
                                     )
                                 }
                             } else {
                                 Button(
-                                    onClick = { filePickerLauncher.launch("*/*") },
+                                    onClick = { 
+                                        if (isPremium) {
+                                            viewModel.downloadPremiumAIEngine("premium_models_asset_pack")
+                                        } else {
+                                            viewModel.downloadPremiumAIEngine("ai_models_asset_pack")
+                                        }
+                                    },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = PrimaryNeon
                                     ),
-                                    shape = RoundedCornerShape(8.dp)
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("Pick Gemma Model File (.bin)", fontWeight = FontWeight.Bold)
+                                    Text("Download $engineName ($engineSize)", fontWeight = FontWeight.Bold)
+                                }
+                                
+                                gemmaDownloadError?.let {
+                                    Text(
+                                        it,
+                                        fontSize = 13.sp,
+                                        color = Color.Red,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                            }
+                            
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+                            Text(
+                                "Advanced / Developer Fallback:",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+
+                            if (isDownloadingGemma) {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        gemmaDownloadStatus ?: "Connecting to Google Drive...",
+                                        fontSize = 13.sp,
+                                        color = PrimaryNeon
+                                    )
+                                    LinearProgressIndicator(
+                                        progress = { gemmaDownloadProgress },
+                                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                                        color = PrimaryNeon,
+                                        trackColor = Color.White.copy(alpha = 0.1f),
+                                    )
+                                }
+                            } else if (isImportingGemma) {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        importStatusMessage ?: "Copying model file to app storage...",
+                                        fontSize = 13.sp,
+                                        color = PrimaryNeon
+                                    )
+                                    LinearProgressIndicator(
+                                        progress = { importProgressState },
+                                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                                        color = PrimaryNeon,
+                                        trackColor = Color.White.copy(alpha = 0.1f),
+                                    )
+                                }
+                            } else {
+                                Button(
+                                    onClick = {
+                                        viewModel.downloadGemmaFromDrive(fileId = "15RoZpliPWL3Alr4VzTP1GKRuzKn12q36")
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF4285F4), // Google Blue
+                                        contentColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Download from Google Drive (2.6GB)", fontWeight = FontWeight.Bold)
                                 }
 
-                                importStatusMessage?.let {
+                                Button(
+                                    onClick = { filePickerLauncher.launch("application/octet-stream") },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color.White.copy(alpha = 0.1f),
+                                        contentColor = Color.White
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Pick Local Gemma Model File (.bin / .litertlm)", fontWeight = FontWeight.Bold)
+                                }
+
+                                val statusMessage = gemmaDownloadStatus ?: importStatusMessage
+                                statusMessage?.let {
                                     Text(
                                         it,
                                         fontSize = 13.sp,
@@ -363,7 +452,7 @@ fun SetupScreen(
                             }
 
                             Text(
-                                "Download 'gemma-2b-it-cpu-int4.bin' from Kaggle Models or Hugging Face, copy to your device, and select it here.",
+                                "Only use this if Google Play is unavailable.",
                                 fontSize = 11.sp,
                                 color = Color.Gray
                             )
@@ -457,43 +546,79 @@ fun SetupScreen(
                                 }
                             }
 
-                            if (isImportingTutor) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = PrimaryNeon,
-                                        strokeWidth = 2.dp
-                                    )
-                                    Text(
-                                        tutorImportStatusMessage ?: "Importing...",
-                                        fontSize = 13.sp,
-                                        color = Color.LightGray
-                                    )
-                                }
-                            } else {
-                                Button(
-                                    onClick = { tutorFilePickerLauncher.launch("*/*") },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = SecondaryNeon,
-                                        contentColor = Color.Black
-                                    ),
-                                    shape = RoundedCornerShape(8.dp)
-                                ) {
-                                    Text("Pick Tutor Model File (.bin)", fontWeight = FontWeight.Bold)
-                                }
+                             if (isDownloadingTutor) {
+                                 Column(
+                                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                                     modifier = Modifier.fillMaxWidth()
+                                 ) {
+                                     Text(
+                                         tutorDownloadStatus ?: "Connecting to Google Drive...",
+                                         fontSize = 13.sp,
+                                         color = SecondaryNeon
+                                     )
+                                     LinearProgressIndicator(
+                                         progress = { tutorDownloadProgress },
+                                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                                         color = SecondaryNeon,
+                                         trackColor = Color.White.copy(alpha = 0.1f),
+                                     )
+                                 }
+                             } else if (isImportingTutor) {
+                                 Column(
+                                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                                     modifier = Modifier.fillMaxWidth()
+                                 ) {
+                                     Text(
+                                         tutorImportStatusMessage ?: "Copying model file to app storage...",
+                                         fontSize = 13.sp,
+                                         color = SecondaryNeon
+                                     )
+                                     LinearProgressIndicator(
+                                         progress = { tutorImportProgressState },
+                                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)),
+                                         color = SecondaryNeon,
+                                         trackColor = Color.White.copy(alpha = 0.1f),
+                                     )
+                                 }
+                             } else {
+                                 Button(
+                                     onClick = {
+                                         viewModel.downloadTutorFromDrive(fileId = "15RoZpliPWL3Alr4VzTP1GKRuzKn12q36")
+                                     },
+                                     colors = ButtonDefaults.buttonColors(
+                                         containerColor = Color(0xFF4285F4), // Google Blue
+                                         contentColor = Color.White
+                                     ),
+                                     shape = RoundedCornerShape(8.dp),
+                                     modifier = Modifier.fillMaxWidth()
+                                 ) {
+                                     Text("Download from Google Drive (2.6GB)", fontWeight = FontWeight.Bold)
+                                 }
 
-                                tutorImportStatusMessage?.let {
-                                    Text(
-                                        it,
-                                        fontSize = 13.sp,
-                                        color = Color.LightGray,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
-                                }
-                            }
+                                 Spacer(modifier = Modifier.height(8.dp))
+
+                                 Button(
+                                     onClick = { tutorFilePickerLauncher.launch("application/octet-stream") },
+                                     colors = ButtonDefaults.buttonColors(
+                                         containerColor = SecondaryNeon,
+                                         contentColor = Color.Black
+                                     ),
+                                     shape = RoundedCornerShape(8.dp),
+                                     modifier = Modifier.fillMaxWidth()
+                                 ) {
+                                     Text("Pick Tutor Model File (.bin / .litertlm)", fontWeight = FontWeight.Bold)
+                                 }
+
+                                 val statusMessage = tutorDownloadStatus ?: tutorImportStatusMessage
+                                 statusMessage?.let {
+                                     Text(
+                                         it,
+                                         fontSize = 13.sp,
+                                         color = Color.LightGray,
+                                         modifier = Modifier.padding(top = 4.dp)
+                                     )
+                                 }
+                             }
                         }
                     }
                 }

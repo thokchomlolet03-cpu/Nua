@@ -32,3 +32,5 @@ plugins {
 rootProject.name = "Nua"
 include(":app")
 include(":models")
+include(":ai_models_asset_pack")
+include(":premium_models_asset_pack")

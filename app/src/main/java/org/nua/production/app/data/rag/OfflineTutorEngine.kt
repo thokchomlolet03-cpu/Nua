@@ -4,12 +4,12 @@ import android.content.Context
 import android.util.Log
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
+import com.google.ai.edge.litertlm.Backend
 import org.nua.production.app.data.schema.LectureSession
 import org.nua.production.app.data.schema.GraphNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
@@ -44,9 +44,15 @@ class OfflineTutorEngine(private val context: Context) {
         tutorMutex.withLock {
             try {
                 try { engine?.close() } catch (_: Exception) {}
-                val config = EngineConfig(modelPath = modelPath)
+                val prefs = context.getSharedPreferences("nua_prefs", Context.MODE_PRIVATE)
+                val tier = prefs.getString("device_tier", "UNKNOWN")
+                
+                val config = EngineConfig(
+                    modelPath = modelPath,
+                    backend = if (tier == "PREMIUM") Backend.GPU() else Backend.CPU()
+                )
                 engine = Engine(config).also { it.initialize() }
-                Log.d(TAG, "Tutor engine initialized")
+                Log.d(TAG, "Tutor engine initialized with backend: ${if (tier == "PREMIUM") "GPU" else "CPU"}")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to initialize tutor engine", e)
             }
@@ -67,19 +73,105 @@ class OfflineTutorEngine(private val context: Context) {
         playheadTimeMs: Long
     ): String = withContext(Dispatchers.IO) {
 
-        // Step 1: Hierarchical graph walk — find the most relevant context node
-        val matchingNode = findBestMatchingNode(userPrompt, session)
+        val prefs = context.getSharedPreferences("nua_prefs", Context.MODE_PRIVATE)
+        val isPremium = prefs.getString("device_tier", "BUDGET") == "PREMIUM"
 
-        // Step 2: Build structured prompt with pre-baked factoid context
-        val factoid = matchingNode?.summaryFactoid ?: "No specific context available."
-        val keywords = if (matchingNode != null) {
-            (0 until matchingNode.keywordsLength).mapNotNull { matchingNode.keywords(it) }
-                .joinToString(", ")
+        val structuredPrompt = if (isPremium) {
+            // STEP 1 (Premium): Bypass Graph Search and use Extended Context
+            val fullTranscriptBuilder = java.lang.StringBuilder()
+            for (i in 0 until session.timelineTracksLength) {
+                val segment = session.timelineTracks(i)
+                if (segment?.originalText != null) {
+                    fullTranscriptBuilder.append(segment.originalText).append(" ")
+                }
+            }
+            
+            """
+            You are a helpful tutor assistant for a video lecture.
+            You have a 128K context window. Here is the full continuous transcript of the video:
+            $fullTranscriptBuilder
+            
+            The student is currently watching at timestamp ${playheadTimeMs}ms.
+            
+            Answer the student's question concisely, logically, and accurately based on the entire transcript.
+            Keep scientific terms in English, but explain in Hinglish.
+            Use <thinking>...</thinking> tags to reason before you output your final answer.
+            
+            <tools>
+            [
+              {
+                "name": "set_alarm",
+                "description": "Set a study reminder alarm.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "time": { "type": "string", "description": "Time in HH:MM format" }
+                  },
+                  "required": ["time"]
+                }
+              },
+              {
+                "name": "create_bookmark",
+                "description": "Bookmark a specific timestamp in the video with a note.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "time_ms": { "type": "integer", "description": "Timestamp in milliseconds" },
+                    "note": { "type": "string", "description": "Note for the bookmark" }
+                  },
+                  "required": ["time_ms", "note"]
+                }
+              },
+              {
+                "name": "seek_to_topic",
+                "description": "Move the video player to a specific timestamp.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "time_ms": { "type": "integer", "description": "Timestamp in milliseconds" }
+                  },
+                  "required": ["time_ms"]
+                }
+              },
+              {
+                "name": "trigger_quiz",
+                "description": "Trigger a pop quiz for the student.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {},
+                  "required": []
+                }
+              },
+              {
+                "name": "lookup_term",
+                "description": "Look up a scientific term in the offline dictionary.",
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "term": { "type": "string", "description": "The term to lookup" }
+                  },
+                  "required": ["term"]
+                }
+              }
+            ]
+            </tools>
+            
+            Student's question: $userPrompt
+            """.trimIndent()
         } else {
-            "general"
-        }
+            // Step 1 (Budget): Hierarchical graph walk — find the most relevant context node
+            val matchingNode = findBestMatchingNode(userPrompt, session)
 
-        val structuredPrompt = """
+            // Step 2: Build structured prompt with pre-baked factoid context
+            val factoid = matchingNode?.summaryFactoid ?: "No specific context available."
+            val keywords = if (matchingNode != null) {
+                (0 until matchingNode.keywordsLength).mapNotNull { matchingNode.keywords(it) }
+                    .joinToString(", ")
+            } else {
+                "general"
+            }
+
+            """
             You are a helpful tutor assistant for a video lecture.
             The student is currently watching at timestamp ${playheadTimeMs}ms.
             
@@ -92,9 +184,10 @@ class OfflineTutorEngine(private val context: Context) {
             Keep scientific terms in English.
             
             Student's question: $userPrompt
-        """.trimIndent()
+            """.trimIndent()
+        }
 
-        // Step 3: Generate response via local LLM
+        // Step 3: Generate response via local LLM with tool execution loop
         tutorMutex.withLock {
             val lmEngine = engine
             if (lmEngine == null) {
@@ -102,11 +195,37 @@ class OfflineTutorEngine(private val context: Context) {
             }
             try {
                 val conversation = lmEngine.createConversation()
-                val responseBuilder = StringBuilder()
-                conversation.sendMessageAsync(structuredPrompt).collect { token ->
-                    responseBuilder.append(token)
+                var currentPrompt = structuredPrompt
+                var finalAnswer = ""
+                var iterations = 0
+
+                while (iterations < 3) {
+                    iterations++
+                    val responseBuilder = StringBuilder()
+                    conversation.sendMessageAsync(currentPrompt).collect { token ->
+                        responseBuilder.append(token)
+                    }
+                    val rawResponse = responseBuilder.toString().trim()
+
+                    // Parse for <tool_call>
+                    val toolResult = org.nua.production.app.data.llm.ToolCallParser.processToolCalls(context, rawResponse)
+                    
+                    if (toolResult.hasToolCall) {
+                        // We have tool responses to feed back
+                        Log.d(TAG, "Tool call executed, feeding back response: ${toolResult.toolResponseBlock}")
+                        // Provide the tool response block back to the conversation
+                        currentPrompt = toolResult.toolResponseBlock ?: ""
+                    } else {
+                        // No tool call means this is the final text answer
+                        finalAnswer = toolResult.cleanResponse
+                        break
+                    }
                 }
-                responseBuilder.toString().trim()
+
+                if (finalAnswer.isBlank()) {
+                    finalAnswer = "Sorry, I took too many steps to think and couldn't answer."
+                }
+                finalAnswer
             } catch (e: Exception) {
                 Log.e(TAG, "Tutor query failed", e)
                 "Sorry, I couldn't process your question. Please try again."

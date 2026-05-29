@@ -2,6 +2,7 @@ package org.nua.production.app.ui.main
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,14 +51,22 @@ fun MainScreen(
     viewModel: MainScreenViewModel = viewModel()
 ) {
     val mockMode by viewModel.mockMode.collectAsStateWithLifecycle()
-    val isVoskDownloaded by viewModel.isVoskModelDownloaded.collectAsStateWithLifecycle()
+    val isWhisperReady by viewModel.isWhisperReady.collectAsStateWithLifecycle()
     val isProcessing by viewModel.isProcessing.collectAsStateWithLifecycle()
+    val isDownloadingVideo by viewModel.isDownloadingVideo.collectAsStateWithLifecycle()
     val currentStep by viewModel.currentStep.collectAsStateWithLifecycle()
     val stepProgress by viewModel.stepProgress.collectAsStateWithLifecycle()
     val logs by viewModel.processingLogs.collectAsStateWithLifecycle()
     val history by viewModel.dubbedHistory.collectAsStateWithLifecycle()
     val videoUrl by viewModel.videoUrl.collectAsStateWithLifecycle()
     val logsListState = rememberLazyListState()
+    var minimizeProgress by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isProcessing, isDownloadingVideo) {
+        if (isProcessing || isDownloadingVideo) {
+            minimizeProgress = false
+        }
+    }
 
     // Scroll to bottom of logs when a new log arrives
     LaunchedEffect(logs.size) {
@@ -118,8 +127,8 @@ fun MainScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp)
         ) {
-            // Setup warning badge if Vosk not ready
-            if (!isVoskDownloaded && !mockMode) {
+            // Setup warning badge if Whisper not ready
+            if (!isWhisperReady && !mockMode) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -133,7 +142,7 @@ fun MainScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "⚠️ Vosk model is not downloaded. Tap here to setup AI components.",
+                            text = "⚠️ Whisper model is not loaded. Tap here to check AI components.",
                             color = Color.Yellow,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
@@ -142,7 +151,7 @@ fun MainScreen(
                 }
             }
 
-            if (isProcessing) {
+            if ((isProcessing || isDownloadingVideo) && !minimizeProgress) {
                 // Processing Console Panel
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
@@ -170,31 +179,57 @@ fun MainScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = currentStep,
-                                color = SecondaryNeon,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = String.format("%.0f%%", stepProgress * 100),
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = if (isDownloadingVideo) "Downloading Source Video..." else currentStep,
+                                    color = SecondaryNeon,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                if (!isDownloadingVideo) {
+                                    Text(
+                                        text = String.format("%.0f%%", stepProgress * 100),
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+                            TextButton(
+                                onClick = { minimizeProgress = true },
+                                colors = ButtonDefaults.textButtonColors(contentColor = PrimaryNeon)
+                            ) {
+                                Text("Minimize", fontSize = 12.sp)
+                            }
                         }
                         
                         Spacer(modifier = Modifier.height(8.dp))
                         
-                        LinearProgressIndicator(
-                            progress = { stepProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = SecondaryNeon,
-                            trackColor = Color.White.copy(alpha = 0.1f)
-                        )
+                        if (isDownloadingVideo) {
+                            LinearProgressIndicator(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
+                                color = SecondaryNeon,
+                                trackColor = Color.White.copy(alpha = 0.1f)
+                            )
+                        } else {
+                            LinearProgressIndicator(
+                                progress = { stepProgress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
+                                color = SecondaryNeon,
+                                trackColor = Color.White.copy(alpha = 0.1f)
+                            )
+                        }
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         
@@ -233,6 +268,49 @@ fun MainScreen(
                         .weight(1f)
                         .verticalScroll(rememberScrollState())
                 ) {
+                    if (isProcessing || isDownloadingVideo) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp)
+                                .clickable { minimizeProgress = false },
+                            colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, PrimaryNeon.copy(alpha = 0.5f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (isDownloadingVideo) "Downloading Source Video..." else currentStep,
+                                        color = SecondaryNeon,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    LinearProgressIndicator(
+                                        progress = { if (isDownloadingVideo) 0f else stepProgress },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(4.dp)
+                                            .clip(RoundedCornerShape(2.dp)),
+                                        color = SecondaryNeon,
+                                        trackColor = Color.White.copy(alpha = 0.1f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = if (isDownloadingVideo) "Downloading..." else String.format("%.0f%%", stepProgress * 100),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // Paste URL Card

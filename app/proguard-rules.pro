@@ -4,8 +4,6 @@
 -keep class org.nua.production.app.data.schema.** { *; }
 -keepclassmembers class * extends com.google.flatbuffers.Table { *; }
 
-# Vosk ASR engine (JNI native methods)
--keep class org.vosk.** { *; }
 
 # LiteRT-LM (on-device NPU inference)
 -keep class com.google.ai.edge.litertlm.** { *; }
@@ -33,4 +31,12 @@
 
 # FlatBuffers generated files outside main package
 -keep class NuaSerialization.** { *; }
+
+# Prevent ProGuard from renaming packages or stripping components containing native hooks
+-keep class com.whispercpp.whisper.** { *; }
+
+# Maintain structural identity of all native methods across the codebase
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
 

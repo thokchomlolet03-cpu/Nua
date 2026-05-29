@@ -13,9 +13,15 @@ android {
         targetSdk = 36
         versionCode = 3
         versionName = "4.0"
+
+        externalNativeBuild {
+            cmake {
+                // Whisper relies on NEON/FP16 CPU acceleration natively on Android
+            }
+        }
     }
 
-    assetPacks += mutableSetOf(":models")
+    assetPacks += mutableSetOf(":models", ":ai_models_asset_pack", ":premium_models_asset_pack")
 
     signingConfigs {
         create("release") {
@@ -28,8 +34,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
@@ -43,6 +49,12 @@ android {
       aidl = false
       buildConfig = false
       shaders = false
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/whisper.cpp/examples/whisper.android/lib/src/main/jni/whisper/CMakeLists.txt")
+        }
     }
 
     packaging {
@@ -107,8 +119,8 @@ dependencies {
   // Zero-Copy Serialization (FlatBuffers)
   implementation(libs.flatbuffers.java)
 
-  // ASR — Vosk (offline speech recognition)
-  implementation(libs.vosk.android)
+  // ASR — Whisper (offline speech recognition)
+  // compiled natively via CMake
 
   // Network (model downloads, video URL fetching)
   implementation(libs.okhttp)
@@ -117,6 +129,7 @@ dependencies {
   implementation("com.google.android.play:asset-delivery-ktx:2.2.2")
 
   // JSON Serialization (kept for legacy manifest migration)
+  implementation("io.coil-kt:coil-compose:2.5.0")
   implementation(libs.kotlinx.serialization.json)
 
   // Testing

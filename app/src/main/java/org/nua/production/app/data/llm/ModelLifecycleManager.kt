@@ -61,6 +61,18 @@ object ModelLifecycleManager {
         return translator
     }
 
+    suspend fun preloadWhisper(context: Context) {
+        Log.d(TAG, "preloadWhisper requested. Pre-warming Whisper contexts.")
+        try {
+            val transcriber = org.nua.production.app.data.asr.WhisperTranscriber(context)
+            if (transcriber.isModelDownloaded()) {
+                transcriber.initializeModels()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to preload Whisper", e)
+        }
+    }
+
     suspend fun releaseAll() = mutex.withLock {
         Log.d(TAG, "releaseAll requested. Unloading all models.")
         translatorInstance?.close()

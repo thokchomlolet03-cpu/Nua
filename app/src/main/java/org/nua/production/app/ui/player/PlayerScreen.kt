@@ -2,6 +2,8 @@ package org.nua.production.app.ui.player
 
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +28,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -49,6 +53,8 @@ import org.nua.production.app.theme.SurfaceCard
 import org.nua.production.app.data.media.HotspotInfo
 import org.nua.production.app.data.media.QuizInfo
 import java.io.File
+import androidx.compose.ui.graphics.asImageBitmap
+import android.util.Log
 
 // Custom self-contained Chat Icon vector to avoid material-icons-extended dependency
 val ChatIcon: ImageVector
@@ -70,6 +76,97 @@ val ChatIcon: ImageVector
         curveTo(21.1f, 18f, 22f, 17.1f, 22f, 16f)
         verticalLineTo(4f)
         curveTo(22f, 2.9f, 21.1f, 2f, 20f, 2f)
+        close()
+    }.build()
+
+val PauseIcon: ImageVector
+    get() = ImageVector.Builder(
+        name = "Pause",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).path(
+        fill = SolidColor(Color.White)
+    ) {
+        moveTo(6f, 19f)
+        horizontalLineTo(10f)
+        verticalLineTo(5f)
+        horizontalLineTo(6f)
+        verticalLineTo(19f)
+        close()
+        moveTo(14f, 5f)
+        verticalLineTo(19f)
+        horizontalLineTo(18f)
+        verticalLineTo(5f)
+        horizontalLineTo(14f)
+        close()
+    }.build()
+
+val MicIcon: ImageVector
+    get() = ImageVector.Builder(
+        name = "Mic",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).path(
+        fill = SolidColor(Color.White)
+    ) {
+        moveTo(12f, 14f)
+        curveTo(13.66f, 14f, 15f, 12.66f, 15f, 11f)
+        verticalLineTo(5f)
+        curveTo(15f, 3.34f, 13.66f, 2f, 12f, 2f)
+        curveTo(10.34f, 2f, 9f, 3.34f, 9f, 5f)
+        verticalLineTo(11f)
+        curveTo(9f, 12.66f, 10.34f, 14f, 12f, 14f)
+        close()
+        moveTo(17.3f, 11f)
+        curveTo(17.3f, 14f, 14.76f, 16.1f, 12f, 16.1f)
+        curveTo(9.24f, 16.1f, 6.7f, 14f, 6.7f, 11f)
+        horizontalLineTo(5f)
+        curveTo(5f, 14.42f, 7.72f, 17.23f, 11f, 17.72f)
+        verticalLineTo(21f)
+        horizontalLineTo(13f)
+        verticalLineTo(17.72f)
+        curveTo(16.28f, 17.23f, 19f, 14.42f, 19f, 11f)
+        horizontalLineTo(17.3f)
+        close()
+    }.build()
+
+val AttachIcon: ImageVector
+    get() = ImageVector.Builder(
+        name = "Attach",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f
+    ).path(
+        fill = SolidColor(Color.White)
+    ) {
+        moveTo(16.5f, 6f)
+        verticalLineTo(17.5f)
+        curveTo(16.5f, 19.43f, 14.93f, 21f, 13f, 21f)
+        curveTo(11.07f, 21f, 9.5f, 19.43f, 9.5f, 17.5f)
+        verticalLineTo(5f)
+        curveTo(9.5f, 2.51f, 11.51f, 0.5f, 14f, 0.5f)
+        curveTo(16.49f, 0.5f, 18.5f, 2.51f, 18.5f, 5f)
+        verticalLineTo(15.5f)
+        curveTo(18.5f, 16.88f, 17.38f, 18f, 16f, 18f)
+        curveTo(14.62f, 18f, 13.5f, 16.88f, 13.5f, 15.5f)
+        verticalLineTo(6f)
+        horizontalLineTo(12f)
+        verticalLineTo(15.5f)
+        curveTo(12f, 17.71f, 13.79f, 19.5f, 16f, 19.5f)
+        curveTo(18.21f, 19.5f, 20f, 17.71f, 20f, 15.5f)
+        verticalLineTo(5f)
+        curveTo(20f, 1.69f, 17.31f, -1f, 14f, -1f)
+        curveTo(10.69f, -1f, 8f, 1.69f, 8f, 5f)
+        verticalLineTo(17.5f)
+        curveTo(8f, 20.26f, 10.24f, 22.5f, 13f, 22.5f)
+        curveTo(15.76f, 22.5f, 18f, 20.26f, 18f, 17.5f)
+        verticalLineTo(6f)
+        horizontalLineTo(16.5f)
         close()
     }.build()
 
@@ -139,6 +236,13 @@ fun PlayerScreen(
                         }
                     },
                     actions = {
+                        IconButton(onClick = { /* TODO: Trigger Vision Scan */ }) {
+                            Icon(
+                                imageVector = androidx.compose.material.icons.Icons.Default.PlayArrow, // Fallback icon, imagine it's an Eye or Camera
+                                contentDescription = "Scan Frame",
+                                tint = Color.White
+                            )
+                        }
                         IconButton(onClick = { viewModel.toggleTutor(!isTutorActive) }) {
                             Icon(
                                 imageVector = ChatIcon,
@@ -166,7 +270,27 @@ fun PlayerScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(color = SecondaryNeon)
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(
+                                    color = PrimaryNeon,
+                                    modifier = Modifier.size(72.dp),
+                                    strokeWidth = 6.dp
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Text(
+                                    "Initializing NUA Engine...",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 20.sp,
+                                    style = TextStyle(shadow = androidx.compose.ui.graphics.Shadow(color = PrimaryNeon, blurRadius = 12f))
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "Loading AI Models & Audio Assets",
+                                    color = Color.LightGray,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
                     errorMessage != null -> {
@@ -224,9 +348,9 @@ fun PlayerScreen(
                                             modifier = Modifier
                                                 .width(360.dp)
                                                 .fillMaxHeight(),
+                                            viewModel = viewModel,
                                             messages = tutorMessages,
-                                            isTyping = isTutorTyping,
-                                            onSendMessage = { viewModel.askTutor(it) }
+                                            isTyping = isTutorTyping
                                         )
                                     }
                                 } else {
@@ -261,9 +385,9 @@ fun PlayerScreen(
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .fillMaxWidth(),
+                                            viewModel = viewModel,
                                             messages = tutorMessages,
-                                            isTyping = isTutorTyping,
-                                            onSendMessage = { viewModel.askTutor(it) }
+                                            isTyping = isTutorTyping
                                         )
                                     }
                                 }
@@ -331,6 +455,17 @@ fun PlayerScreen(
                         Text("Got it", color = SecondaryNeon, fontWeight = FontWeight.Bold)
                     }
                 },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.askAboutConcept(selectedHotspotToken!!, selectedHotspotDefinition!!)
+                            selectedHotspotDefinition = null
+                            selectedHotspotToken = null
+                        }
+                    ) {
+                        Text("Ask AI Tutor", color = PrimaryNeon, fontWeight = FontWeight.Bold)
+                    }
+                },
                 containerColor = SurfaceCard,
                 shape = RoundedCornerShape(16.dp)
             )
@@ -338,6 +473,9 @@ fun PlayerScreen(
 
         // Quiz Overlay Panel (forces answer before resuming)
         activeQuiz?.let { quiz ->
+            BackHandler(enabled = true) {
+                // Intercept back press, forcing user to complete quiz
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -626,6 +764,9 @@ fun VideoControls(
     totalDurationMs: Long,
     isPlaying: Boolean
 ) {
+    var localSliderValue by remember(virtualTimeMs) { mutableStateOf(virtualTimeMs.toFloat()) }
+    var isDragging by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -641,15 +782,22 @@ fun VideoControls(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = formatTime(virtualTimeMs),
+                text = formatTime(if (isDragging) localSliderValue.toLong() else virtualTimeMs),
                 color = Color.Gray,
                 fontSize = 12.sp,
                 modifier = Modifier.width(45.dp)
             )
 
             Slider(
-                value = virtualTimeMs.toFloat(),
-                onValueChange = { viewModel.seekTo(it.toLong()) },
+                value = if (isDragging) localSliderValue else virtualTimeMs.toFloat(),
+                onValueChange = { 
+                    localSliderValue = it
+                    isDragging = true
+                },
+                onValueChangeFinished = {
+                    isDragging = false
+                    viewModel.seekTo(localSliderValue.toLong())
+                },
                 valueRange = 0f..(totalDurationMs.toFloat().coerceAtLeast(1f)),
                 modifier = Modifier.weight(1f),
                 colors = SliderDefaults.colors(
@@ -708,34 +856,107 @@ fun VideoControls(
 }
 
 @Composable
+fun AudioBubblePlayer(audioUri: String) {
+    val context = LocalContext.current
+    var isPlaying by remember { mutableStateOf(false) }
+    val mediaPlayer = remember { android.media.MediaPlayer() }
+    
+    DisposableEffect(audioUri) {
+        try {
+            mediaPlayer.setDataSource(audioUri)
+            mediaPlayer.prepare()
+            mediaPlayer.setOnCompletionListener {
+                isPlaying = false
+            }
+        } catch (e: Exception) {
+            Log.e("AudioBubblePlayer", "Failed to setup MediaPlayer", e)
+        }
+        onDispose {
+            mediaPlayer.release()
+        }
+    }
+    
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .padding(bottom = 4.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White.copy(alpha = 0.05f))
+            .border(BorderStroke(1.dp, Color.Gray.copy(alpha = 0.2f)), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        IconButton(
+            onClick = {
+                try {
+                    if (isPlaying) {
+                        mediaPlayer.pause()
+                        isPlaying = false
+                    } else {
+                        mediaPlayer.start()
+                        isPlaying = true
+                    }
+                } catch (e: Exception) {
+                    Log.e("AudioBubblePlayer", "Playback error", e)
+                }
+            },
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = if (isPlaying) PauseIcon else Icons.Default.PlayArrow,
+                contentDescription = if (isPlaying) "Pause" else "Play",
+                tint = SecondaryNeon
+            )
+        }
+        Text("Voice Query", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
 fun TutorChatPanel(
     modifier: Modifier = Modifier,
+    viewModel: PlayerViewModel,
     messages: List<ChatMessage>,
-    isTyping: Boolean,
-    onSendMessage: (String) -> Unit
+    isTyping: Boolean
 ) {
+    val context = LocalContext.current
     val listState = rememberLazyListState()
     var inputText by remember { mutableStateOf("") }
+    val focusManager = LocalFocusManager.current
+
+    var attachedImageUri by remember { mutableStateOf<String?>(null) }
+    var attachedAudioUri by remember { mutableStateOf<String?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            attachedImageUri = uri.toString()
+        }
+    }
+
+    val isRecordingVoice by viewModel.isRecordingVoice.collectAsStateWithLifecycle()
 
     LaunchedEffect(messages.size, isTyping) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+        val totalItems = messages.size + (if (isTyping) 1 else 0)
+        if (totalItems > 0) {
+            listState.animateScrollToItem(totalItems - 1)
         }
     }
 
     Column(
         modifier = modifier
+            .fillMaxSize()
             .background(DarkBackground)
-            .padding(12.dp)
+            .padding(16.dp)
     ) {
         Text(
-            text = "AI LECTURE TUTOR",
+            "AI Lecture Tutor",
             color = PrimaryNeon,
-            fontWeight = FontWeight.ExtraBold,
-            fontSize = 11.sp,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
         )
+        Spacer(modifier = Modifier.height(16.dp))
 
         LazyColumn(
             state = listState,
@@ -754,6 +975,52 @@ fun TutorChatPanel(
                         horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
                         modifier = Modifier.fillMaxWidth(0.85f)
                     ) {
+                        if (!isUser && message.thinkingText != null) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color.Gray.copy(alpha = 0.1f),
+                                modifier = Modifier.padding(bottom = 4.dp).fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Thinking:\n${message.thinkingText}",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp,
+                                    fontStyle = FontStyle.Italic,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    lineHeight = 16.sp
+                                )
+                            }
+                        }
+
+                        // Attached Image rendering
+                        if (!message.imageUri.isNullOrEmpty()) {
+                            val bitmap = remember(message.imageUri) {
+                                try {
+                                    val contentUri = android.net.Uri.parse(message.imageUri)
+                                    val source = android.graphics.ImageDecoder.createSource(context.contentResolver, contentUri)
+                                    android.graphics.ImageDecoder.decodeBitmap(source)
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            }
+                            bitmap?.let {
+                                androidx.compose.foundation.Image(
+                                    bitmap = it.asImageBitmap(),
+                                    contentDescription = "Attached image",
+                                    modifier = Modifier
+                                        .padding(bottom = 4.dp)
+                                        .size(160.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .border(BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f)), RoundedCornerShape(12.dp))
+                                )
+                            }
+                        }
+
+                        // Attached Voice Query rendering
+                        if (!message.audioUri.isNullOrEmpty()) {
+                            AudioBubblePlayer(audioUri = message.audioUri)
+                        }
+
                         Surface(
                             shape = RoundedCornerShape(
                                 topStart = 16.dp,
@@ -822,18 +1089,121 @@ fun TutorChatPanel(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Attachment Queue row above input field
+        if (attachedImageUri != null || attachedAudioUri != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                attachedImageUri?.let { uriStr ->
+                    val bitmap = remember(uriStr) {
+                        try {
+                            val contentUri = android.net.Uri.parse(uriStr)
+                            val source = android.graphics.ImageDecoder.createSource(context.contentResolver, contentUri)
+                            android.graphics.ImageDecoder.decodeBitmap(source)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .border(BorderStroke(1.dp, SecondaryNeon), RoundedCornerShape(8.dp))
+                    ) {
+                        bitmap?.let {
+                            androidx.compose.foundation.Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "Attached thumbnail",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                        IconButton(
+                            onClick = { attachedImageUri = null },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .size(18.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(9.dp))
+                        ) {
+                            Text("×", color = Color.Red, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                
+                attachedAudioUri?.let { path ->
+                    Row(
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .border(BorderStroke(1.dp, SecondaryNeon), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(imageVector = MicIcon, contentDescription = "Recorded Audio", tint = SecondaryNeon, modifier = Modifier.size(16.dp))
+                        Text("Voice Rec", color = Color.White, fontSize = 11.sp)
+                        IconButton(
+                            onClick = { attachedAudioUri = null },
+                            modifier = Modifier.size(16.dp)
+                        ) {
+                            Text("×", color = Color.Red, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(SurfaceCard, RoundedCornerShape(24.dp))
                 .border(BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f)), RoundedCornerShape(24.dp))
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(
+                onClick = {
+                    imagePickerLauncher.launch(
+                        androidx.activity.result.PickVisualMediaRequest(
+                            androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                        )
+                    )
+                }
+            ) {
+                Icon(
+                    imageVector = AttachIcon,
+                    contentDescription = "Attach media",
+                    tint = Color.LightGray
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    if (isRecordingVoice) {
+                        val path = viewModel.stopVoiceRecording()
+                        if (path != null) {
+                            attachedAudioUri = path
+                        }
+                    } else {
+                        viewModel.startVoiceRecording()
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = MicIcon,
+                    contentDescription = "Record voice",
+                    tint = if (isRecordingVoice) Color.Red else Color.LightGray
+                )
+            }
+
             TextField(
                 value = inputText,
                 onValueChange = { inputText = it },
-                placeholder = { Text("Ask about this lecture...", color = Color.Gray, fontSize = 14.sp) },
+                placeholder = { Text(if (isRecordingVoice) "Recording..." else "Ask about this lecture...", color = Color.Gray, fontSize = 14.sp) },
                 modifier = Modifier.weight(1f),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
@@ -844,22 +1214,32 @@ fun TutorChatPanel(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White
                 ),
-                singleLine = true
+                singleLine = true,
+                enabled = !isRecordingVoice
             )
+
+            val canSend = (inputText.isNotBlank() || attachedImageUri != null || attachedAudioUri != null) && !isTyping && !isRecordingVoice
 
             IconButton(
                 onClick = {
-                    if (inputText.isNotBlank()) {
-                        onSendMessage(inputText.trim())
+                    if (canSend) {
+                        viewModel.askTutor(
+                            question = inputText.trim(),
+                            imageUri = attachedImageUri,
+                            audioUri = attachedAudioUri
+                        )
                         inputText = ""
+                        attachedImageUri = null
+                        attachedAudioUri = null
+                        focusManager.clearFocus()
                     }
                 },
-                enabled = inputText.isNotBlank() && !isTyping
+                enabled = canSend
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "Send",
-                    tint = if (inputText.isNotBlank() && !isTyping) SecondaryNeon else Color.Gray
+                    tint = if (canSend) SecondaryNeon else Color.Gray
                 )
             }
         }

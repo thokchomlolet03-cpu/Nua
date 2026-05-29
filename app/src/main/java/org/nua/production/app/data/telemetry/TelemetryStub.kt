@@ -69,7 +69,7 @@ interface TelemetryContract {
  */
 class LocalTelemetryStore(
     private val context: Context,
-    private val signingSecret: String = "fallback_secret"
+    private val signingSecret: String = "nua_default_secure_secret_2026"
 ) : TelemetryContract {
 
     companion object {
@@ -263,7 +263,11 @@ class LocalTelemetryStore(
                         }
                     }
                 }
-                context.registerReceiver(receiver, intentFilter)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+                } else {
+                    context.registerReceiver(receiver, intentFilter)
+                }
                 discover()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start Wi-Fi Direct Mesh", e)

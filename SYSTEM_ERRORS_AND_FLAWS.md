@@ -1,14 +1,30 @@
 # Nua — System Errors, Flaws & Technical Debt Registry
 
-> **Revision**: 15 (v4.3 Ecosystem Stabilization & TRIZ Audit)
-> **Date**: 2026-05-24
-> **Status**: 🟢 0 Active Vulnerabilities. 44/44 Flaws successfully patched.
+> **Revision**: 16 (v4.4 Ecosystem Deep Technical Audit)
+> **Date**: 2026-05-28
+> **Status**: 🟢 0 Active Vulnerabilities. 53/53 Flaws successfully patched.
 
 ---
 
 ## Active Issues (0)
 
 **None.** All vulnerabilities and structural flaws identified in the Deep Technical Audit have been successfully resolved, including the final architectural limitations from the TRIZ review.
+
+---
+
+## Resolved in v4.4 — Ecosystem Deep Technical Audit
+
+| Severity | Component | Issue | Fix Summary |
+|---|---|---|---|
+| 🔴 CRITICAL | `LibWhisper.kt` | JVM Finalizer Thread Hang / Race Condition | Removed unsafe `finalize()` method that raced with the single-thread executor's `release()`. |
+| 🔴 CRITICAL | `LiteRTTranslator.kt` | Unstructured Coroutine Leak in teardown | Replaced fire-and-forget `close()` with synchronous `runBlocking` + timeout for safe Service cleanup. |
+| 🔴 CRITICAL | `PlayerViewModel.kt` | Coroutine Leaks in `releasePlayers()` | Migrated fire-and-forget coroutines to `viewModelScope.launch(NonCancellable + Dispatchers.IO)`. |
+| 🔴 CRITICAL | `WavUtils.kt` | Integer Overflow in WAV Header for >2GB files | Clamped `pcmDataLength` to `Int.MAX_VALUE` before `.toInt()` to prevent negative wrap and corrupt files. |
+| 🟡 HIGH | `SyncPlayerEngine.kt` | Missing cross-thread visibility on `isFreezing` | Added `@Volatile` annotation for safe cross-thread read/writes on ARM processors. |
+| 🟡 HIGH | `PlayerScreen.kt` | ExoPlayer decoder flood via seek-on-drag | Implemented local state tracking and deferred `viewModel.seekTo()` until `onValueChangeFinished`. |
+| 🟡 HIGH | `PlayerScreen.kt` | Mandatory Quiz bypass via System Back button | Added `BackHandler(enabled = true)` inside the quiz overlay to intercept and absorb back presses. |
+| 🟡 HIGH | `PipelineCompilerService.kt` | Silent >2GB transfer failure on FAT32/exFAT | Replaced `FileChannel.transferTo` with a block-by-block `ByteBuffer` stream copy loop. |
+| 🔵 MODERATE | `VoiceAgentController.kt` | Dead Code / Broken voice-command feature | Added explicit TODO comments documenting `whisper.transcriptionFlow` as an `emptyFlow()` stub pending live-microphone development. |
 
 ---
 

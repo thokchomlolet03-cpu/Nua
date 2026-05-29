@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.Conversation
+import com.google.ai.edge.litertlm.Backend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -12,8 +13,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.GlobalScope
+
+
 import java.io.File
 
 /**
@@ -59,8 +60,12 @@ class LiteRTTranslator(private val context: Context) {
                 engine = null
                 currentModelPath = null
 
+                val prefs = context.getSharedPreferences("nua_prefs", Context.MODE_PRIVATE)
+                val tier = prefs.getString("device_tier", "UNKNOWN")
+                
                 val config = EngineConfig(
-                    modelPath = modelPath
+                    modelPath = modelPath,
+                    backend = if (tier == "PREMIUM") Backend.GPU() else Backend.CPU()
                 )
                 engine = Engine(config).also { it.initialize() }
                 currentModelPath = modelPath
@@ -76,12 +81,23 @@ class LiteRTTranslator(private val context: Context) {
     fun isModelLoaded(): Boolean = engine != null
 
     fun close() {
-        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-            translationMutex.withLock {
-                try { engine?.close() } catch (_: Exception) {}
-                engine = null
-                currentModelPath = null
+        // Must run synchronously since close() is called from Service.onDestroy().
+        // Use runBlocking with a timeout to prevent indefinite hangs.
+        try {
+            kotlinx.coroutines.runBlocking {
+                kotlinx.coroutines.withTimeout(5000L) {
+                    translationMutex.withLock {
+                        try { engine?.close() } catch (_: Exception) {}
+                        engine = null
+                        currentModelPath = null
+                    }
+                }
             }
+        } catch (_: Exception) {
+            // Timeout or interruption — force cleanup without lock
+            try { engine?.close() } catch (_: Exception) {}
+            engine = null
+            currentModelPath = null
         }
     }
 
@@ -113,7 +129,9 @@ class LiteRTTranslator(private val context: Context) {
             return@withContext "Error: Model not loaded"
         }
 
-        val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
+        val prefs = context.getSharedPreferences("nua_prefs", Context.MODE_PRIVATE)
+        val isPremium = prefs.getString("device_tier", "BUDGET") == "PREMIUM"
+        val prompt = buildTranslationPrompt(text, maxWords, previousTranslation, isPremium)
 
         try {
             translationMutex.withLock {
@@ -153,7 +171,9 @@ class LiteRTTranslator(private val context: Context) {
             send("Error: LiteRT-LM engine not initialized")
             return@channelFlow
         }
-        val prompt = buildTranslationPrompt(text, maxWords, previousTranslation)
+        val prefs = context.getSharedPreferences("nua_prefs", Context.MODE_PRIVATE)
+        val isPremium = prefs.getString("device_tier", "BUDGET") == "PREMIUM"
+        val prompt = buildTranslationPrompt(text, maxWords, previousTranslation, isPremium)
 
         translationMutex.withLock {
             val conversation = lmEngine.createConversation()
@@ -165,15 +185,20 @@ class LiteRTTranslator(private val context: Context) {
 
     // ─── Prompt engineering ─────────────────────────────────────────────
 
-    private fun buildTranslationPrompt(text: String, maxWords: Int, previousTranslation: String?): String {
+    private fun buildTranslationPrompt(text: String, maxWords: Int, previousTranslation: String?, isPremium: Boolean): String {
+        val thinkingInstruction = if (isPremium) {
+            "Use <thinking>...</thinking> tags to plan your translation before outputting the final result. "
+        } else ""
+
         return if (previousTranslation.isNullOrEmpty()) {
             """
             You are a helpful assistant translating lecture audio to Hindi.
+            $thinkingInstruction
             Translate the following English sentence to Hindi (using Devanagari script).
             Keep all scientific, medical, and technical terminology in English (do not translate terms like 'photosynthesis', 'cell', 'plants', 'biology', 'process', 'molecules', 'oxygen', 'mitochondria' to Hindi).
             Write the sentence structure, verbs, and explanations in Hindi.
             Keep the translation concise. Limit the output to maximum $maxWords words.
-            Output ONLY the translation. Do not write any explanations or intros.
+            Output ONLY the translation. Do not write any explanations or intros outside the thinking tags.
             
             Input: $text
             Output:
@@ -182,11 +207,12 @@ class LiteRTTranslator(private val context: Context) {
             """
             You are a helpful assistant translating lecture audio to Hindi.
             Here is the translation of the previous sentence for context: "$previousTranslation".
+            $thinkingInstruction
             Translate the following English sentence to Hindi (using Devanagari script), continuing the style and context naturally.
             Keep all scientific, medical, and technical terminology in English (do not translate terms like 'photosynthesis', 'cell', 'plants', 'biology', 'process', 'molecules', 'oxygen', 'mitochondria' to Hindi).
             Write the sentence structure, verbs, and explanations in Hindi.
             Keep the translation concise. Limit the output to maximum $maxWords words.
-            Output ONLY the translation. Do not write any explanations or intros.
+            Output ONLY the translation. Do not write any explanations or intros outside the thinking tags.
             
             Input: $text
             Output:
