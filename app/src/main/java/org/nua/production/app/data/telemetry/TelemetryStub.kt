@@ -67,19 +67,40 @@ interface TelemetryContract {
  * Wi-Fi Direct Mesh and Local storage implementation of the telemetry contract.
  * Periodically discovers peers in background to share and aggregate telemetry log files.
  */
-class LocalTelemetryStore(
-    private val context: Context,
+class LocalTelemetryStore internal constructor(
+    context: Context,
     private val signingSecret: String = "nua_default_secure_secret_2026"
 ) : TelemetryContract {
 
     companion object {
         private const val TAG = "TelemetryStore"
         private const val TELEMETRY_DIR = "telemetry_ledger"
+
+        @Volatile
+        private var instance: LocalTelemetryStore? = null
+
+        fun getInstance(context: Context): LocalTelemetryStore {
+            return instance ?: synchronized(this) {
+                instance ?: LocalTelemetryStore(
+                    try {
+                        context.applicationContext ?: context
+                    } catch (e: Throwable) {
+                        context
+                    }
+                ).also { instance = it }
+            }
+        }
     }
 
-    private val ledgerDir: File by lazy {
-        File(context.filesDir, TELEMETRY_DIR).also { it.mkdirs() }
+    private val appContext = try {
+        context.applicationContext ?: context
+    } catch (e: Throwable) {
+        context
     }
+    private val ledgerDir: File by lazy {
+        File(appContext.filesDir, TELEMETRY_DIR).also { it.mkdirs() }
+    }
+    private val storagePruneLock = Any()
 
     private val meshManager = WifiDirectMeshManager()
 
@@ -102,7 +123,7 @@ class LocalTelemetryStore(
                 .setConstraints(constraints)
                 .build()
 
-            WorkManager.getInstance(context).enqueueUniqueWork(
+            WorkManager.getInstance(appContext).enqueueUniqueWork(
                 "TelemetrySyncWork",
                 ExistingWorkPolicy.KEEP,
                 syncRequest
@@ -194,7 +215,7 @@ class LocalTelemetryStore(
 
     private fun isNetworkAvailable(): Boolean {
         try {
-            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+            val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
             val nw = cm.activeNetwork ?: return false
             val actNw = cm.getNetworkCapabilities(nw) ?: return false
             return when {
@@ -217,9 +238,9 @@ class LocalTelemetryStore(
 
         fun start() {
             try {
-                manager = context.getSystemService(Context.WIFI_P2P_SERVICE) as? WifiP2pManager
+                manager = appContext.getSystemService(Context.WIFI_P2P_SERVICE) as? WifiP2pManager
                 if (manager == null) return
-                channel = manager?.initialize(context, context.mainLooper, null)
+                channel = manager?.initialize(appContext, appContext.mainLooper, null)
 
                 val intentFilter = IntentFilter().apply {
                     addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION)
@@ -264,9 +285,9 @@ class LocalTelemetryStore(
                     }
                 }
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    context.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+                    appContext.registerReceiver(receiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
                 } else {
-                    context.registerReceiver(receiver, intentFilter)
+                    appContext.registerReceiver(receiver, intentFilter)
                 }
                 discover()
             } catch (e: Exception) {
@@ -454,7 +475,7 @@ class LocalTelemetryStore(
         fun stop() {
             stopServer()
             try {
-                receiver?.let { context.unregisterReceiver(it) }
+                receiver?.let { appContext.unregisterReceiver(it) }
             } catch (_: Exception) {}
             receiver = null
             executorService.shutdown()
@@ -512,14 +533,47 @@ class LocalTelemetryStore(
         val safeSessionId = sessionId.replace(Regex("[^a-zA-Z0-9_-]"), "")
         val filename = "${safeSessionId}_${eventType}_${System.currentTimeMillis()}.tlm"
         File(ledgerDir, filename).writeBytes(data)
-        pruneOldPayloads()
+        pruneTelemetryStorageCeiling()
     }
 
-    private fun pruneOldPayloads() {
-        val files = ledgerDir.listFiles()?.sortedBy { it.lastModified() } ?: return
-        val maxFiles = 100
-        if (files.size > maxFiles) {
-            files.take(files.size - maxFiles).forEach { it.delete() }
+    /**
+     * Enforces a hard, deterministic 100-file ceiling on local telemetry logs.
+     * Safely isolates and prunes the absolute oldest files on disk chronologically
+     * to prevent storage overflow while preserving un-synced peer data.
+     */
+    fun pruneTelemetryStorageCeiling() {
+        synchronized(storagePruneLock) {
+            try {
+                // 1. Isolate only telemetry payload files to prevent hitting metadata files
+                val telemetryFiles = ledgerDir.listFiles { _, name -> 
+                    name.endsWith(".tlm") 
+                }
+
+                if (telemetryFiles != null && telemetryFiles.size > 100) {
+                    // 2. Sort chronologically by disk modification metadata (oldest first)
+                    val sortedFiles = telemetryFiles.sortedBy { it.lastModified() }
+                    
+                    // 3. Determine precisely how many files exceed our 100-file safety window
+                    val overflowCount = sortedFiles.size - 100
+                    
+                    Log.i("TelemetryStore", "Storage ceiling reached (${sortedFiles.size} files). Pruning $overflowCount old logs.")
+                    
+                    // 4. Run a deterministic deletion pass from oldest to newest
+                    for (i in 0 until overflowCount) {
+                        val targetFile = sortedFiles[i]
+                        if (targetFile.exists()) {
+                            val isDeleted = targetFile.delete()
+                            if (isDeleted) {
+                                Log.d("TelemetryStore", "Successfully pruned historical log: ${targetFile.name}")
+                            } else {
+                                Log.w("TelemetryStore", "Failed to delete target file asset: ${targetFile.name}")
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("TelemetryStore", "Critical exception encountered during storage pruning pass", e)
+            }
         }
     }
 

@@ -44,7 +44,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
 
     private val context = application.applicationContext
     private val sessionManager = SessionManager(context.filesDir)
-    private val telemetryStore: TelemetryContract = LocalTelemetryStore(context)
+    private val telemetryStore: TelemetryContract = LocalTelemetryStore.getInstance(context)
 
     private var syncEngine: SyncPlayerEngine? = null
 

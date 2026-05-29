@@ -17,7 +17,7 @@ class TelemetryWorker(
     override suspend fun doWork(): Result {
         return try {
             Log.d(TAG, "Starting background telemetry sync...")
-            val store = LocalTelemetryStore(context)
+            val store = LocalTelemetryStore.getInstance(context)
             store.flushToServer()
             Log.d(TAG, "Background telemetry sync completed successfully")
             Result.success()
