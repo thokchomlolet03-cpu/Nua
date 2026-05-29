@@ -26,7 +26,12 @@ android {
             // Hardened System Fix: Mandate 64-bit compilation environments exclusively
             // Drops armeabi-v7a (32-bit ARM) and x86 (32-bit Emulator) to eliminate runtime crashes
             abiFilters.clear()
-            abiFilters.addAll(setOf("arm64-v8a", "x86_64"))
+            val enableSplits = project.gradle.startParameter.taskNames.any {
+                it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true)
+            }
+            if (!enableSplits) {
+                abiFilters.addAll(setOf("arm64-v8a", "x86_64"))
+            }
         }
     }
 
@@ -75,7 +80,9 @@ android {
     splits {
         // Configure explicit APK split options to safeguard distribution sizes
         abi {
-            isEnable = false
+            isEnable = project.gradle.startParameter.taskNames.any {
+                it.contains("Release", ignoreCase = true) || it.contains("bundle", ignoreCase = true)
+            }
             reset()
             include("arm64-v8a", "x86_64")
             isUniversalApk = false
