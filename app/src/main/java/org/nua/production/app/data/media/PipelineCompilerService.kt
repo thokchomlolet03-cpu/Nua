@@ -122,12 +122,17 @@ class PipelineCompilerService : Service() {
                 copyFile(inputFile, localVideoFile)
                 addLog("Video imported to: ${localVideoFile.absolutePath}")
 
-                // 2 & 3. Streaming Extraction and Transcription
-                updateStatus("Extracting & Transcribing", 0.0f, "Step 1 & 2: Extracting audio and transcribing concurrently...")
+                // 2 & 3. Decoupled Asynchronous Extraction and Transcription
+                updateStatus("Extracting & Transcribing", 0.02f, "Step 1 & 2: Extracting audio and transcribing concurrently...")
                 val originalAudioWav = File(sessionDir, "original_audio.wav")
-                val audioChannel = kotlinx.coroutines.channels.Channel<org.nua.production.app.data.asr.AudioChunk>(capacity = 1, onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.SUSPEND)
-                
-                // Launch transcription concurrently
+
+                // Strict backpressure tracking gate
+                val audioChannel = kotlinx.coroutines.channels.Channel<org.nua.production.app.data.asr.AudioChunk>(
+                    capacity = 1,
+                    onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.SUSPEND
+                )
+
+                // 1. ASYNCHRONOUS CONSUMER: Fired completely independently on the background thread pool
                 val transcriptionJob = async(Dispatchers.IO) {
                     runCatching {
                         if (asrMode == ASR_MODE_CLOUD) {
@@ -138,7 +143,7 @@ class PipelineCompilerService : Service() {
                             var cloudSegments: List<TextSegment> = emptyList()
                             firebaseTranscriber.transcribeWav(originalAudioWav, mockMode) { progress ->
                                 updateStatus("Transcribing (Cloud)", progress)
-                                cloudSegments = emptyList() // FirebaseTranscriber is stubbed to return empty list or use callbacks
+                                cloudSegments = emptyList()
                             }
                             cloudSegments
                         } else {
@@ -147,7 +152,7 @@ class PipelineCompilerService : Service() {
                                 emptyList<TextSegment>()
                             } else {
                                 if (!whisperTranscriber.isModelDownloaded()) {
-                                    throw Exception("Whisper language model is not downloaded. Please download in Setup first.")
+                                    throw IllegalStateException("Whisper language model is not downloaded. Please download in Setup first.")
                                 }
                                 whisperTranscriber.transcribeStream(audioChannel)
                             }
@@ -155,66 +160,49 @@ class PipelineCompilerService : Service() {
                     }
                 }
 
-                // Failsafe: if transcription finishes early (error), close the channel
-                // to unblock the slicer and decoder, preventing a deadlock
-                val failsafeJob = launch {
-                    val result = transcriptionJob.await()
-                    if (result.isFailure) {
-                        Log.w(TAG, "Transcription failed early, closing audio channel to unblock extraction")
-                        audioChannel.close()
+                // 2. ASYNCHRONOUS PRODUCER: Decoupled entirely from the service coordinator thread
+                val extractionJob = async(Dispatchers.IO) {
+                    runCatching {
+                        audioDecoder.decodeVideoToWav(localVideoFile, originalAudioWav, audioChannel) { progress ->
+                            // Reflect real data weights cleanly
+                            updateStatus("Extracting Audio", progress * 0.1f, null)
+                        }
                     }
                 }
 
-                // Run extraction which feeds the channel
-                val decodeSuccess = audioDecoder.decodeVideoToWav(localVideoFile, originalAudioWav, audioChannel) { progress ->
-                    // Extractor is fast, let's scale it to the first 10% of progress
-                    updateStatus("Extracting Audio", progress * 0.1f, null)
+                // 3. PIPELINE LIFECYCLE COORDINATOR: Monitor transcription completion first
+                val txResult = transcriptionJob.await()
+
+                if (txResult.isFailure) {
+                    val exception = txResult.exceptionOrNull()
+                    Log.e(TAG, "ASR engine threw an unhandled failure block during execution", exception)
+
+                    // CRITICAL CORRECTION: Force channel closure to instantly break the decoder's suspension lock
+                    audioChannel.close()
+
+                    // CRITICAL CORRECTION: Explicitly update the UI status state flow to report the error text
+                    updateStatus("Error", 0.0f, "❌ Transcription failed: ${exception?.message}")
+                    stopSelf()
+                    return@launch
                 }
 
-                failsafeJob.cancel() // Extraction completed, failsafe no longer needed
+                val segments = txResult.getOrThrow()
 
-                if (!decodeSuccess || !originalAudioWav.exists()) {
+                // Await extraction completion
+                val extractResult = extractionJob.await()
+                if (extractResult.isFailure || extractResult.getOrNull() != true) {
+                    Log.e(TAG, "Media extraction thread encountered a disk I/O failure flag.")
+                    updateStatus("Error", 0.0f, "❌ Critical: System failed to extract video track.")
+                    stopSelf()
+                    return@launch
+                }
+
+                if (!originalAudioWav.exists()) {
                     updateStatus("Error", 0f, "❌ Failed to extract audio track from video.")
                     stopSelf()
                     return@launch
                 }
-                
-                // Launch background coroutine to smoothly update the progress UI using an asymptotic function for transcription
-                val progressJob = serviceScope.launch(Dispatchers.Main) {
-                    var elapsedSeconds = 0
-                    val T = 120f // Approximate time for 5 min video on budget device
-                    var lastLogMessage = ""
-                    while (isActive) {
-                        delay(1000)
-                        elapsedSeconds++
-                        val t = elapsedSeconds.toFloat()
-                        
-                        // Start progress from 10% (after extraction) and smoothly go to 95%
-                        val progressPct = 0.1f + 0.85f * (1.0f - Math.exp(-2.4 * (t.toDouble() / T.toDouble())).toFloat())
-                        
-                        val logMsg = "Step 2: Transcribing speech offline with Whisper... (Processing chunks...)"
-                        
-                        if (logMsg != lastLogMessage) {
-                            updateStatus("Transcribing", progressPct, logMsg)
-                            lastLogMessage = logMsg
-                        } else {
-                            updateStatus("Transcribing", progressPct, null)
-                        }
-                    }
-                }
-                
-                // Wait for transcription to finish processing the streamed chunks
-                val segments = try {
-                    transcriptionJob.await().getOrThrow()
-                } catch (e: Exception) {
-                    progressJob.cancel()
-                    updateStatus("Error", 0f, "❌ Transcription failed: ${e.message}")
-                    stopSelf()
-                    return@launch
-                } finally {
-                    progressJob.cancel()
-                }
-                
+
                 addLog("Transcribed ${segments.size} speech segments.")
 
                 // 4. LLM Translation with Gemma

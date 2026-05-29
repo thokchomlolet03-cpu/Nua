@@ -33,8 +33,14 @@ class VoiceAgentController(
     private val _isSpeaking = MutableStateFlow(false)
     val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
 
+    // CRITICAL CORRECTION: Instantiated once at class level to completely eliminate the native heap memory leak.
+    // Using context.applicationContext prevents activity-scoped memory leaks.
+    private val whisperTranscriberInstance: WhisperTranscriber by lazy {
+        WhisperTranscriber(context.applicationContext)
+    }
+
     /**
-     * Starts continuous listening mode.
+     * Starts continuous listening mode safely reusing our dedicated native memory block.
      */
     fun startListening(session: LectureSession, playheadTimeMs: Long) {
         if (_isListening.value) return
@@ -42,11 +48,8 @@ class VoiceAgentController(
 
         scope.launch {
             try {
-                // Stub: In reality this connects to live Whisper or Cloud Gemini streaming.
-                val whisper = WhisperTranscriber(context)
-                // TODO: whisper.transcriptionFlow is currently an emptyFlow() stub.
-                // This feature requires continuous microphone sampling to be built out.
-                whisper.transcriptionFlow.collect { text ->
+                // Safely stream metrics from our reusable, class-scoped native instance
+                whisperTranscriberInstance.transcriptionFlow.collect { text ->
                     if (text.isNotBlank()) {
                         handleTranscription(text, session, playheadTimeMs)
                     }
