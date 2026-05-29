@@ -21,7 +21,7 @@ import org.nua.production.app.data.asr.WhisperTranscriber
 import org.nua.production.app.data.asr.FirebaseTranscriber
 import org.nua.production.app.data.asr.TextSegment
 import org.nua.production.app.data.llm.LiteRTTranslator
-import org.nua.production.app.data.tts.DubbingTtsEngine
+import org.nua.production.app.media.tts.DubbingTtsEngine
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

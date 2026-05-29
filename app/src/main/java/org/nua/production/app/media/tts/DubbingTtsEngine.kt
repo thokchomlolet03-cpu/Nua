@@ -1,4 +1,4 @@
-package org.nua.production.app.data.tts
+package org.nua.production.app.media.tts
 
 import android.content.Context
 import android.os.Bundle
@@ -13,7 +13,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class DubbingTtsEngine(private val context: Context) {
+class DubbingTtsEngine @JvmOverloads constructor(private val context: Context? = null) {
 
     companion object {
         private const val TAG = "DubbingTtsEngine"
@@ -25,21 +25,25 @@ class DubbingTtsEngine(private val context: Context) {
     private val initLatch = CountDownLatch(1)
 
     init {
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                // Configure TTS language
-                val locale = Locale("hi", "IN") // Hindi
-                val result = tts?.setLanguage(locale)
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e(TAG, "Hindi language is not supported or missing data")
-                    isMissingData = true
+        context?.let { ctx ->
+            tts = TextToSpeech(ctx) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    // Configure TTS language
+                    val locale = Locale("hi", "IN") // Hindi
+                    val result = tts?.setLanguage(locale)
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.e(TAG, "Hindi language is not supported or missing data")
+                        isMissingData = true
+                    } else {
+                        isInitialized = true
+                        Log.d(TAG, "TTS engine initialized successfully with Hindi locale")
+                    }
                 } else {
-                    isInitialized = true
-                    Log.d(TAG, "TTS engine initialized successfully with Hindi locale")
+                    Log.e(TAG, "Failed to initialize TTS engine")
                 }
-            } else {
-                Log.e(TAG, "Failed to initialize TTS engine")
+                initLatch.countDown()
             }
+        } ?: run {
             initLatch.countDown()
         }
     }
@@ -52,6 +56,40 @@ class DubbingTtsEngine(private val context: Context) {
             Log.e(TAG, "Timeout waiting for TTS init", e)
         }
         return isInitialized
+    }
+
+    /**
+     * Computes a safe, bounded playback rate modifier for the speech engine
+     * based on the phonetic density estimation and physical video segment limits.
+     *
+     * Resolves the fatal NaN coercion bug by adding validation gates before clamping.
+     *
+     * @param estimatedDurationSec The estimated time required to speak the text at normal speed.
+     * @param targetDurationSeconds The exact maximum window available in the video timeline.
+     * @return A safely clamped float playback speed factor between 1.0f and 2.0f.
+     */
+    fun calculateTtsPlaybackRate(estimatedDurationSec: Float, targetDurationSeconds: Float): Float {
+        // 1. DIVIDE-BY-ZERO GUARD: If target video time is zero or negative, fall back immediately
+        if (targetDurationSeconds <= 0f) {
+            Log.w("DubbingTtsEngine", "Invalid or zero target video timeline window ($targetDurationSeconds s). Defaulting to 1.0f baseline speed.")
+            return 1.0f
+        }
+
+        val calculatedRate = estimatedDurationSec / targetDurationSeconds
+
+        // 2. NaN PROTECTION GATE: Check if the calculation resulted in an undefined state (0.0 / 0.0)
+        if (calculatedRate.isNaN()) {
+            Log.w("DubbingTtsEngine", "Speech rate calculation evaluated to NaN (0.0 / 0.0 representation). Defaulting to 1.0f baseline speed.")
+            return 1.0f
+        }
+
+        // 3. BOUNDARY CEILING CLAMP: Safely restrict playback rate bounds to keep speech intelligible
+        val boundedRate = calculatedRate.coerceIn(1.0f, 2.0f)
+
+        Log.d("DubbingTtsEngine", "TTS Speed Adjustment: Estimated (${estimatedDurationSec}s) -> " +
+                "Target Window (${targetDurationSeconds}s) | Configured Rate: ${boundedRate}x")
+
+        return boundedRate
     }
 
     /**
@@ -71,13 +109,9 @@ class DubbingTtsEngine(private val context: Context) {
         try {
             // Estimate spoken duration using syllable density analysis upfront
             val estimatedDurationMs = estimatePhoneticDurationMs(text, 1.0f)
-            val estimatedDurationSec = estimatedDurationMs / 1000.0
+            val estimatedDurationSec = estimatedDurationMs / 1000.0f
 
-            var currentRate = 1.0f
-            if (estimatedDurationSec > targetDurationSeconds && targetDurationSeconds > 0) {
-                val speedRatio = (estimatedDurationSec / targetDurationSeconds).toFloat()
-                currentRate = speedRatio.coerceIn(1.0f, 2.0f)
-            }
+            val currentRate = calculateTtsPlaybackRate(estimatedDurationSec, targetDurationSeconds.toFloat())
 
             Log.d(TAG, "Single-pass synthesis: '$text' at rate $currentRate (estimated: $estimatedDurationSec s, target: $targetDurationSeconds s)")
             tts?.setSpeechRate(currentRate)

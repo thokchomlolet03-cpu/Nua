@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.nua.production.app.data.rag.OfflineTutorEngine
 import org.nua.production.app.data.schema.LectureSession
-import org.nua.production.app.data.tts.DubbingTtsEngine
+import org.nua.production.app.media.tts.DubbingTtsEngine
 
 /**
  * Orchestrator for the Voice-First UI (Premium Tier).
