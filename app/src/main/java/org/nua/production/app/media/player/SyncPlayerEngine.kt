@@ -1,5 +1,7 @@
-package org.nua.production.app.data.media
+package org.nua.production.app.media.player
 
+import org.nua.production.app.data.media.TimelineInterval
+import org.nua.production.app.data.media.VirtualTimelineMapper
 import android.content.Context
 import android.os.Handler
 import android.os.Looper

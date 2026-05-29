@@ -12,7 +12,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import org.nua.production.app.data.media.MediaComposition
 import org.nua.production.app.data.media.SessionManager
-import org.nua.production.app.data.media.SyncPlayerEngine
+import org.nua.production.app.media.player.SyncPlayerEngine
 import org.nua.production.app.data.media.TimelineInterval
 import org.nua.production.app.data.media.VirtualTimelineMapper
 import org.nua.production.app.data.media.HotspotInfo

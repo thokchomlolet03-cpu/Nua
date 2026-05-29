@@ -1,4 +1,4 @@
-package org.nua.production.app.data.media
+package org.nua.production.app.media.player
 
 import org.junit.Assert.assertEquals
 import org.junit.Before
