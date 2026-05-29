@@ -80,7 +80,8 @@ class PipelineIngestionStressTest {
         }
 
         // Wait for execution completion blocks within safe timeout bounds
-        withTimeout(5000) {
+        // Buffer zone: 5000 chunks × 1ms = 5s minimum + GC/scheduling overhead
+        withTimeout(15000) {
             joinAll(producerJob, consumerJob)
         }
 

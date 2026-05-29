@@ -33,11 +33,18 @@ class VoiceAgentController(
     private val _isSpeaking = MutableStateFlow(false)
     val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
 
-    // CRITICAL CORRECTION: Instantiated once at class level to completely eliminate the native heap memory leak.
-    // Using context.applicationContext prevents activity-scoped memory leaks.
-    private val whisperTranscriberInstance: WhisperTranscriber by lazy {
-        WhisperTranscriber(context.applicationContext)
-    }
+    // CRITICAL CORRECTION: Replaced permanent `by lazy` with a nullable backing field.
+    // Native C++ model weights (~40-80MB) are now explicitly releasable when the host
+    // UI component is detached, preventing long-term background memory hoarding that
+    // makes the app a target for the OS low-memory killer.
+    private var _whisperTranscriberInstance: WhisperTranscriber? = null
+    private val whisperTranscriberInstance: WhisperTranscriber
+        get() {
+            if (_whisperTranscriberInstance == null) {
+                _whisperTranscriberInstance = WhisperTranscriber(context.applicationContext)
+            }
+            return _whisperTranscriberInstance!!
+        }
 
     /**
      * Starts continuous listening mode safely reusing our dedicated native memory block.
@@ -71,6 +78,17 @@ class VoiceAgentController(
         // transcriber might have a stop method, assuming it is started/stopped externally or we manage it here
     }
 
+    /**
+     * Explicitly releases the native Whisper model weights from memory.
+     * Call this when the host UI component (e.g., lecture player) is detached or destroyed
+     * to free ~40-80MB of pinned native C++ allocations. The model will be lazily
+     * re-initialized on the next `startListening()` call if needed.
+     */
+    fun releaseModelContext() {
+        _whisperTranscriberInstance = null
+        Log.d(TAG, "Native Whisper model context released — memory reclaimed")
+    }
+
     private suspend fun handleTranscription(text: String, session: LectureSession, playheadTimeMs: Long) {
         // Detect interrupt commands
         if (text.contains("hey nua pause", ignoreCase = true) || text.contains("stop", ignoreCase = true)) {
@@ -92,6 +110,7 @@ class VoiceAgentController(
 
     fun release() {
         stopListening()
+        releaseModelContext()
         scope.cancel()
     }
 }

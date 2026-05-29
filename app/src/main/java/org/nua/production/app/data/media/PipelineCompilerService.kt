@@ -170,29 +170,47 @@ class PipelineCompilerService : Service() {
                     }
                 }
 
-                // 3. PIPELINE LIFECYCLE COORDINATOR: Monitor transcription completion first
-                val txResult = transcriptionJob.await()
+                // 3. PIPELINE LIFECYCLE COORDINATOR: Dual-monitor both jobs simultaneously.
+                //    If EITHER the producer or consumer fails first, the channel is immediately
+                //    torn down so neither side can suspend indefinitely.
+                var segments: List<TextSegment> = emptyList()
+                try {
+                    // Use coroutineScope to enforce structured cancellation: if either
+                    // child job throws, the sibling is cancelled and the scope re-throws.
+                    coroutineScope {
+                        val monitoredTranscription = async {
+                            val txResult = transcriptionJob.await()
+                            if (txResult.isFailure) {
+                                throw txResult.exceptionOrNull()
+                                    ?: IllegalStateException("Transcription failed with unknown error")
+                            }
+                            txResult.getOrThrow()
+                        }
 
-                if (txResult.isFailure) {
-                    val exception = txResult.exceptionOrNull()
-                    Log.e(TAG, "ASR engine threw an unhandled failure block during execution", exception)
+                        val monitoredExtraction = async {
+                            val extResult = extractionJob.await()
+                            if (extResult.isFailure) {
+                                throw extResult.exceptionOrNull()
+                                    ?: IllegalStateException("Extraction failed with unknown error")
+                            }
+                            extResult.getOrThrow()
+                        }
 
-                    // CRITICAL CORRECTION: Force channel closure to instantly break the decoder's suspension lock
+                        // Await both concurrently — first failure cancels the sibling
+                        segments = monitoredTranscription.await()
+                        monitoredExtraction.await()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Pipeline stage failure detected — tearing down channel", e)
+
+                    // CRITICAL: Force channel closure to unblock whichever side is still suspended
                     audioChannel.close()
 
-                    // CRITICAL CORRECTION: Explicitly update the UI status state flow to report the error text
-                    updateStatus("Error", 0.0f, "❌ Transcription failed: ${exception?.message}")
-                    stopSelf()
-                    return@launch
-                }
+                    // Cancel any surviving job to prevent orphaned background threads
+                    transcriptionJob.cancel()
+                    extractionJob.cancel()
 
-                val segments = txResult.getOrThrow()
-
-                // Await extraction completion
-                val extractResult = extractionJob.await()
-                if (extractResult.isFailure || extractResult.getOrNull() != true) {
-                    Log.e(TAG, "Media extraction thread encountered a disk I/O failure flag.")
-                    updateStatus("Error", 0.0f, "❌ Critical: System failed to extract video track.")
+                    updateStatus("Error", 0.0f, "❌ Pipeline failed: ${e.message}")
                     stopSelf()
                     return@launch
                 }
