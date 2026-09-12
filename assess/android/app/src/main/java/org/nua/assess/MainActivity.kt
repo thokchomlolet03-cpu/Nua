@@ -24,7 +24,8 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private val worker = Executors.newSingleThreadExecutor()
     private val deadlines = Executors.newSingleThreadScheduledExecutor()
-    private val inferenceActive = AtomicBoolean(false)
+    // One reservation spans either inference or picker + file processing.
+    private val operationActive = AtomicBoolean(false)
     private var engine: Engine? = null
     @Volatile private var ready = false
     @Volatile private var modelStatus = "No model imported · built-in hints ready"
@@ -85,12 +86,16 @@ class MainActivity : Activity() {
 
     inner class Bridge {
         @JavascriptInterface fun request(id: String, method: String, raw: String) {
-            if (!id.matches(Regex("[0-9]{1,12}")) || raw.length > 250000) return
+            if (!id.matches(Regex("[a-f0-9-]{36}"))) return
+            if (raw.length > 250000) { error(id, "Request is too large for the native bridge."); return }
             val p = try { JSONObject(raw) } catch (_: Exception) { error(id, "Invalid request."); return }
             when (method) {
+                // Availability describes a loaded model, not a queue reservation.
+                // Returning a transient busy label here could leave the UI stale
+                // when the import reply arrives just before worker cleanup.
                 "status" -> reply(id, JSONObject().put("available", ready).put("label", modelStatus))
                 "hint" -> {
-                    if (!inferenceActive.compareAndSet(false, true)) { error(id, "A local hint is already running."); return }
+                    if (!operationActive.compareAndSet(false, true)) { error(id, "Finish the current local operation first."); return }
                     worker.execute {
                     try {
                     val q = p.optString("question")
@@ -122,11 +127,11 @@ class MainActivity : Activity() {
                         if (text.isEmpty()) error(id, "Model returned no usable hint.")
                         else reply(id, JSONObject().put("text", text).put("model", "imported LiteRT-LM · CPU").put("source", "android-local"))
                     } catch (_: Exception) { error(id, "Local inference failed. Use a built-in prompt.") }
-                    } finally { inferenceActive.set(false) }
+                    } finally { operationActive.set(false) }
                     }
                 }
                 "import", "export" -> runOnUiThread {
-                    if (pickerRequest != null) { error(id, "A file picker is already open."); return@runOnUiThread }
+                    if (!operationActive.compareAndSet(false, true)) { error(id, "Finish the current local operation first."); return@runOnUiThread }
                     pickerRequest = id
                     val exporting = method == "export"
                     exportText = if (exporting) p.optString("text") else null
@@ -136,7 +141,7 @@ class MainActivity : Activity() {
                         if (exporting) putExtra(Intent.EXTRA_TITLE, p.optString("name", "nua-evidence.json").replace(Regex("[^a-zA-Z0-9.-]"), "_"))
                     }
                     try { startActivityForResult(intent, if (exporting) 102 else 101) }
-                    catch (_: Exception) { pickerRequest = null; error(id, "No document picker is available.") }
+                    catch (_: Exception) { pickerRequest = null; exportText = null; operationActive.set(false); error(id, "No document picker is available.") }
                 }
                 else -> error(id, "Unknown operation.")
             }
@@ -146,11 +151,12 @@ class MainActivity : Activity() {
     @Deprecated("Activity result bridge kept dependency-light")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != 101 && requestCode != 102) return
         val id = pickerRequest ?: return
         pickerRequest = null
-        val uri: Uri = data?.data ?: run { error(id, "File selection cancelled."); return }
-        if (resultCode != RESULT_OK) { error(id, "File selection cancelled."); return }
         val output = exportText; exportText = null
+        if (resultCode != RESULT_OK || data?.data == null) { operationActive.set(false); error(id, "File selection cancelled."); return }
+        val uri: Uri = data.data!!
         worker.execute {
             try {
                 if (requestCode == 102) {
@@ -175,6 +181,7 @@ class MainActivity : Activity() {
                     } finally { temp.delete() }
                 }
             } catch (e: Exception) { error(id, e.message ?: "File operation failed.") }
+            finally { operationActive.set(false) }
         }
     }
     override fun onDestroy() {

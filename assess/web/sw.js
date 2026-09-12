@@ -1,4 +1,6 @@
-const CACHE = "nua-assess-mvp-2";
+// Bump for EVERY bundled-asset change. Do not skipWaiting or claim clients:
+// an open assessment must finish using its existing release.
+const CACHE = "nua-assess-release-0.2.1";
 const FILES = [
   "/",
   "/index.html",
@@ -9,7 +11,13 @@ const FILES = [
   "/storage.js",
 ];
 self.addEventListener("install", (e) =>
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES))),
+  e.waitUntil(
+    caches
+      .open(CACHE)
+      .then((c) =>
+        c.addAll(FILES.map((path) => new Request(path, { cache: "reload" }))),
+      ),
+  ),
 );
 self.addEventListener("activate", (e) =>
   e.waitUntil(
@@ -21,27 +29,29 @@ self.addEventListener("activate", (e) =>
             .filter((k) => k.startsWith("nua-assess-") && k !== CACHE)
             .map((k) => caches.delete(k)),
         ),
-      )
-      .then(() => self.clients.claim()),
+      ),
   ),
 );
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (
     url.origin !== self.location.origin ||
-    url.pathname.startsWith("/api/") ||
+    !FILES.includes(url.pathname) ||
     e.request.method !== "GET"
   )
     return;
   e.respondWith(
-    fetch(e.request)
-      .then((r) => {
-        if (r.ok) {
-          const clone = r.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, clone));
-        }
-        return r;
-      })
-      .catch(() => caches.match(e.request)),
+    // Never substitute a network asset from a different release.
+    caches
+      .open(CACHE)
+      .then((cache) => cache.match(url.pathname))
+      .then(
+        (response) =>
+          response ||
+          new Response(
+            "Offline release is incomplete. Close all Nua tabs and reopen while online.",
+            { status: 503, headers: { "Content-Type": "text/plain" } },
+          ),
+      ),
   );
 });

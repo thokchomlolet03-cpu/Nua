@@ -14,12 +14,16 @@ import {
   HINT_POLICY_VERSION,
   recordHintFeedback,
   resolveGuidance,
+  guidanceCounts,
 } from "./core.js";
 import {
   SESSION_KEY as KEY,
   saveSession,
   recoverInterruptedHint,
+  deleteSession,
+  withSessionEditor,
 } from "./storage.js";
+let ownsEditor = false;
 let lastSaved = null;
 let session = null,
   view = "home",
@@ -38,18 +42,28 @@ const esc = (s) =>
   );
 const t = (o) => (typeof o === "string" ? o : o[session?.language || "en"]);
 const date = (n) => new Date(n).toLocaleString();
-try {
-  lastSaved = localStorage.getItem(KEY);
-  if (lastSaved) {
-    session = validateSession(JSON.parse(lastSaved));
-    if (recoverInterruptedHint(session))
-      lastSaved = saveSession(localStorage, session, lastSaved);
+function initialize(canEdit) {
+  ownsEditor = canEdit;
+  try {
+    lastSaved = localStorage.getItem(KEY);
+    if (lastSaved) {
+      session = validateSession(JSON.parse(lastSaved));
+      if (canEdit && recoverInterruptedHint(session))
+        lastSaved = saveSession(localStorage, session, lastSaved);
+    }
+  } catch (e) {
+    storageError = e.message;
   }
-} catch (e) {
-  storageError = e.message;
+  if (!canEdit)
+    storageError =
+      "Editing is locked. Close the other Nua window and reload. If none is open, use a browser with Web Locks support.";
+  render();
+  checkAI();
 }
 function persist() {
   try {
+    if (!ownsEditor) throw Error("Editing is locked by another window.");
+    validateSession(session);
     lastSaved = saveSession(localStorage, session, lastSaved);
     storageError = "";
     return true;
@@ -68,7 +82,6 @@ function toast(message) {
   statusTimer = setTimeout(() => ($("#toast").style.display = "none"), 6000);
 }
 const nativePending = new Map();
-let reqId = 0;
 window.nuaReply = (id, response) => {
   const p = nativePending.get(id);
   if (p) {
@@ -79,7 +92,7 @@ window.nuaReply = (id, response) => {
 };
 function native(method, payload = {}) {
   return new Promise((resolve, reject) => {
-    const id = String(++reqId);
+    const id = crypto.randomUUID();
     const timer = setTimeout(
       () => {
         nativePending.delete(id);
@@ -97,7 +110,9 @@ async function checkAI() {
   try {
     aiStatus = window.NuaNative
       ? await native("status")
-      : await fetch("/api/status").then((r) => r.json());
+      : await fetch("/api/status", { signal: AbortSignal.timeout(5000) }).then(
+          (r) => r.json(),
+        );
   } catch {
     aiStatus = {
       available: false,
@@ -112,7 +127,7 @@ function header() {
   return `<header><div class="brand">nua<span>assess / field notes</span></div><nav aria-label="Main navigation"><button data-view="home">Overview</button><button data-view="report">Teacher report</button><button data-view="settings">Settings</button></nav></header>`;
 }
 function footer() {
-  return `<footer><span>Nua Assess · MVP 0.2.0 · Fair tests</span><span>Stored on this device · No cloud AI · Educational validation pending</span></footer>`;
+  return `<footer><span>Nua Assess · MVP 0.2.1 · Fair tests</span><span>Stored on this device · No cloud AI · Educational validation pending</span></footer>`;
 }
 function home() {
   return `<section class="hero"><div><span class="pill">SCIENCE / LOWER SECONDARY</span><h1>Learning,<br>made visible.</h1><p class="lead">A good answer is only the beginning. Investigate a claim, explain your reasoning, and discover what you can do on your own.</p><div class="actions"><button class="primary" id="begin">${session ? "Continue investigation →" : "Start an investigation →"}</button><span class="small">About 15 minutes + a next-day check</span></div></div>${art}</section><div class="three"><div class="tile"><div class="num">01</div><div><h3>Try independently</h3><p>Your first explanation stays intact. No hints, no grades revealed.</p></div></div><div class="tile"><div class="num">02</div><div><h3>Investigate with support</h3><p>Use purposeful hints, compare evidence and reconsider a claim.</p></div></div><div class="tile"><div class="num">03</div><div><h3>Apply it somewhere new</h3><p>Return after 24 hours to test the same idea in a different setting.</p></div></div></div><div class="card tinted" style="margin-top:25px"><div class="row"><div><h3>A small experiment in scientific reasoning</h3><p class="small">Three scenarios · Nine structured items · Written explanations · English / Hindi</p></div><span class="pill" id="ai-status">${esc(aiStatus.label)}</span></div><p class="small">Development content, including Hindi text, awaits educator review. Use fictional or consented responses only. This app does not establish a student's general intelligence or diagnose learning difficulties.</p>${session ? `<p class="small">Session ${esc(session.id.slice(0, 8))} · ${esc(session.stage)} · saved ${date(session.updatedAt)}</p>` : ""}</div>`;
@@ -244,6 +259,10 @@ function confirmAction(title, description, action) {
   d.querySelector("#dialog-confirm").onclick = () => {
     d.close();
     d.remove();
+    if (!ownsEditor || (storageError && session)) {
+      toast("Resolve the saved-data problem before making changes.");
+      return;
+    }
     action();
   };
   d.addEventListener("cancel", () => d.remove());
@@ -274,7 +293,7 @@ async function downloadData(data, name) {
   }
 }
 async function askAI() {
-  if (busy) return;
+  if (busy || storageError || !ownsEditor) return;
   const question = $("#ai-question").value;
   let payload;
   try {
@@ -291,7 +310,11 @@ async function askAI() {
     language: session.language,
     policyVersion: HINT_POLICY_VERSION,
   });
-  persist();
+  if (!persist()) {
+    busy = false;
+    render();
+    return;
+  }
   render();
   const started = Date.now();
   try {
@@ -387,6 +410,7 @@ function bind() {
   });
   $("#language")?.addEventListener("change", (e) => {
     draftFromForm();
+    if (storageError) return;
     session.language = e.target.value;
     event(session, "language_changed", { language: session.language });
     persist();
@@ -437,6 +461,7 @@ function bind() {
   );
   $("#hint")?.addEventListener("click", () => {
     draftFromForm();
+    if (storageError) return;
     if (session.stage !== "guided" || session.hintCount >= 3) return;
     session.hintCount++;
     event(session, "builtin_hint", { level: session.hintCount });
@@ -466,9 +491,9 @@ function bind() {
           reviewedAt: Date.now(),
         };
         event(session, "teacher_annotation", { stage: f.dataset.stage });
-        persist();
+        const saved = persist();
         render();
-        toast("Teacher annotation saved.");
+        if (saved) toast("Teacher annotation saved.");
       }),
   );
   $("#refresh-ai")?.addEventListener("click", checkAI);
@@ -487,14 +512,16 @@ function bind() {
       "All answers, hints and teacher notes for this session will be removed. Export first if you need a copy.",
       () => {
         try {
-          localStorage.removeItem(KEY);
+          deleteSession(localStorage, lastSaved);
           lastSaved = null;
           session = null;
           storageError = "";
           view = "home";
           render();
-        } catch {
-          toast("Could not clear local storage.");
+        } catch (e) {
+          storageError = e.message;
+          render();
+          toast("Could not delete the session: " + e.message);
         }
       },
     ),
@@ -522,6 +549,13 @@ function render() {
     header() +
     `<main>${storageError ? `<p class="notice">${esc(storageError)}</p>` : ""}${body}${footer()}</main>`;
   bind();
+  if ($("#export-summary")) {
+    const counts = guidanceCounts(session);
+    const note = document.createElement("p");
+    note.className = "notice";
+    note.textContent = `Guidance returned: ${counts.aiSelectedAuthored} AI-selected authored prompts; ${counts.authoredFallback} authored fallbacks; ${counts.historicalExperimental} historical experimental hints. Tasks are not equated: score differences are not measured learning gains. Delayed timing uses the unverified device clock.`;
+    $("main").prepend(note);
+  }
   const askButton = $("#ask-ai");
   if (askButton && !busy)
     askButton.textContent = "Find relevant guidance with AI";
@@ -543,7 +577,7 @@ function render() {
     panel.innerHTML =
       '<h2>Preserve your work</h2><p>Save a recovery copy before reloading or clearing this session.</p><button id="recovery-download" class="secondary">Download recovery copy</button><button id="reload-session" class="secondary">Reload saved session</button>';
     document.querySelector("main").prepend(panel);
-    if (session)
+    if (session || !ownsEditor)
       document
         .querySelectorAll(
           "main button, main input, main textarea, main select, nav button",
@@ -559,8 +593,10 @@ function render() {
     panel.querySelector("#reload-session").onclick = () => location.reload();
   }
 }
-render();
-checkAI();
+$("#app").textContent = "Opening saved assessment…";
+withSessionEditor(navigator.locks, window.NuaNative, initialize).catch(() =>
+  initialize(false),
+);
 if (!window.NuaNative && "serviceWorker" in navigator)
   navigator.serviceWorker.register("/sw.js").catch(() => {});
 document.addEventListener("visibilitychange", () => {
@@ -568,7 +604,10 @@ document.addEventListener("visibilitychange", () => {
     render();
 });
 window.addEventListener("storage", (e) => {
-  if (e.key === KEY && e.newValue !== lastSaved) {
+  if (
+    (e.key === KEY && e.newValue !== lastSaved) ||
+    (e.key === null && lastSaved !== null)
+  ) {
     storageError =
       "This session changed in another window. Save a recovery copy, then reload the latest saved session.";
     render();

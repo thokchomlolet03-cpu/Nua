@@ -1,6 +1,16 @@
-# MVP checkpoint — 0.2.0 — 2026-09-13
+# MVP checkpoint — 0.2.1 — 2026-09-13
 
-## Latest improvement pass
+## Latest audit checkpoint
+
+39 Node tests and six Android JVM tests pass. APK assembly and lint pass (0 errors, 6 warnings); APK metadata is versionName 0.2.1 / versionCode 3. No Android device is connected. See `AUDIT-0.2.1.md` for the findings, verification and remaining acceptance gates.
+
+This pass adds exclusive browser editing, checked deletion, stronger saved-record validation, release-pinned offline assets, byte-correct Hindi request parsing, explicit fallback counts and native operation/reply isolation. Existing valid session/content schemas are retained; damaged records are blocked and offered recovery download, not silently discarded.
+
+Synthetic browser verification used a separate origin on port 4191. A second window was blocked, then regained editing after the original closed. A real local request displayed the authored repetition prompt (~3 seconds). With that test server stopped, a draft survived reload, guided and immediate transfer submissions completed, a teacher annotation survived another reload, and a summary export was downloaded and parsed with no raw answers or teacher notes. This does not verify a real 24-hour delay or an Android runtime.
+
+Browser updates: close all Nua tabs for the same origin, then reopen while the current preview server is running. New offline releases deliberately wait for old tabs to close. The 4191 test server was stopped; the user's existing 4173 session was not cleared.
+
+## Previous 0.2.0 improvement pass
 
 Final guidance revision: 26 Node tests and three Android JVM tests pass. New AI calls select bounded authored guidance with a 16-token desktop output budget; raw model prose is not displayed. A live local call returned `REPEAT` and resolved to the authored repetition explanation. Invalid routes fall back explicitly. This change followed a live free-text hint inventing "brands of water". Historical outputs remain labelled as earlier experimental AI output. Device model inference and educator review are still outstanding.
 

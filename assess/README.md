@@ -56,6 +56,14 @@ Requires a compatible JDK (this build used Homebrew OpenJDK 19), Android platfor
 - Model/device/electricity, development, educator review, localization and support still cost resources. "$0 cloud/API charge" does not mean zero total operating cost.
 - Use synthetic data until consent, child safeguarding, retention and research arrangements are agreed with a partner.
 
+## Reliability checkpoint: 0.2.1
+
+See `AUDIT-0.2.1.md` for the deeper audit and acceptance plan. Supported desktop browsers allow one editor per origin using Web Locks; another window is read-only until the first closes and the second reloads. Browsers without that capability fail closed; the standalone native host remains supported. Different origins (including localhost versus 127.0.0.1) have separate data and locks.
+
+The browser caches a complete release and serves its installed assets without replacing individual files from the network. Close all tabs for that origin before reopening to activate a downloaded update. Every asset change requires a new service-worker cache version; install from a stable, complete release. Cache eviction can still prevent offline startup. Android instead uses APK-bundled assets.
+
+Saved sessions now have stronger nested-field and sequence checks. If validation or saving fails, preserve the offered recovery copy before resetting. Recovery files can contain raw answers; restoration is still manual. Summary exports explicitly distinguish AI-selected authored guidance, fallback guidance and historical experimental output, and state the limits of device-clock timing and score comparisons.
+
 ## Tests and iteration
 
 ```sh

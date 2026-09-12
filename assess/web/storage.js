@@ -1,6 +1,7 @@
 export const SESSION_KEY = "nua-assess-session-v1";
-// Compare the last observed value before writing, so a stale tab cannot
-// silently replace newer work. localStorage's individual writes are atomic.
+export const EDITOR_LOCK = "nua-assess-session-editor-v1";
+// The UI holds an exclusive Web Lock for its lifetime. This additional
+// comparison also catches writes from older app versions and developer tools.
 export function saveSession(storage, session, expected) {
   if (storage.getItem(SESSION_KEY) !== expected)
     throw Error(
@@ -9,6 +10,26 @@ export function saveSession(storage, session, expected) {
   const serialized = JSON.stringify(session);
   storage.setItem(SESSION_KEY, serialized);
   return serialized;
+}
+
+export function deleteSession(storage, expected) {
+  if (storage.getItem(SESSION_KEY) !== expected)
+    throw Error(
+      "This session changed in another window. Reload before deleting.",
+    );
+  storage.removeItem(SESSION_KEY);
+}
+
+// Never recover requests while a different editor may still be executing them.
+// The lock is origin-scoped; Android hosts only one bundled activity.
+export async function withSessionEditor(locks, nativeHost, initialize) {
+  if (locks) {
+    return locks.request(EDITOR_LOCK, { ifAvailable: true }, async (lock) => {
+      initialize(Boolean(lock));
+      if (lock) await new Promise(() => {});
+    });
+  }
+  initialize(Boolean(nativeHost));
 }
 
 export function recoverInterruptedHint(session, now = Date.now()) {

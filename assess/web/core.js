@@ -34,7 +34,7 @@ export function createSession(
   };
 }
 export function event(s, type, data = {}, now = Date.now()) {
-  s.events.push({ seq: s.events.length + 1, at: now, type, ...data });
+  s.events.push({ ...data, seq: s.events.length + 1, at: now, type });
   s.updatedAt = now;
 }
 export function submitResponse(s, answer, now = Date.now()) {
@@ -64,7 +64,10 @@ export function submitResponse(s, answer, now = Date.now()) {
   const stage = s.stage;
   s.responses[stage] = JSON.parse(
     JSON.stringify({
-      ...answer,
+      choices: Object.fromEntries(
+        task.questions.map((q) => [q.id, answer.choices[q.id]]),
+      ),
+      confidence: answer.confidence,
       explanation: answer.explanation.trim(),
       submittedAt: now,
       explanationPromptVersion: EXPLANATION_PROMPT_VERSION,
@@ -114,14 +117,26 @@ export function recordHintFeedback(s, hintSeq, helpful, now = Date.now()) {
   );
 }
 export function report(s, includeResponses = false) {
+  const guidance = guidanceCounts(s);
   const ratings = new Map(
     s.events
       .filter((e) => e.type === "hint_feedback")
       .map((e) => [e.hintSeq, e.helpful]),
   );
   const attempts = Object.entries(s.responses).map(([stage, r]) => {
-    const review = { ...(s.reviews[stage] || { status: "needs-review" }) };
-    if (!includeResponses) delete review.note;
+    const source = s.reviews[stage] || { status: "needs-review" };
+    const review = Object.fromEntries(
+      [
+        "status",
+        "evidence",
+        "investigation",
+        "reasoning",
+        "reviewedAt",
+        ...(includeResponses ? ["note"] : []),
+      ]
+        .filter((key) => Object.hasOwn(source, key))
+        .map((key) => [key, source[key]]),
+    );
     return {
       stage,
       assistance: r.assistance,
@@ -134,6 +149,16 @@ export function report(s, includeResponses = false) {
         stage === "guided"
           ? s.events.filter((e) => e.type === "ai_hint").length
           : 0,
+      aiHintCountDefinition:
+        "all returned guidance, including authored fallback and historical experimental output",
+      guidanceBreakdown:
+        stage === "guided"
+          ? { ...guidance }
+          : {
+              aiSelectedAuthored: 0,
+              authoredFallback: 0,
+              historicalExperimental: 0,
+            },
       confidence: r.confidence,
       structuredEvidence: score(stage, r),
       explanationReview: review,
@@ -152,11 +177,19 @@ export function report(s, includeResponses = false) {
     language: s.language,
     transferMode: s.transferMode,
     transferDueAt: s.transferDueAt,
+    timingBasis:
+      "Unverified device wall clock; delayed timing is not independently verified.",
+    comparability:
+      "Scenarios are not equated. Differences in item counts are not measured learning gains.",
     notice:
       "Development prototype. Structured-item evidence is not a validated general skill score. Teacher review is self-reported and not authenticated. No learning-effect claim.",
     includesRawResponses: includeResponses,
     attempts,
-    metrics: s.metrics,
+    metrics: {
+      aiCalls: s.metrics.aiCalls,
+      aiFailures: s.metrics.aiFailures,
+      aiLatencyMs: s.metrics.aiLatencyMs,
+    },
     hintFeedback: {
       ratedHints: ratings.size,
       helpful: [...ratings.values()].filter(Boolean).length,
@@ -165,18 +198,52 @@ export function report(s, includeResponses = false) {
     ...(includeResponses ? { events: s.events } : {}),
   };
 }
+export function guidanceCounts(s) {
+  const counts = {
+    aiSelectedAuthored: 0,
+    authoredFallback: 0,
+    historicalExperimental: 0,
+  };
+  for (const e of s.events.filter((e) => e.type === "ai_hint")) {
+    if (e.guidanceMode === "ai-selected-authored") counts.aiSelectedAuthored++;
+    else if (e.guidanceMode === "authored-fallback") counts.authoredFallback++;
+    else counts.historicalExperimental++;
+  }
+  return counts;
+}
 export function validateSession(s) {
+  const plain = (value) =>
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.getPrototypeOf(value) === Object.prototype;
+  const stamp = (value) =>
+    Number.isSafeInteger(value) && value >= 0 && value <= 8640000000000000;
+  const confidence = (value) =>
+    Number.isInteger(value) && value >= 1 && value <= 3;
+  const choice = (task, key, value) =>
+    task.questions.some(
+      (q) =>
+        q.id === key &&
+        Number.isInteger(value) &&
+        value >= 0 &&
+        value < q.options.length,
+    );
   if (
-    !s ||
+    !plain(s) ||
     s.schema !== SCHEMA ||
     s.contentVersion !== VERSION ||
     typeof s.id !== "string" ||
+    !s.id.length ||
+    s.id.length > 128 ||
+    !stamp(s.createdAt) ||
+    !stamp(s.updatedAt) ||
     !stages.includes(s.stage) ||
     !s.responses ||
     !s.events ||
     !s.drafts ||
     !s.metrics ||
-    !s.reviews
+    ![s.responses, s.drafts, s.metrics, s.reviews].every(plain)
   )
     throw Error(
       "Saved session is incompatible. Export or clear it before starting again.",
@@ -191,10 +258,19 @@ export function validateSession(s) {
     throw Error("Saved session is damaged. Clear it in Settings.");
   for (const [stage, r] of Object.entries(s.responses)) {
     if (
-      !tasks[stage] ||
-      !r ||
+      !Object.hasOwn(tasks, stage) ||
+      !plain(r) ||
       typeof r.explanation !== "string" ||
-      !r.choices ||
+      r.explanation.trim().length < 12 ||
+      r.explanation.length > 1200 ||
+      !confidence(r.confidence) ||
+      !stamp(r.submittedAt) ||
+      r.assistance !== (stage === "guided" ? "guided" : "unassisted") ||
+      !Number.isInteger(r.hintCount) ||
+      r.hintCount < 0 ||
+      r.hintCount > 3 ||
+      (stage !== "guided" && r.hintCount !== 0) ||
+      !plain(r.choices) ||
       tasks[stage].questions.some(
         (q) =>
           !Number.isInteger(r.choices[q.id]) || !q.options[r.choices[q.id]],
@@ -210,19 +286,55 @@ export function validateSession(s) {
     transfer: ["baseline", "guided"],
     report: ["baseline", "guided", "transfer"],
   }[s.stage];
-  const plain = (value) =>
-    value && typeof value === "object" && !Array.isArray(value);
   if (
     ![s.responses, s.drafts, s.reviews, s.metrics].every(plain) ||
     !Object.values(s.metrics).every((n) => Number.isFinite(n) && n >= 0) ||
     !Number.isInteger(s.metrics.aiCalls) ||
     !Number.isInteger(s.metrics.aiFailures) ||
+    s.metrics.aiCalls > 3 ||
+    s.metrics.aiFailures > s.metrics.aiCalls ||
     !Number.isFinite(s.metrics.aiLatencyMs) ||
     s.events.some(
-      (e) => !plain(e) || typeof e.type !== "string" || !Number.isFinite(e.at),
+      (e, index) =>
+        !plain(e) ||
+        typeof e.type !== "string" ||
+        !e.type.length ||
+        !stamp(e.at) ||
+        e.seq !== index + 1 ||
+        (e.type === "ai_hint" && typeof e.text !== "string") ||
+        (e.type === "hint_feedback" &&
+          (typeof e.helpful !== "boolean" ||
+            !s.events
+              .slice(0, index)
+              .some((h) => h?.seq === e.hintSeq && h.type === "ai_hint"))),
     ) ||
     Object.entries(s.drafts).some(
-      ([stage, d]) => !tasks[stage] || !plain(d) || !plain(d.choices),
+      ([stage, d]) =>
+        stage !== s.stage ||
+        !Object.hasOwn(tasks, stage) ||
+        !plain(d) ||
+        !plain(d.choices) ||
+        typeof d.explanation !== "string" ||
+        d.explanation.length > 1200 ||
+        (d.confidence !== undefined && !confidence(d.confidence)) ||
+        Object.entries(d.choices).some(
+          ([key, value]) => !choice(tasks[stage], key, value),
+        ),
+    ) ||
+    Object.entries(s.reviews).some(
+      ([stage, review]) =>
+        !Object.hasOwn(s.responses, stage) ||
+        !plain(review) ||
+        review.status !== "teacher-annotated" ||
+        !stamp(review.reviewedAt) ||
+        typeof review.note !== "string" ||
+        review.note.length > 1000 ||
+        ["evidence", "investigation", "reasoning"].some(
+          (key) =>
+            !["unreviewed", "not-yet", "partial", "demonstrated"].includes(
+              review[key],
+            ),
+        ),
     )
   )
     throw Error(
@@ -232,7 +344,13 @@ export function validateSession(s) {
     required.some((stage) => !s.responses[stage]) ||
     Object.keys(s.responses).some((stage) => !required.includes(stage)) ||
     (["waiting", "transfer", "report"].includes(s.stage) &&
-      !Number.isFinite(s.transferDueAt))
+      (!stamp(s.transferDueAt) ||
+        s.transferDueAt !== s.responses.guided.submittedAt + DAY)) ||
+    (!["waiting", "transfer", "report"].includes(s.stage) &&
+      s.transferDueAt !== null) ||
+    (["transfer", "report"].includes(s.stage)
+      ? !["delayed", "immediate-demo"].includes(s.transferMode)
+      : s.transferMode !== null)
   )
     throw Error("Saved assessment sequence is damaged. Clear it in Settings.");
   return s;

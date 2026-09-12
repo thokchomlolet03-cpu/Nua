@@ -6,6 +6,37 @@ import java.nio.file.Files
 import java.io.File
 
 class ModelFilesTest {
+    @Test fun cleanupFailureRollsBackImmediately() {
+        val dir = Files.createTempDirectory("nua-model-test").toFile()
+        try {
+            val old = File(dir, "model").apply { writeText("working") }
+            val incoming = File(dir, "incoming").apply { writeText("replacement") }
+            assertThrows(IllegalStateException::class.java) {
+                ModelFiles.replace(incoming, old, removePrevious = { false }) { true }
+            }
+            assertEquals("working", old.readText())
+            assertFalse(File(old.path + ".previous").exists())
+            ModelFiles.recover(old)
+            assertEquals("working", old.readText())
+        } finally { dir.deleteRecursively() }
+    }
+    @Test fun failedFirstImportLeavesNoInstalledModel() {
+        val dir = Files.createTempDirectory("nua-model-test").toFile()
+        try {
+            val old = File(dir, "model")
+            val incoming = File(dir, "incoming").apply { writeText("invalid") }
+            assertThrows(IllegalStateException::class.java) { ModelFiles.replace(incoming, old) { false } }
+            assertFalse(old.exists())
+        } finally { dir.deleteRecursively() }
+    }
+    @Test fun missingCandidatePreservesPreviousModel() {
+        val dir = Files.createTempDirectory("nua-model-test").toFile()
+        try {
+            val old = File(dir, "model").apply { writeText("working") }
+            assertThrows(IllegalStateException::class.java) { ModelFiles.replace(File(dir, "missing"), old) { true } }
+            assertEquals("working", old.readText())
+        } finally { dir.deleteRecursively() }
+    }
     @Test fun failedModelRestoresPreviousBytes() {
         val dir = Files.createTempDirectory("nua-model-test").toFile()
         try {

@@ -1,6 +1,7 @@
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { readJSONBody } from "./request-body.mjs";
 import {
   modelRequest,
   extractRoute,
@@ -72,17 +73,11 @@ const server = http.createServer(async (req, res) => {
     if (path === "/api/hint" && req.method === "POST") {
       if (req.headers["content-type"] !== "application/json")
         return json(res, 415, { error: "JSON required." });
-      let body = "";
-      for await (const chunk of req) {
-        body += chunk;
-        if (body.length > 4096)
-          return json(res, 413, { error: "Request too large." });
-      }
       let p;
       try {
-        p = JSON.parse(body);
-      } catch {
-        return json(res, 400, { error: "Invalid JSON." });
+        p = await readJSONBody(req);
+      } catch (e) {
+        return json(res, e.status || 400, { error: e.message });
       }
       if (
         !p ||
