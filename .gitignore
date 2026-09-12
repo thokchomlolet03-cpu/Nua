@@ -1,4 +1,10 @@
 *.iml
+.tooling/
+assess/android/local.properties
+assess/android/app/build/
+assess/android/.gradle/
+assess/android/build/
+assess/artifacts/
 .gradle
 /local.properties
 /.idea/caches
