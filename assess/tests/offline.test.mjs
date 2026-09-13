@@ -24,7 +24,7 @@ function harness() {
     caches: {
       open: async () => cache,
       keys: async () => [
-        "nua-assess-release-0.2.1",
+        "nua-assess-release-0.4.0",
         "nua-assess-mvp-2",
         "unrelated-app",
       ],
@@ -63,6 +63,14 @@ test("offline install caches the complete release and activation preserves unrel
     "/content.js",
     "/storage.js",
     "/style.css",
+    "/inquiry-app.js",
+    "/inquiry-core.js",
+    "/mangal-core.js",
+    "/inquiry-questions.js",
+    "/material.js",
+    "/demo.html",
+    "/vendor/pdf.min.js",
+    "/vendor/pdf.worker.min.js",
   ])
     assert.ok(h.added.some((r) => r.path === path && r.cache === "reload"));
   h.handlers.activate({ waitUntil: (promise) => (work = promise) });

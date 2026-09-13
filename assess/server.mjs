@@ -3,6 +3,16 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { readJSONBody } from "./request-body.mjs";
 import {
+  validateQuestionRequest,
+  questionModelRequest,
+  parseQuestionDraft,
+} from "./question-model.mjs";
+import {
+  validateDraftRequest,
+  inquiryModelRequest,
+  parseInquiryDraft,
+} from "./inquiry-model.mjs";
+import {
   modelRequest,
   extractRoute,
   INFERENCE_TIMEOUT_MS,
@@ -18,11 +28,22 @@ const allowed = new Set([
   "content.js",
   "storage.js",
   "sw.js",
+  "demo.html",
+  "inquiry-app.js",
+  "inquiry-core.js",
+  "inquiry-questions.js",
+  "mangal-core.js",
+  "material.js",
+  "vendor/pdf.min.js",
+  "vendor/pdf.worker.min.js",
+  "vendor/PDFJS-LICENSE.txt",
 ]);
 const types = {
   html: "text/html; charset=utf-8",
   css: "text/css",
   js: "text/javascript",
+  mjs: "text/javascript",
+  txt: "text/plain; charset=utf-8",
 };
 let running = false,
   lastRequest = 0;
@@ -51,6 +72,61 @@ const server = http.createServer(async (req, res) => {
     if (origin && !["http://" + host].includes(origin))
       return json(res, 403, { error: "Origin not allowed." });
     const path = new URL(req.url, "http://" + host).pathname;
+    if (
+      ["/api/inquiry-plan", "/api/inquiry-questions"].includes(path) &&
+      req.method === "POST"
+    ) {
+      const breadth = path === "/api/inquiry-questions";
+      if (req.headers["content-type"] !== "application/json")
+        return json(res, 415, { error: "JSON required." });
+      let p;
+      try {
+        p = (breadth ? validateQuestionRequest : validateDraftRequest)(
+          await readJSONBody(req, 24000),
+        );
+      } catch (e) {
+        return json(res, e.status || 400, { error: e.message });
+      }
+      if (running || Date.now() - lastRequest < 1500)
+        return json(res, 429, {
+          error:
+            "Local model is busy. Your editable template remains available.",
+        });
+      running = true;
+      lastRequest = Date.now();
+      try {
+        const r = await ollama("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            (breadth ? questionModelRequest : inquiryModelRequest)(model, p),
+          ),
+        });
+        if (!r.ok)
+          throw Error("Local model is unavailable. Use the editable template.");
+        const data = await r.json();
+        if (data.done_reason === "length")
+          throw Error(
+            "Local model exceeded its draft budget. Use the editable template.",
+          );
+        return json(
+          res,
+          200,
+          breadth
+            ? { questions: parseQuestionDraft(data.response, p, model) }
+            : {
+                plan: parseInquiryDraft(data.response, p, model),
+              },
+        );
+      } catch (e) {
+        return json(res, 503, {
+          error:
+            e.name === "TimeoutError" ? "Local drafting timed out." : e.message,
+        });
+      } finally {
+        running = false;
+      }
+    }
     if (path === "/api/status" && req.method === "GET") {
       try {
         const r = await ollama("/api/tags");

@@ -497,3 +497,36 @@ hr {
     gap: 8px;
   }
 }
+
+/* Keep the material-based inquiry narrow without changing the science demo. */
+.mangal [hidden] {
+  display: none !important;
+}
+.mangal main {
+  max-width: 860px;
+}
+.mangal .hero {
+  display: block;
+}
+.mangal h1 {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+}
+.mangal label:not(.option) {
+  display: block;
+  margin-block: 12px;
+}
+.mangal input:not([type="checkbox"]):not([type="radio"]),
+.mangal textarea,
+.mangal select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.mangal header {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.mangal main,
+.mangal .card {
+  overflow-wrap: anywhere;
+}

@@ -1,4 +1,8 @@
-# Nua Assess — technical MVP 0.2.0
+# Nua Assess — Mangal Inquiry MVP 0.4.0
+
+The default application now uses uploaded material and a focused 20+ question inquiry sequence. See [MANGAL-DESIGN.md](MANGAL-DESIGN.md) for the current scope, verification and limitations. The fixed science workflow described below remains available at `demo.html`; its saved sessions are preserved separately. The older sections below describe that demonstration, not automatic assessment of arbitrary material.
+
+Current setup requires Node **22.13+** (verified with Node 24.18.1). Run `npm ci` in `assess/` before `npm start` or an Android build. This installs pinned PDF.js and prepares the bundled offline PDF reader. The previous no-install/Node 20 instructions below are historical and superseded.
 
 A local-first formative-assessment derivative of Nua. **Working developer prototype, not a validated educational assessment or a production release.**
 
@@ -11,7 +15,7 @@ cd "/Users/lolet/Documents/ChatGPT/tools competition/nua-assess/assess"
 npm start
 ```
 
-Open http://127.0.0.1:4173. Node 20+; no npm install required. Use this same origin consistently: localhost and 127.0.0.1 have separate browser storage.
+Open http://127.0.0.1:4173 after installing dependencies as above. Use this same origin consistently: localhost and 127.0.0.1 have separate browser storage.
 
 The desktop preview uses the installed Ollama service and `qwen2.5:1.5b`. Configure another installed model with `NUA_MODEL=your-model npm start`. No automatic downloads, cloud fallback, API keys, analytics or paid APIs. Without Ollama/model access, authored prompts and the entire assessment still work. After the first successful load, browser assets are cached for offline use. Desktop AI requires the preview server and Ollama to remain running, not internet access.
 

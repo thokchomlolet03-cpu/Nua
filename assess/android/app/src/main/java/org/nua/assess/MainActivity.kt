@@ -9,6 +9,8 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebChromeClient
+import android.webkit.ValueCallback
 import androidx.webkit.WebViewAssetLoader
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Engine
@@ -31,6 +33,7 @@ class MainActivity : Activity() {
     @Volatile private var modelStatus = "No model imported · built-in hints ready"
     private var pickerRequest: String? = null
     private var exportText: String? = null
+    private var materialPicker: ValueCallback<Array<Uri>>? = null
     private val modelFile get() = File(filesDir, "assessment.litertlm")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,12 +48,22 @@ class MainActivity : Activity() {
             mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
         }
         web.addJavascriptInterface(Bridge(), "NuaNative")
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onShowFileChooser(view: WebView, callback: ValueCallback<Array<Uri>>, params: FileChooserParams): Boolean {
+                if (!operationActive.compareAndSet(false, true)) { callback.onReceiveValue(null); return true }
+                materialPicker = callback
+                try { startActivityForResult(params.createIntent(), 103) }
+                catch (_: Exception) { materialPicker = null; operationActive.set(false); callback.onReceiveValue(null) }
+                return true
+            }
+        }
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse {
                 return loader.shouldInterceptRequest(request.url)
                     ?: WebResourceResponse("text/plain", "UTF-8", 403, "Blocked", emptyMap(), "Blocked".byteInputStream())
             }
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
+                !(request.url.scheme == "https" && request.url.host == "appassets.androidplatform.net" && request.url.path in listOf("/assets/index.html", "/assets/demo.html"))
         }
         setContentView(web)
         // Keep controls below system bars on edge-to-edge Android versions.
@@ -63,7 +76,7 @@ class MainActivity : Activity() {
         }
         web.loadUrl("https://appassets.androidplatform.net/assets/index.html")
         worker.execute {
-            try { ModelFiles.recover(modelFile); if (modelFile.exists()) loadModel() }
+            try { ModelFiles.recover(modelFile); if (modelFile.exists()) modelStatus = "Model installed · loads on first science-demo hint" }
             catch (_: Exception) { modelStatus = "Previous model recovery failed. Retain your original model file." }
         }
     }
@@ -87,7 +100,7 @@ class MainActivity : Activity() {
     inner class Bridge {
         @JavascriptInterface fun request(id: String, method: String, raw: String) {
             if (!id.matches(Regex("[a-f0-9-]{36}"))) return
-            if (raw.length > 250000) { error(id, "Request is too large for the native bridge."); return }
+            if (raw.length > (if (method == "export") 1500000 else 250000)) { error(id, "Request is too large for the native bridge."); return }
             val p = try { JSONObject(raw) } catch (_: Exception) { error(id, "Invalid request."); return }
             when (method) {
                 // Availability describes a loaded model, not a queue reservation.
@@ -103,6 +116,8 @@ class MainActivity : Activity() {
                     if (p.optString("task") != "guided" || q.trim().length !in 3..400 || language !in listOf("en", "hi")) {
                         error(id, "Invalid guided hint request."); return@execute
                     }
+                    // Material-based inquiry does not need this demo model resident.
+                    if (!ready && modelFile.exists()) loadModel()
                     val current = engine
                     if (!ready || current == null) { error(id, "Import a compatible local model in Settings first."); return@execute }
                     // Only the bundled UI can invoke this bridge. It constructs the
@@ -151,6 +166,11 @@ class MainActivity : Activity() {
     @Deprecated("Activity result bridge kept dependency-light")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 103) {
+            val callback = materialPicker; materialPicker = null; operationActive.set(false)
+            callback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
+            return
+        }
         if (requestCode != 101 && requestCode != 102) return
         val id = pickerRequest ?: return
         pickerRequest = null
@@ -185,6 +205,7 @@ class MainActivity : Activity() {
         }
     }
     override fun onDestroy() {
+        materialPicker?.onReceiveValue(null); materialPicker = null
         web.removeJavascriptInterface("NuaNative"); web.destroy()
         worker.execute { engine?.close(); engine = null; deadlines.shutdown() }; worker.shutdown()
         super.onDestroy()

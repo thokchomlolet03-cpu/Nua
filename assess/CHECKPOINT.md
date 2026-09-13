@@ -1,4 +1,8 @@
-# MVP checkpoint — 0.2.1 — 2026-09-13
+# MVP checkpoint — 0.4.0 — 2026-09-13
+
+Current default: material-based Mangal Inquiry with 20+ distinct inquiry types, one question shown at a time. Read [MANGAL-DESIGN.md](MANGAL-DESIGN.md) before resuming. 67 Node tests pass; Android assembly, lint and JVM tests pass. Browser verification covered PDF/text preparation, 20/20 synthetic inquiry responses, per-question support labels, pause/draft restoration and synthesis. Local AI remains optional and human-reviewed. Prepared-lesson import and physical Android testing remain outstanding. No cloud AI, public deployment, GitHub push or competition submission change was performed.
+
+## Historical 0.2.1 checkpoint
 
 ## Latest audit checkpoint
 

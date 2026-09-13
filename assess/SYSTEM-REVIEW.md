@@ -1,5 +1,7 @@
 # System review — 2026-09-12
 
+The material-based 0.3.0 implementation is described in [MANGAL-DESIGN.md](MANGAL-DESIGN.md). This review concerns the preserved fixed science demonstration.
+
 Historical review. The September 13 follow-up in `AUDIT-0.2.1.md` supersedes the persistence, offline-update and verification details below. In particular, supported browsers now hold an exclusive editing lock in addition to comparing saved values.
 
 Scope: the Nua Assess product in `assess/`: learning flow, rubric, AI adapters, persistence, exports, offline assets and Android host. This is not an audit of every upstream Nua module.

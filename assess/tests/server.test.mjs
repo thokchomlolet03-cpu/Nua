@@ -12,9 +12,91 @@ test("JSON null and arrays are rejected as invalid requests", async () => {
     assert.equal(r.status, 400);
   }
 });
+test("inquiry drafting rejects malformed and oversized inputs before any inference", async () => {
+  for (const [body, status] of [
+    ["null", 400],
+    ["{}", 400],
+    ["x".repeat(25000), 413],
+  ]) {
+    const r = await fetch(base + "/api/inquiry-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+    assert.equal(r.status, status);
+  }
+  assert.equal(
+    (
+      await fetch(base + "/api/inquiry-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://evil.example",
+        },
+        body: "{}",
+      })
+    ).status,
+    403,
+  );
+});
+test("new inquiry, PDF worker and preserved demo are served without exposing model code", async () => {
+  for (const path of [
+    "/inquiry-app.js",
+    "/inquiry-core.js",
+    "/mangal-core.js",
+    "/inquiry-questions.js",
+    "/material.js",
+    "/vendor/pdf.min.js",
+    "/vendor/pdf.worker.min.js",
+    "/demo.html",
+  ])
+    assert.equal((await fetch(base + path)).status, 200);
+  assert.equal((await fetch(base + "/inquiry-model.mjs")).status, 404);
+  assert.equal((await fetch(base + "/question-model.mjs")).status, 404);
+  assert.match(await (await fetch(base)).text(), /inquiry-app.js/);
+});
 const port = 4189,
   base = `http://127.0.0.1:${port}`;
 let child;
+test("breadth endpoint rejects invalid batches, oversized input and foreign origins before inference", async () => {
+  for (const [body, status] of [
+    ["null", 400],
+    [
+      JSON.stringify({
+        objective: "Explain a fair comparison.",
+        excerpt: "x".repeat(50),
+        page: 1,
+        types: ["__proto__"],
+      }),
+      400,
+    ],
+    ["x".repeat(25000), 413],
+  ]) {
+    assert.equal(
+      (
+        await fetch(base + "/api/inquiry-questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        })
+      ).status,
+      status,
+    );
+  }
+  assert.equal(
+    (
+      await fetch(base + "/api/inquiry-questions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Origin: "https://evil.example",
+        },
+        body: "{}",
+      })
+    ).status,
+    403,
+  );
+});
 before(async () => {
   child = spawn(process.execPath, ["server.mjs"], {
     cwd: new URL("..", import.meta.url),

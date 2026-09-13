@@ -5,6 +5,8 @@ assess/android/app/build/
 assess/android/.gradle/
 assess/android/build/
 assess/artifacts/
+assess/node_modules/
+assess/web/vendor/
 .gradle
 /local.properties
 /.idea/caches

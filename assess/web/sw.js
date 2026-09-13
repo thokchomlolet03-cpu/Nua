@@ -1,6 +1,6 @@
 // Bump for EVERY bundled-asset change. Do not skipWaiting or claim clients:
 // an open assessment must finish using its existing release.
-const CACHE = "nua-assess-release-0.2.1";
+const CACHE = "nua-assess-release-0.4.0";
 const FILES = [
   "/",
   "/index.html",
@@ -9,6 +9,14 @@ const FILES = [
   "/core.js",
   "/content.js",
   "/storage.js",
+  "/demo.html",
+  "/inquiry-app.js",
+  "/inquiry-core.js",
+  "/inquiry-questions.js",
+  "/mangal-core.js",
+  "/material.js",
+  "/vendor/pdf.min.js",
+  "/vendor/pdf.worker.min.js",
 ];
 self.addEventListener("install", (e) =>
   e.waitUntil(
