@@ -27,6 +27,8 @@ import {
 } from "./assessment-feedback.js";
 import {
   questionTypes,
+  inquirySessions,
+  questionGuidance,
   expandPlan,
   makeQuestion,
   validateQuestionSet,
@@ -164,7 +166,7 @@ function header() {
   return '<header><div class="brand">nua<span>Mangal Inquiry</span></div><span class="pill">One objective · 20+ angles</span></header>';
 }
 function footer() {
-  return "<footer><span>Nua Assess 0.5.0 · Mangal Inquiry</span><span>Local storage · No cloud AI · Educational validation pending</span></footer>";
+  return "<footer><span>Nua Assess 0.6.0 · Mangal Inquiry</span><span>Local storage · No cloud AI · Educational validation pending</span></footer>";
 }
 function source() {
   return `<section class="card tinted"><h2>Source passage · page ${session.plan.page}</h2><p class="response">${esc(session.plan.quote)}</p><p class="small">According to uploaded material, not independently fact-checked. Original diagrams and layout are not shown.</p></section>`;
@@ -193,6 +195,7 @@ function fields(plan) {
 function questionEditor(plan) {
   editingQuestion = Math.min(editingQuestion, plan.questions.length - 1);
   const q = plan.questions[editingQuestion];
+  const guidance = questionGuidance(q);
   return `<h2>20+ angles. One coherent objective.</h2><p>${plan.questions.length} questions · ${new Set(plan.questions.map((q) => q.type)).size} distinct types · <span id="review-count">${plan.questions.filter((q) => q.reviewed).length}</span> reviewed. Every question is part of the learner journey, not optional extra content.</p><p class="notice">Templates are starting prompts, not automatically material-specific assessments. Review relevance, distinct reasoning, source sufficiency and criteria for every question. If the material cannot support the set, expand the selected material instead of approving filler.</p><label>Question to review<select id="edit-question">${plan.questions.map((q, i) => `<option value="${i}" ${i === editingQuestion ? "selected" : ""}>${i + 1}. ${questionTypes[q.type].title}</option>`).join("")}</select></label><label>Reasoning type<select id="question-type">${Object.entries(
     questionTypes,
   )
@@ -206,11 +209,12 @@ function questionEditor(plan) {
     ["prompt", "Question"],
     ["relevance", "How this advances the objective"],
     ["criterion", "Observable evidence to look for"],
+    ["responseContract", "Learner response contract (what must be shown)"],
     ["anchor", "Exact source anchor (20–300 characters)"],
   ]
     .map(
       ([key, label]) =>
-        `<label>${label}<textarea id="question-${key}" maxlength="${key === "anchor" ? 300 : 1800}">${esc(q[key])}</textarea></label>`,
+        `<label>${label}<textarea id="question-${key}" maxlength="${key === "anchor" ? 300 : key === "responseContract" ? 1000 : 1800}">${esc(key === "responseContract" ? q[key] || guidance.responseContract : q[key] || "")}</textarea></label>`,
     )
     .join(
       "",
@@ -301,14 +305,31 @@ function activeScreen() {
 function breadthScreen(s) {
   const b = s.breadth,
     q = s.plan.questions[b.index];
-  return `<section class="card"><p class="eyebrow">Question ${b.index + 1} of ${s.plan.questions.length}</p><h1>${questionTypes[q.type].title}</h1><p class="lead">${esc(q.prompt)}</p><p class="notice">${q.kind === "source" ? "Source-connected question. Request the passage if needed; its use is recorded for this question." : "Investigation question: distinguish your reasoning from established facts. Identify additional evidence needed rather than inventing an answer."}</p><form id="response-form"><label>Your response<textarea id="response" minlength="12" maxlength="1800" required>${esc(s.drafts.investigate || "")}</textarea></label><p class="small">You may explain a precise uncertainty or missing prerequisite. Recorded does not mean correct. Draft saves as you write.</p><button class="primary">Save this response and continue</button></form><div class="actions"><button id="pause" class="secondary">Pause and keep my place</button><button id="source-support" class="secondary">I need source support</button></div>${b.sourceViews.includes(b.index) ? '<p class="notice">Source support used for this question.</p>' : ""}<details><summary>Keep a related question for later</summary><p>The full inquiry set remains required. This space is only for side questions.</p><label>Question for later<input id="later-question" maxlength="400"></label><button id="park" class="secondary" ${s.parked.length >= 3 ? "disabled" : ""}>Save for later and return to this objective</button></details><details><summary>Inquiry coverage map</summary><ol>${s.plan.questions.map((q, i) => `<li>${questionTypes[q.type].title} — ${i < b.index ? "response recorded" : i === b.index ? "current" : "still to explore"}</li>`).join("")}</ol></details></section>${showSource ? source() : ""}`;
+  const stage =
+    inquirySessions.find(
+      (item) =>
+        b.index >= item.start &&
+        b.index < Math.min(item.end, s.plan.questions.length),
+    ) || inquirySessions.at(-1);
+  const guidance = questionGuidance(q);
+  const glossaryMarkup = guidance.glossary.length
+    ? `<details><summary>Plain-language terms</summary><dl>${guidance.glossary.map(({ term, meaning }) => `<dt>${esc(term)}</dt><dd>${esc(meaning)}</dd>`).join("")}</dl></details>`
+    : "";
+  const stageEnd = Math.min(stage.end, s.plan.questions.length);
+  const checkpoint = inquirySessions.find(
+    (item) => item.id > 1 && b.index === item.start,
+  );
+  const checkpointMarkup = checkpoint
+    ? `<p class="notice"><strong>Checkpoint reached:</strong> the previous session is complete. You can pause now and return to Session ${checkpoint.id}, or continue when ready. The remaining inquiry questions stay required.</p>`
+    : "";
+  return `<section class="card"><p class="eyebrow">Question ${b.index + 1} of ${s.plan.questions.length}</p><p class="small">Session ${stage.id} of 3 · ${esc(stage.title)} · questions ${stage.start + 1}–${stageEnd}. A natural stopping point is after question ${stageEnd}; pause there if useful.</p>${checkpointMarkup}<h1>${questionTypes[q.type].title}</h1><p class="lead">${esc(q.prompt)}</p><p class="notice">${q.kind === "source" ? "Source-connected question. Request the passage if needed; its use is recorded for this question." : "Investigation question: distinguish your reasoning from established facts. Identify additional evidence needed rather than inventing an answer."}</p><p class="notice"><strong>Response shape:</strong> ${esc(guidance.responseContract)} You may use short sentences, a labelled list or a table when it helps; show the same reasoning.</p>${glossaryMarkup}<form id="response-form"><label>Your response<textarea id="response" minlength="12" maxlength="1800" required>${esc(s.drafts.investigate || "")}</textarea></label><p class="small">You may explain a precise uncertainty or missing prerequisite. Recorded does not mean correct. Draft saves as you write.</p><button class="primary">Save this response and continue</button></form><div class="actions"><button id="pause" class="secondary">Pause and keep my place</button><button id="source-support" class="secondary">I need source support</button></div>${b.sourceViews.includes(b.index) ? '<p class="notice">Source support used for this question.</p>' : ""}<details><summary>Keep a related question for later</summary><p>The full inquiry set remains required. This space is only for side questions.</p><label>Question for later<input id="later-question" maxlength="400"></label><button id="park" class="secondary" ${s.parked.length >= 3 ? "disabled" : ""}>Save for later and return to this objective</button></details><details><summary>Inquiry coverage map</summary><ol>${s.plan.questions.map((q, i) => `<li>${questionTypes[q.type].title} — ${i < b.index ? "response recorded" : i === b.index ? "current" : "still to explore"}</li>`).join("")}</ol></details></section>${showSource ? source() : ""}`;
 }
 function breadthEvidence(s) {
   if (!s.breadth) return "";
   return `<details class="card"><summary>All ${s.breadth.answers.length} inquiry responses and criteria</summary>${s.breadth.answers
     .map((a, i) => {
       const q = s.plan.questions[i];
-      return `<details><summary>${i + 1}. ${questionTypes[q.type].title} · ${esc(a.condition)}</summary><p>${esc(q.prompt)}</p><p class="small">${esc(q.kind)} · source page ${q.page} · draft ${esc(q.origin)}</p><p class="response">${esc(a.text)}</p><h3>Review criteria</h3><p>${esc(q.criterion)}</p><p>Source anchor: ${esc(q.anchor)}</p></details>`;
+      return `<details><summary>${i + 1}. ${questionTypes[q.type].title} · ${esc(a.condition)}</summary><p>${esc(q.prompt)}</p><p class="small">${esc(q.kind)} · source page ${q.page} · draft ${esc(q.origin)}</p><p class="response">${esc(a.text)}</p><h3>Response contract</h3><p>${esc(questionGuidance(q).responseContract)}</p><h3>Review criteria</h3><p>${esc(q.criterion)}</p><p>Source anchor: ${esc(q.anchor)}</p></details>`;
     })
     .join("")}</details>`;
 }
@@ -320,7 +341,13 @@ function capturePlan() {
   setup.mode = $("#mode").value;
   if (setup.plan.questions && $("#question-prompt")) {
     const q = setup.plan.questions[editingQuestion];
-    for (const key of ["prompt", "relevance", "criterion", "anchor"])
+    for (const key of [
+      "prompt",
+      "relevance",
+      "criterion",
+      "responseContract",
+      "anchor",
+    ])
       q[key] = $("#question-" + key).value;
     q.type = $("#question-type").value;
     q.kind = $("#question-kind").value;
@@ -384,7 +411,7 @@ function feedbackScreen(s) {
   const helpCount = s.breadth.answers.filter((a) =>
     ["need-help", "unsure"].includes(a.learnerSignal),
   ).length;
-  return `<section class="card"><h1>Your next learning step</h1>${latest ? `<p>Linked to question ${s.plan.questions.findIndex((q) => q.id === latest.questionId) + 1}. Educator interpretation: ${esc(interpretations[latest.interpretation])}.</p><p><strong>Evidence in your response</strong></p><blockquote>${esc(latest.evidence)}</blockquote><p class="lead">${esc(latest.nextStep)}</p><p><strong>How to check it:</strong> ${esc(latest.successCriterion)}</p>${followup ? `<h3>Your follow-up</h3><p class="response">${esc(followup.text)}</p><p>${followup.signal === "still-need-help" ? "You indicated that more help is needed." : "You indicated that you can now explain it."} Ask your educator to check this response against the stated criterion.</p>` : `<form id="followup-form"><label>Your response after trying this step<textarea id="followup-text" minlength="12" maxlength="1800" required></textarea></label><label>How does it feel now?<select id="followup-signal"><option value="still-need-help">I still need help</option><option value="can-explain">I can explain my reasoning</option></select></label><p class="small">Save this response before leaving. It will be recorded separately from the independent application.</p><button class="primary">Record my follow-up</button></form>`}` : "<p>An educator can select a response below and connect it to one specific next step.</p>"}<p class="small">${helpCount} question(s) marked unsure or needing help by the learner. These are self-reports to guide review.</p><details><summary>Educator: connect evidence to a next step</summary><label>Choose a response<select id="feedback-question">${s.breadth.answers.map((a, i) => `<option value="${i}" ${i === index ? "selected" : ""}>${i + 1}. ${questionTypes[a.type].title}${["need-help", "unsure"].includes(a.learnerSignal) ? " · learner requested review" : ""}</option>`).join("")}</select></label><p>${esc(q.prompt)}</p><p class="small">${esc(a.condition)} · ${esc(q.kind)}</p><p class="response">${esc(a.text)}</p><h3>Question criteria</h3><p>${esc(q.criterion)}</p><p>Source anchor: ${esc(q.anchor)}</p><form id="feedback-form"><label>Interpretation<select id="feedback-interpretation">${Object.entries(
+  return `<section class="card"><h1>Your next learning step</h1>${latest ? `<p>Linked to question ${s.plan.questions.findIndex((q) => q.id === latest.questionId) + 1}. Educator interpretation: ${esc(interpretations[latest.interpretation])}.</p><p><strong>Evidence in your response</strong></p><blockquote>${esc(latest.evidence)}</blockquote><p class="lead">${esc(latest.nextStep)}</p><p><strong>How to check it:</strong> ${esc(latest.successCriterion)}</p>${followup ? `<h3>Your follow-up</h3><p class="response">${esc(followup.text)}</p><p>${followup.signal === "still-need-help" ? "You indicated that more help is needed." : "You indicated that you can now explain it."} Ask your educator to check this response against the stated criterion.</p>` : `<form id="followup-form"><label>Your response after trying this step<textarea id="followup-text" minlength="12" maxlength="1800" required></textarea></label><label>How does it feel now?<select id="followup-signal"><option value="still-need-help">I still need help</option><option value="can-explain">I can explain my reasoning</option></select></label><p class="small">Save this response before leaving. It will be recorded separately from the independent application.</p><button class="primary">Record my follow-up</button></form>`}` : "<p>An educator can select a response below and connect it to one specific next step.</p>"}<p class="small">${helpCount} question(s) marked unsure or needing help by the learner. These are self-reports to guide review.</p><details><summary>Educator: connect evidence to a next step</summary><label>Choose a response<select id="feedback-question">${s.breadth.answers.map((a, i) => `<option value="${i}" ${i === index ? "selected" : ""}>${i + 1}. ${questionTypes[a.type].title}${["need-help", "unsure"].includes(a.learnerSignal) ? " · learner requested review" : ""}</option>`).join("")}</select></label><p>${esc(q.prompt)}</p><p class="small">${esc(a.condition)} · ${esc(q.kind)}</p><p class="response">${esc(a.text)}</p><h3>Response contract</h3><p>${esc(questionGuidance(q).responseContract)}</p><h3>Question criteria</h3><p>${esc(q.criterion)}</p><p>Source anchor: ${esc(q.anchor)}</p><form id="feedback-form"><label>Interpretation<select id="feedback-interpretation">${Object.entries(
     interpretations,
   )
     .map(
@@ -795,6 +822,11 @@ async function draftWithAI() {
       next.questions[index] = {
         ...replacement,
         id: previous.id,
+        responseContract:
+          replacement.responseContract ||
+          previous.responseContract ||
+          questionGuidance(previous).responseContract,
+        glossaryTerms: replacement.glossaryTerms || previous.glossaryTerms || [],
         reviewed: false,
       };
     }

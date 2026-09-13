@@ -10,6 +10,9 @@ import {
 import {
   questionTypes,
   makeQuestion,
+  questionGuidance,
+  glossary,
+  inquirySessions,
   validateQuestionSet,
 } from "../web/inquiry-questions.js";
 import {
@@ -49,7 +52,31 @@ test("new default has 20 distinct types; teacher can extend to 24 and must revie
     () => core.createInquiry({ ...input(), plan }, 0),
     /Review every/,
   );
-  assert.equal(core.createInquiry(input(true), 0).plan.questions.length, 24);
+  const extended = input(true);
+  assert.equal(core.createInquiry(extended, 0).plan.questions.length, 24);
+  assert.ok(extended.plan.questions.every((q) => q.responseContract.length >= 12));
+});
+test("new questions carry generic response scaffolds, usable anchors and staged delivery", () => {
+  const plan = core.templatePlan(
+    "Explain how a claim is supported by evidence.",
+    "A claim should be compared with the information available before it is accepted. Different interpretations can fit the same information. Further observations can distinguish them.",
+    1,
+  );
+  assert.equal(plan.questions.length, 20);
+  assert.equal(inquirySessions.length, 3);
+  for (const q of plan.questions) {
+    assert.ok(q.responseContract.length >= 12);
+    assert.ok(q.anchor.length >= 20 && q.anchor.length <= 300);
+    assert.ok(plan.quote.includes(q.anchor));
+    assert.deepEqual(questionGuidance(q).glossary.every(({ term, meaning }) => glossary[term] === meaning), true);
+    assert.doesNotMatch(
+      `${q.prompt} ${q.criterion} ${q.responseContract}`,
+      /fertilizer|plant groups|paper helicopter/i,
+    );
+  }
+  assert.match(plan.questions.find((q) => q.type === "causality").prompt, /competing explanation/i);
+  assert.match(plan.questions.find((q) => q.type === "prediction").responseContract, /conditional prediction/i);
+  assert.match(plan.questions.find((q) => q.type === "counterexample").responseContract, /limited claim/i);
 });
 test("all 24 questions are required, individually locked and restorable across pauses", () => {
   const s = core.createInquiry(input(true), 0);
@@ -133,6 +160,12 @@ test("breadth approval rejects duplicate types, repeated questions and unresolve
     },
     (p) => {
       p.questions[0].criterion = "";
+    },
+    (p) => {
+      p.questions[0].responseContract = "";
+    },
+    (p) => {
+      p.questions[0].glossaryTerms = ["not-a-glossary-term"];
     },
   ]) {
     const d = input();
@@ -220,6 +253,7 @@ test("AI uses bounded batches of distinct question types and labels drafts unrev
   assert.equal(parsed[0].reviewed, false);
   assert.equal(parsed[0].page, 1);
   assert.equal(parsed[0].origin, "local-ai");
+  assert.ok(parsed[0].responseContract);
 });
 test("AI cannot invent anchors, omit types, duplicate prompts or substitute rationale for criteria", () => {
   for (const mutate of [

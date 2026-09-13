@@ -25,6 +25,7 @@ function harness() {
       open: async () => cache,
       keys: async () => [
         "nua-assess-release-0.5.0-r2",
+        "nua-assess-release-0.6.0-r1",
         "nua-assess-mvp-2",
         "unrelated-app",
       ],
@@ -76,7 +77,7 @@ test("offline install caches the complete release and activation preserves unrel
     assert.ok(h.added.some((r) => r.path === path && r.cache === "reload"));
   h.handlers.activate({ waitUntil: (promise) => (work = promise) });
   await work;
-  assert.deepEqual(h.deleted, ["nua-assess-mvp-2"]);
+  assert.deepEqual(h.deleted, ["nua-assess-release-0.5.0-r2", "nua-assess-mvp-2"]);
 });
 test("installed assets stay release-pinned online or offline, including query URLs", async () => {
   const h = harness();

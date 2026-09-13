@@ -1,6 +1,6 @@
 // Bump for EVERY bundled-asset change. Do not skipWaiting or claim clients:
 // an open assessment must finish using its existing release.
-const CACHE = "nua-assess-release-0.5.0-r2";
+const CACHE = "nua-assess-release-0.6.0-r1";
 const FILES = [
   "/",
   "/index.html",

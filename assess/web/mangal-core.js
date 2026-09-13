@@ -10,6 +10,8 @@ import {
   expandPlan,
   validateQuestionSet,
   BREADTH_POLICY,
+  DELIVERY_POLICY,
+  inquirySessions,
 } from "./inquiry-questions.js";
 export * from "./inquiry-core.js";
 export {
@@ -18,6 +20,8 @@ export {
   MAX_QUESTIONS,
   questionTypes,
   validateQuestionSet,
+  DELIVERY_POLICY,
+  inquirySessions,
 } from "./inquiry-questions.js";
 export const KEY = "nua-mangal-session-v2";
 export const templatePlan = (...args) => ({
@@ -215,6 +219,15 @@ export function inquiryReport(s, full = false) {
         origin,
         model,
       })),
+      delivery: {
+        policy: DELIVERY_POLICY,
+        sessions: inquirySessions.map(({ id, title, start, end }) => ({
+          id,
+          title,
+          start,
+          end: Math.min(end, s.plan.questions.length),
+        })),
+      },
     };
   return report;
 }

@@ -1,4 +1,4 @@
-# Competition alignment review — Nua Assess 0.5.0
+# Competition alignment review — Nua Assess 0.6.0
 
 Reviewed 13 September 2026. This report distinguishes implemented behavior, engineering checks, proposed research and unverified claims. It is not a funding prediction. The exact submitted Phase I answers were not available for reconciliation; no submission was changed.
 
@@ -48,7 +48,8 @@ These judgments concern the current repository, not all eligibility conditions o
 - Educator drafts save locally. Saved feedback history and learner follow-ups preserve earlier responses and application conditions. Teacher identity remains explicitly unverified.
 - Summary exports omit quoted evidence, next-step prose and follow-up text; full exports include them. Even summaries are not guaranteed anonymous.
 - Fixed source-anchor editing: incomplete draft anchors can now be saved while editing, but exact source matching is still required at approval.
-- Updated offline assets and Android packaging to version 0.5.0 / Android version code 6.
+- Added deterministic response contracts for every default inquiry type, optional type-relevant plain-language glossary terms, generic safeguards for the causal question cluster, three pacing checkpoints and complete source-anchor selection. Local-AI drafted items inherit the same contract and glossary metadata; human review remains required.
+- Updated offline assets and Android packaging to version 0.6.0 / Android version code 7. This is a code and workflow update, not evidence of improved learning.
 
 This directly addresses the webinar's emphasis on interpretable learning evidence and the next instructional move, rather than treating response collection as sufficient. [Supplied webinar transcript, assessment discussion](</Users/lolet/.codex/attachments/d12072bb-10ad-4bf4-96b1-9847561b2a58/pasted-text.txt:483>)
 
@@ -82,4 +83,4 @@ Unsupported claims now: proven learning gains; uniquely human skill measurement;
 
 ## Verification record
 
-Automated suite: 73 Node tests passed, including new feedback validation, immutable follow-up, learner signals, draft restoration, export minimization and draft-anchor editing. Android assembly, lint and JVM test tasks succeeded. This verifies engineering behavior, not educational impact. Detailed browser acceptance and remaining device limitations are recorded in [CHECKPOINT.md](CHECKPOINT.md).
+Automated suite: 89 Node tests passed, including the controlled safeguard fixtures, generic response scaffolds, source-anchor handling, feedback validation, immutable follow-up, learner signals, draft restoration, export minimization and draft-anchor editing. Android 0.6.0 assembly, lint and JVM tests passed; lint reports six non-blocking warnings and no errors. A fresh browser smoke test visibly confirmed the response contract, relevant glossary and Session 2 checkpoint after eight responses. This verifies engineering behavior, not educational impact. Detailed browser acceptance and remaining device limitations are recorded in [CHECKPOINT.md](CHECKPOINT.md).
