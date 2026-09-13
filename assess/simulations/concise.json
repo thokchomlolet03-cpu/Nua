@@ -1,0 +1,141 @@
+{
+  "synthetic": true,
+  "personaId": "concise",
+  "personaDescription": "Synthetic learner aged 13-14 with sound basic understanding and brief, plain-language answers. This is generated test content, not a real learner or evidence of human behavior. The supplied source was visible, so recall and unassisted conditions are simulated, not experimentally blind.",
+  "recall": "Use similar plants and change the fertilizer while keeping water and light the same. Measure how much they grow and repeat it because plants can grow different amounts. The result only covers the plants and conditions tested.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "A fair test changes fertilizer but keeps other things that affect growth equal. Just comparing two groups might include differences in water or light too.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q2",
+      "text": "Start with similar plants. Give one group fertilizer and the other none, with the same light and water. Measure growth over the same period and repeat the comparison.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q3",
+      "text": "Equal light and water mean those differences cannot explain why one group grows more. The passage does not explain how fertilizer changes growth inside a plant. I am not sure how detailed that part should be.",
+      "learnerSignal": "unsure",
+      "requestSource": true
+    },
+    {
+      "id": "q4",
+      "text": "It supports saying we cannot separate the effects of light and fertilizer when both change. It gives no actual growth measurements.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q5",
+      "text": "The plants should be similar at the start, like the same kind and roughly the same size. Otherwise a group might grow more because of the plants it started with.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q6",
+      "text": "A variable is something that can change, like water amount. You need that idea to tell which thing you change on purpose and which things you keep equal.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q7",
+      "text": "When light and fertilizer both change, either could affect growth. With only fertilizer changed, the comparison gives a clearer test of its effect.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q8",
+      "text": "Light and water are kept equal so they do not add differences. Fertilizer is what we change to test it. Growth is what we measure to see the result.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q9",
+      "text": "No, because the different light might have affected growth too. We cannot say fertilizer alone caused the difference.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q10",
+      "text": "I would expect the fertilizer group to usually grow more across repeats, though not by exactly the same amount each time.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q11",
+      "text": "Water could then explain some of the growth difference. We would need equal water to get a clearer answer about fertilizer.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q12",
+      "text": "No, it only tests those plants in those conditions. To say more, we would need fair tests with other kinds of plants and in other environments.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "I think no, if it is a different plant outside the test. A statement just about the tested plants does not say all other plants must respond the same way.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "Both light and fertilizer changed, so either or both could have affected growth. Keep light equal before judging the fertilizer effect.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q15",
+      "text": "We need the actual growth results for both groups and the repeats. We also need to check that the plants were similar and got equal light and water.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q16",
+      "text": "I would use columns for plant number, fertilizer amount, starting height, ending height and growth. The table alone cannot show whether the light and water were really kept equal.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q17",
+      "text": "The extra growth might come from more light or from fertilizer. Compare fertilizer and no fertilizer with equal light and water to check the fertilizer explanation.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q18",
+      "text": "Change blade length and use the same paper type, blade width and drop height. Measure the time to reach the floor and repeat the drops. I am unsure how to keep the rest of the shape exactly equal.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "Use similar plants with equal light and water, and change fertilizer. Measure growth and repeat. Keeping things equal helps separate the fertilizer effect, and repeats show how much the results vary.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q20",
+      "text": "Would fertilizer have the same effect on a different kind of plant? Test that kind with and without fertilizer under equal conditions and repeat, then compare the growth differences.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "How many repeats would we need if the plants grew quite different amounts?",
+  "revision": "A fair fertilizer comparison uses similar plants, equal light and equal water. Change fertilizer, measure growth and repeat to see variation. If light changes too, we cannot tell how much of the difference came from fertilizer. The passage does not give results that show it worked.",
+  "transfer": "I could test whether warmer water dissolves sugar faster. Change the water temperature but keep the sugar amount, water amount and stirring the same. Measure how long the sugar takes to dissolve and repeat. Different stirring speeds could change the result too.",
+  "observations": [
+    "All responses are synthetic; no real learner behavior, timings or learning gains are reported.",
+    "The source was supplied before generation. Recall and unassisted conditions are simulated rather than experimentally blind.",
+    "Q3 may be confusing because it asks for a biological mechanism that the passage does not explain.",
+    "Q10 assumes the effect would be increased growth, without considering reduced growth.",
+    "Q13 may be confusing because the scope of the claim matters to whether a different plant is a counterexample.",
+    "Q16 gives a basic table but does not include a separate repeat column.",
+    "Q18 leaves uncertainty about how to keep the other parts of the paper helicopter equal.",
+    "The revision is a generated response, not evidence of improvement. The learner-created transfer is not a calibrated transfer test."
+  ]
+}

@@ -1,0 +1,140 @@
+{
+  "synthetic": true,
+  "personaId": "prerequisite",
+  "personaDescription": "Synthetic age 13-14 student test actor with partial understanding of fair comparisons, missing the meanings of isolate and variation. Requests source help and identifies precise uncertainty. This fixture represents no real learner or observed human behavior.",
+  "recall": "I remember using similar plants and giving them equal light and water, but changing the fertilizer. You measure growth and repeat it. I don't understand what isolate means here. Does it mean putting the plants apart? I also remember variation, but I can't explain whether that means changing the fertilizer or getting different measurements.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "A fair test uses similar plants with the same water and light, and changes the fertilizer. Just comparing two groups could mean one also gets more sun, so that could explain its growth.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q2",
+      "text": "Get similar plants and make two groups with different fertilizer amounts. Give both groups equal water and light. Measure how much they grow and repeat the comparison. I don't think the passage gives the amounts to use.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q3",
+      "text": "Equal light and water stops one group getting extra of those things. But I need the sentence about isolate again: does fertilizer have to be kept separate from something? The passage doesn't explain how fertilizer changes growth inside a plant, if that is what biological mechanism means.",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q4",
+      "text": "If light and fertilizer both change, either might be connected to the growth difference, so we can't say it was only fertilizer. There aren't any actual growth numbers in the passage.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q5",
+      "text": "I think the plants should start about the same size. If one group starts taller, ending taller doesn't necessarily mean the fertilizer helped. I'm unsure how similar they have to be to count as comparable.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q6",
+      "text": "A variable is something that can change, I think. You need that to know what you are changing in the test. Is light still a variable when we keep it equal? Could I see the source again to check that part?",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q7",
+      "text": "In the first design light and fertilizer both differ. In the second only fertilizer is deliberately different, with light and water equal. That matters because extra light could explain a difference in the first design.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q8",
+      "text": "Light and water are things to keep equal. Fertilizer is the thing you change. Growth is what you measure to compare the groups. I know those jobs, but I don't remember the formal names for them.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q9",
+      "text": "No, not definitely. More light could have made the plants grow differently too. A growth difference by itself doesn't tell us which of the two changes caused it.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q10",
+      "text": "I would expect the fertilizer group to grow more each time, maybe by the same amount. I'm not sure whether made a difference could also mean less growth. Please show me the part about variation; I don't know whether repeated results are supposed to match exactly.",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q11",
+      "text": "Then water might explain the growth difference as well as fertilizer. We would need another comparison with the water equal before saying fertilizer alone caused it.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q12",
+      "text": "No, it only covers the plants and conditions tested. To include another kind of plant, I would test that kind too. I don't know how many kinds would be enough to say anything about every plant.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "If it is a different plant outside the test, I think it doesn't cancel what happened to the tested plants. It would show we shouldn't say all plants respond alike. I'm less sure if you mean one of the plants already in the test.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "Both light and fertilizer changed, so we cannot conclude that fertilizer alone caused the growth difference. Keep the light equal and compare the fertilizer conditions again.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q15",
+      "text": "We need the growth measurements for both groups and the repeated results. We also need to know whether light and water really were equal. I don't know how different the measurements must be before the difference counts.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q16",
+      "text": "I would have columns for plant number, fertilizer amount, starting height and ending height. Each row would be a plant. The table wouldn't prove they all got equal light. I'm unsure where to put repeated measurements without mixing them up.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q17",
+      "text": "Maybe the fertilizer caused more growth, or maybe the extra light did. Compare different fertilizer amounts with the light equal to check fertilizer. I think you could also compare light with fertilizer equal, but I'm not sure what to conclude if both comparisons show a difference.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q18",
+      "text": "Change the blade length, use the same kind of paper and drop from the same height. Measure the time until it lands. Repeat the drops. Making blades longer might also make the helicopter heavier, and I'm not sure how to keep that equal.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "Use similar plants, keep light and water equal, change fertilizer and measure growth more than once. I can list that, but I still can't explain factor isolation. Please show the source again. Does variation mean differences in the growth readings, or the fertilizer change we chose?",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q20",
+      "text": "Would the same fertilizer comparison give a similar result with a different kind of plant? Test that kind with equal water and light within its groups, change fertilizer and record growth repeatedly. Then compare what happened, though I'm unsure how close the results need to be to count as similar.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "Can you show me the sentences with isolate and variation and explain those words? I can say what to keep equal, but I don't know whether isolate means physically separating plants, or whether variation is something we change or something we measure.",
+  "revision": "My explanation is that similar plants get equal light and water but different fertilizer, and we measure their growth and repeat the comparison. If light changes too, light could explain the growth difference. I still need help explaining isolate in my own words. I think variation might be different growth readings, but I'm not certain, and I shouldn't say all the repeats must have identical results.",
+  "transfer": "I could compare how quickly sugar dissolves in warm and cool water. Change the water temperature, keep the amount of water and sugar equal, and measure how long dissolving takes. Stirring one cup more could change the result, so stirring should be equal too. I would repeat it, but I don't know how to explain different times if I kept those things equal.",
+  "observations": [
+    "This is a synthetic response fixture, not evidence of a real student's behavior, learning or ability.",
+    "The supplied source was visible during generation. Recall and unassisted conditions are simulated and are not experimentally blind.",
+    "The actor gives several correct procedural and causal answers while retaining explicit uncertainty about isolate and variation.",
+    "Source help is requested for q3, q6, q10 and q19; no actual source-help interaction or instructional outcome is claimed.",
+    "Likely confusing questions are q3 and q19 for isolation terminology, q6 for the status of a variable held equal, and q10 for repeated variation and the direction of an effect.",
+    "Additional uncertainty appears in q13 about whether the imagined plant belongs to the tested group, q16 about recording repeats, and q18 about blade length also changing mass.",
+    "The revision is an authored simulation response, not an observed change following feedback. No elapsed times, demographic background or disability attributes are inferred."
+  ]
+}

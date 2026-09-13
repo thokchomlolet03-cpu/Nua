@@ -1,0 +1,130 @@
+{
+  "synthetic": true,
+  "title": "Synthetic fair comparisons — breadth test",
+  "objective": "Explain how a fair comparison isolates the effect of fertilizer.",
+  "source": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment.",
+  "recall": "Without reopening the passage, explain what you remember that addresses this objective: Explain how a fair comparison isolates the effect of fertilizer.",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "definition",
+      "prompt": "Define a fair test of fertilizer. How is it different from simply comparing two plant groups?",
+      "kind": "source"
+    },
+    {
+      "id": "q2",
+      "type": "reconstruction",
+      "prompt": "Reconstruct the proposed fertilizer comparison in your own words, including what stays equal.",
+      "kind": "source"
+    },
+    {
+      "id": "q3",
+      "type": "mechanism",
+      "prompt": "Explain how holding light and water equal helps isolate fertilizer in the comparison. Which biological mechanism does the passage leave unexplained?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q4",
+      "type": "evidence",
+      "prompt": "Which claim is supported by the description of light and fertilizer changing together? Does the passage supply actual growth measurements?",
+      "kind": "source"
+    },
+    {
+      "id": "q5",
+      "type": "assumptions",
+      "prompt": "What assumption about the comparability of the plants is needed? How could its failure affect the interpretation?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q6",
+      "type": "prerequisites",
+      "prompt": "Explain why understanding a variable is a prerequisite for understanding this fair comparison.",
+      "kind": "investigation"
+    },
+    {
+      "id": "q7",
+      "type": "comparison",
+      "prompt": "Compare the two-factor-changing design with the fertilizer-only design. Which difference matters for the conclusion?",
+      "kind": "source"
+    },
+    {
+      "id": "q8",
+      "type": "classification",
+      "prompt": "Classify light, water, fertilizer and growth by their roles in the proposed comparison, and explain each placement.",
+      "kind": "source"
+    },
+    {
+      "id": "q9",
+      "type": "causality",
+      "prompt": "Can a growth difference be attributed to fertilizer when light also changes? Explain why or why not.",
+      "kind": "source"
+    },
+    {
+      "id": "q10",
+      "type": "prediction",
+      "prompt": "If fertilizer made a difference under equal conditions, what pattern would you predict across repeated growth comparisons?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q11",
+      "type": "counterfactual",
+      "prompt": "Suppose water also differed between the plant groups. How would that change the interpretation?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q12",
+      "type": "boundaries",
+      "prompt": "Would this comparison establish the effect for every plant and environment? State a boundary and evidence needed to extend it.",
+      "kind": "investigation"
+    },
+    {
+      "id": "q13",
+      "type": "counterexample",
+      "prompt": "Imagine a plant that responds differently to fertilizer. Would that refute a claim about only the tested plants? Explain.",
+      "kind": "investigation"
+    },
+    {
+      "id": "q14",
+      "type": "error",
+      "prompt": "Correct this mistaken conclusion: both light and fertilizer changed, so fertilizer alone caused the growth difference.",
+      "kind": "source"
+    },
+    {
+      "id": "q15",
+      "type": "uncertainty",
+      "prompt": "What information is still missing before you could judge whether fertilizer actually affected growth in this comparison?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q16",
+      "type": "representation",
+      "prompt": "Describe a table for recording the fertilizer comparison. What would its columns represent, and what would the table not establish alone?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q17",
+      "type": "interpretation",
+      "prompt": "Give two possible interpretations of a growth difference when light and fertilizer both change. What comparison could distinguish them?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q18",
+      "type": "application",
+      "prompt": "Apply the fair-comparison principle to testing paper helicopter blade length. What would you vary, hold equal and measure?",
+      "kind": "investigation"
+    },
+    {
+      "id": "q19",
+      "type": "synthesis",
+      "prompt": "Combine factor isolation and repeated measurement into one explanation of a useful fertilizer comparison.",
+      "kind": "source"
+    },
+    {
+      "id": "q20",
+      "type": "inquiry",
+      "prompt": "Ask a new question about whether this fertilizer result would apply elsewhere, and explain what evidence could answer it.",
+      "kind": "investigation"
+    }
+  ],
+  "transfer": "Describe a different situation where the idea in this objective might apply: Explain how a fair comparison isolates the effect of fertilizer. Explain your reasoning and one condition that could change the result. This learner-created application is not a calibrated transfer test."
+}

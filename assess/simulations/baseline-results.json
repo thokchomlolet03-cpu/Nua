@@ -1,0 +1,3448 @@
+{
+  "schema": "nua-agent-simulation/1",
+  "synthetic": true,
+  "notice": "Agent-generated scenarios, not real learners, human educator validation, observed retention or learning gains. Shared model family and authored personas constrain results.",
+  "cases": [
+    {
+      "caseId": "A",
+      "synthetic": true,
+      "executedThrough": "production domain functions; no browser interaction",
+      "virtualTimestamps": true,
+      "checks": [
+        "too-short response rejected without changing state",
+        "educator feedback before application rejected",
+        "paused response q1 cannot submit",
+        "paused response q2 cannot submit",
+        "paused response q3 cannot submit",
+        "paused response q4 cannot submit",
+        "paused response q5 cannot submit",
+        "paused response q6 cannot submit",
+        "paused response q7 cannot submit",
+        "paused response q8 cannot submit",
+        "paused response q9 cannot submit",
+        "paused response q10 cannot submit",
+        "paused response q11 cannot submit",
+        "paused response q12 cannot submit",
+        "paused response q13 cannot submit",
+        "paused response q14 cannot submit",
+        "paused response q15 cannot submit",
+        "paused response q16 cannot submit",
+        "paused response q17 cannot submit",
+        "paused response q18 cannot submit",
+        "paused response q19 cannot submit",
+        "paused response q20 cannot submit",
+        "early delayed application rejected"
+      ],
+      "summary": {
+        "schema": "nua-mangal/1",
+        "policy": "focused-inquiry-1",
+        "sessionId": "synthetic-A",
+        "phase": "complete",
+        "approval": {
+          "mode": "self-study-provisional",
+          "at": 0,
+          "identityVerified": false,
+          "sourceChecked": true
+        },
+        "perspective": "causality",
+        "origin": "rule-based-template",
+        "model": null,
+        "transferMode": "immediate-demo",
+        "dueAt": 86400047,
+        "notice": "Prototype, not a validated score. Timing and outside assistance are unverified. Teacher review is not authenticated. Self-study setup exposes questions/rubric. Transfer is an application task, not an equated learning-gain measure.",
+        "responses": {
+          "recall": {
+            "at": 2,
+            "condition": "closed-source-self-report"
+          },
+          "investigate": {
+            "at": 45,
+            "condition": "source-assisted"
+          },
+          "question": {
+            "at": 46,
+            "condition": "perspective-prompted"
+          },
+          "revise": {
+            "at": 47,
+            "condition": "source-and-rubric-review"
+          },
+          "transfer": {
+            "at": 50,
+            "condition": "unassisted-self-report"
+          }
+        },
+        "reflection": null,
+        "review": null,
+        "coverageWarningCount": 0,
+        "includesRawMaterial": false,
+        "breadth": {
+          "policy": "mangal-breadth/1",
+          "planned": 20,
+          "distinctTypes": 20,
+          "completed": 20,
+          "notice": "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
+          "responses": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 6,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 8,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 11,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 13,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 15,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 17,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 19,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 21,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 23,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 25,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 27,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 29,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 31,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 33,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 35,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 37,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 39,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 41,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 43,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 45,
+              "learnerSignal": "ready-to-explain"
+            }
+          ],
+          "origins": [
+            {
+              "id": "q1",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "origin": "template",
+              "model": null
+            }
+          ]
+        }
+      },
+      "full": {
+        "schema": "nua-mangal/1",
+        "policy": "focused-inquiry-1",
+        "sessionId": "synthetic-A",
+        "phase": "complete",
+        "approval": {
+          "mode": "self-study-provisional",
+          "at": 0,
+          "identityVerified": false,
+          "sourceChecked": true
+        },
+        "perspective": "causality",
+        "origin": "rule-based-template",
+        "model": null,
+        "transferMode": "immediate-demo",
+        "dueAt": 86400047,
+        "notice": "Prototype, not a validated score. Timing and outside assistance are unverified. Teacher review is not authenticated. Self-study setup exposes questions/rubric. Transfer is an application task, not an equated learning-gain measure.",
+        "responses": {
+          "recall": {
+            "at": 2,
+            "condition": "closed-source-self-report",
+            "text": "Use similar plants and change the fertilizer while keeping water and light the same. Measure how much they grow and repeat it because plants can grow different amounts. The result only covers the plants and conditions tested."
+          },
+          "investigate": {
+            "at": 45,
+            "condition": "source-assisted",
+            "text": "Completed 20 inquiry questions. Individual responses and assistance conditions are preserved in the breadth evidence. Completion is not a mastery score."
+          },
+          "question": {
+            "at": 46,
+            "condition": "perspective-prompted",
+            "text": "How many repeats would we need if the plants grew quite different amounts?"
+          },
+          "revise": {
+            "at": 47,
+            "condition": "source-and-rubric-review",
+            "text": "A fair fertilizer comparison uses similar plants, equal light and equal water. Change fertilizer, measure growth and repeat to see variation. If light changes too, we cannot tell how much of the difference came from fertilizer. The passage does not give results that show it worked."
+          },
+          "transfer": {
+            "at": 50,
+            "condition": "unassisted-self-report",
+            "text": "I could test whether warmer water dissolves sugar faster. Change the water temperature but keep the sugar amount, water amount and stirring the same. Measure how long the sugar takes to dissolve and repeat. Different stirring speeds could change the result too."
+          }
+        },
+        "reflection": null,
+        "review": null,
+        "coverageWarningCount": 0,
+        "includesRawMaterial": true,
+        "title": "SYNTHETIC A",
+        "pages": [
+          {
+            "page": 1,
+            "text": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment."
+          }
+        ],
+        "plan": {
+          "objective": "Explain how a fair comparison isolates the effect of fertilizer.",
+          "page": 1,
+          "quote": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment.",
+          "perspective": "causality",
+          "reason": "Distinguish a proposed cause from other explanations.",
+          "recall": "Without reopening the passage, explain what you remember that addresses this objective: Explain how a fair comparison isolates the effect of fertilizer.",
+          "investigate": "Identify a proposed cause and an alternative explanation. What comparison could distinguish them? Keep your response connected to: Explain how a fair comparison isolates the effect of fertilizer.",
+          "transfer": "Describe a different situation where the idea in this objective might apply: Explain how a fair comparison isolates the effect of fertilizer. Explain your reasoning and one condition that could change the result. This learner-created application is not a calibrated transfer test.",
+          "rubric": "Check accuracy against the source; the connection between claim and evidence; the relevance of the chosen perspective; and whether the proposed question or application can be justified. A fluent explanation alone is not evidence of understanding.",
+          "origin": "rule-based-template",
+          "model": null,
+          "policy": "focused-inquiry-1",
+          "breadthPolicy": "mangal-breadth/1",
+          "questions": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "prompt": "Define a fair test of fertilizer. How is it different from simply comparing two plant groups?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish varying fertilizer alone from changing several relevant conditions.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "prompt": "Reconstruct the proposed fertilizer comparison in your own words, including what stays equal.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Mention comparable plants, equal light and water, fertilizer varied, growth measured and comparisons repeated.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "prompt": "Explain how holding light and water equal helps isolate fertilizer in the comparison. Which biological mechanism does the passage leave unexplained?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Explain isolation without inventing a biological account of fertilizer absorption.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "prompt": "Which claim is supported by the description of light and fertilizer changing together? Does the passage supply actual growth measurements?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify the confounding claim and distinguish a design description from observed growth data.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "prompt": "What assumption about the comparability of the plants is needed? How could its failure affect the interpretation?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify differences between groups as a possible alternative explanation, not an observed fact.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "prompt": "Explain why understanding a variable is a prerequisite for understanding this fair comparison.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Connect a variable to a changing or held-equal condition in the described design.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "prompt": "Compare the two-factor-changing design with the fertilizer-only design. Which difference matters for the conclusion?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish simultaneous light and fertilizer changes from fertilizer varied with equal light.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "prompt": "Classify light, water, fertilizer and growth by their roles in the proposed comparison, and explain each placement.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Separate held-equal conditions, the varied factor and the measured outcome.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "prompt": "Can a growth difference be attributed to fertilizer when light also changes? Explain why or why not.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Reject a uniquely identified fertilizer effect when both factors change.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "prompt": "If fertilizer made a difference under equal conditions, what pattern would you predict across repeated growth comparisons?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "State a conditional prediction and acknowledge variation without claiming results were observed.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "prompt": "Suppose water also differed between the plant groups. How would that change the interpretation?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify water as another potential explanation while keeping the counterfactual distinct from the supplied design.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "prompt": "Would this comparison establish the effect for every plant and environment? State a boundary and evidence needed to extend it.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Limit the conclusion to tested conditions and propose evidence for extension.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "prompt": "Imagine a plant that responds differently to fertilizer. Would that refute a claim about only the tested plants? Explain.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish a universal claim from a limited claim and label the proposed example hypothetical.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "prompt": "Correct this mistaken conclusion: both light and fertilizer changed, so fertilizer alone caused the growth difference.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify the unsupported isolation of one cause and explain the alternative factor.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "prompt": "What information is still missing before you could judge whether fertilizer actually affected growth in this comparison?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Ask for measurements, variation and relevant details without inventing an effect.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "prompt": "Describe a table for recording the fertilizer comparison. What would its columns represent, and what would the table not establish alone?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Include group or fertilizer condition, trial and growth measurement; distinguish recording from causal proof.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "prompt": "Give two possible interpretations of a growth difference when light and fertilizer both change. What comparison could distinguish them?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Offer plausible alternatives and an isolating comparison without declaring either alternative proven.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "prompt": "Apply the fair-comparison principle to testing paper helicopter blade length. What would you vary, hold equal and measure?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Map factor isolation to a new situation and state relevant controls and a measurable outcome.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "prompt": "Combine factor isolation and repeated measurement into one explanation of a useful fertilizer comparison.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Explain distinct contributions of controlling factors and observing variation rather than listing them without connection.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "prompt": "Ask a new question about whether this fertilizer result would apply elsewhere, and explain what evidence could answer it.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Propose a relevant answerable question and an evidence plan while acknowledging absent data.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            }
+          ]
+        },
+        "coverageWarnings": [],
+        "parked": [],
+        "events": [
+          {
+            "type": "recall_started",
+            "at": 1,
+            "seq": 1
+          },
+          {
+            "phase": "recall",
+            "type": "response_locked",
+            "at": 2,
+            "seq": 2
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q1",
+            "at": 6,
+            "seq": 3
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q2",
+            "at": 8,
+            "seq": 4
+          },
+          {
+            "phase": "investigate",
+            "type": "source_support",
+            "at": 10,
+            "seq": 5
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q3",
+            "at": 11,
+            "seq": 6
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q4",
+            "at": 13,
+            "seq": 7
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q5",
+            "at": 15,
+            "seq": 8
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q6",
+            "at": 17,
+            "seq": 9
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q7",
+            "at": 19,
+            "seq": 10
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q8",
+            "at": 21,
+            "seq": 11
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q9",
+            "at": 23,
+            "seq": 12
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q10",
+            "at": 25,
+            "seq": 13
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q11",
+            "at": 27,
+            "seq": 14
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q12",
+            "at": 29,
+            "seq": 15
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q13",
+            "at": 31,
+            "seq": 16
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q14",
+            "at": 33,
+            "seq": 17
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q15",
+            "at": 35,
+            "seq": 18
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q16",
+            "at": 37,
+            "seq": 19
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q17",
+            "at": 39,
+            "seq": 20
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q18",
+            "at": 41,
+            "seq": 21
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q19",
+            "at": 43,
+            "seq": 22
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q20",
+            "at": 45,
+            "seq": 23
+          },
+          {
+            "phase": "investigate",
+            "type": "response_locked",
+            "at": 45,
+            "seq": 24
+          },
+          {
+            "phase": "question",
+            "type": "response_locked",
+            "at": 46,
+            "seq": 25
+          },
+          {
+            "phase": "revise",
+            "type": "response_locked",
+            "at": 47,
+            "seq": 26
+          },
+          {
+            "mode": "immediate-demo",
+            "type": "transfer_started",
+            "at": 49,
+            "seq": 27
+          },
+          {
+            "phase": "transfer",
+            "type": "response_locked",
+            "at": 50,
+            "seq": 28
+          }
+        ],
+        "breadth": {
+          "policy": "mangal-breadth/1",
+          "planned": 20,
+          "distinctTypes": 20,
+          "completed": 20,
+          "notice": "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
+          "responses": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 6,
+              "learnerSignal": "ready-to-explain",
+              "text": "A fair test changes fertilizer but keeps other things that affect growth equal. Just comparing two groups might include differences in water or light too."
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 8,
+              "learnerSignal": "ready-to-explain",
+              "text": "Start with similar plants. Give one group fertilizer and the other none, with the same light and water. Measure growth over the same period and repeat the comparison."
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 11,
+              "learnerSignal": "unsure",
+              "text": "Equal light and water mean those differences cannot explain why one group grows more. The passage does not explain how fertilizer changes growth inside a plant. I am not sure how detailed that part should be."
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 13,
+              "learnerSignal": "ready-to-explain",
+              "text": "It supports saying we cannot separate the effects of light and fertilizer when both change. It gives no actual growth measurements."
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 15,
+              "learnerSignal": "ready-to-explain",
+              "text": "The plants should be similar at the start, like the same kind and roughly the same size. Otherwise a group might grow more because of the plants it started with."
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 17,
+              "learnerSignal": "ready-to-explain",
+              "text": "A variable is something that can change, like water amount. You need that idea to tell which thing you change on purpose and which things you keep equal."
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 19,
+              "learnerSignal": "ready-to-explain",
+              "text": "When light and fertilizer both change, either could affect growth. With only fertilizer changed, the comparison gives a clearer test of its effect."
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 21,
+              "learnerSignal": "ready-to-explain",
+              "text": "Light and water are kept equal so they do not add differences. Fertilizer is what we change to test it. Growth is what we measure to see the result."
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 23,
+              "learnerSignal": "ready-to-explain",
+              "text": "No, because the different light might have affected growth too. We cannot say fertilizer alone caused the difference."
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 25,
+              "learnerSignal": "ready-to-explain",
+              "text": "I would expect the fertilizer group to usually grow more across repeats, though not by exactly the same amount each time."
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 27,
+              "learnerSignal": "ready-to-explain",
+              "text": "Water could then explain some of the growth difference. We would need equal water to get a clearer answer about fertilizer."
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 29,
+              "learnerSignal": "ready-to-explain",
+              "text": "No, it only tests those plants in those conditions. To say more, we would need fair tests with other kinds of plants and in other environments."
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 31,
+              "learnerSignal": "unsure",
+              "text": "I think no, if it is a different plant outside the test. A statement just about the tested plants does not say all other plants must respond the same way."
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 33,
+              "learnerSignal": "ready-to-explain",
+              "text": "Both light and fertilizer changed, so either or both could have affected growth. Keep light equal before judging the fertilizer effect."
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 35,
+              "learnerSignal": "ready-to-explain",
+              "text": "We need the actual growth results for both groups and the repeats. We also need to check that the plants were similar and got equal light and water."
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 37,
+              "learnerSignal": "unsure",
+              "text": "I would use columns for plant number, fertilizer amount, starting height, ending height and growth. The table alone cannot show whether the light and water were really kept equal."
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 39,
+              "learnerSignal": "ready-to-explain",
+              "text": "The extra growth might come from more light or from fertilizer. Compare fertilizer and no fertilizer with equal light and water to check the fertilizer explanation."
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 41,
+              "learnerSignal": "unsure",
+              "text": "Change blade length and use the same paper type, blade width and drop height. Measure the time to reach the floor and repeat the drops. I am unsure how to keep the rest of the shape exactly equal."
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 43,
+              "learnerSignal": "ready-to-explain",
+              "text": "Use similar plants with equal light and water, and change fertilizer. Measure growth and repeat. Keeping things equal helps separate the fertilizer effect, and repeats show how much the results vary."
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 45,
+              "learnerSignal": "ready-to-explain",
+              "text": "Would fertilizer have the same effect on a different kind of plant? Test that kind with and without fertilizer under equal conditions and repeat, then compare the growth differences."
+            }
+          ],
+          "origins": [
+            {
+              "id": "q1",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "origin": "template",
+              "model": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "caseId": "B",
+      "synthetic": true,
+      "executedThrough": "production domain functions; no browser interaction",
+      "virtualTimestamps": true,
+      "checks": [
+        "too-short response rejected without changing state",
+        "educator feedback before application rejected",
+        "paused response q1 cannot submit",
+        "paused response q2 cannot submit",
+        "paused response q3 cannot submit",
+        "paused response q4 cannot submit",
+        "paused response q5 cannot submit",
+        "paused response q6 cannot submit",
+        "paused response q7 cannot submit",
+        "paused response q8 cannot submit",
+        "paused response q9 cannot submit",
+        "paused response q10 cannot submit",
+        "paused response q11 cannot submit",
+        "paused response q12 cannot submit",
+        "paused response q13 cannot submit",
+        "paused response q14 cannot submit",
+        "paused response q15 cannot submit",
+        "paused response q16 cannot submit",
+        "paused response q17 cannot submit",
+        "paused response q18 cannot submit",
+        "paused response q19 cannot submit",
+        "paused response q20 cannot submit",
+        "early delayed application rejected"
+      ],
+      "summary": {
+        "schema": "nua-mangal/1",
+        "policy": "focused-inquiry-1",
+        "sessionId": "synthetic-B",
+        "phase": "complete",
+        "approval": {
+          "mode": "self-study-provisional",
+          "at": 0,
+          "identityVerified": false,
+          "sourceChecked": true
+        },
+        "perspective": "causality",
+        "origin": "rule-based-template",
+        "model": null,
+        "transferMode": "immediate-demo",
+        "dueAt": 86400047,
+        "notice": "Prototype, not a validated score. Timing and outside assistance are unverified. Teacher review is not authenticated. Self-study setup exposes questions/rubric. Transfer is an application task, not an equated learning-gain measure.",
+        "responses": {
+          "recall": {
+            "at": 2,
+            "condition": "closed-source-self-report"
+          },
+          "investigate": {
+            "at": 45,
+            "condition": "source-assisted"
+          },
+          "question": {
+            "at": 46,
+            "condition": "perspective-prompted"
+          },
+          "revise": {
+            "at": 47,
+            "condition": "source-and-rubric-review"
+          },
+          "transfer": {
+            "at": 50,
+            "condition": "unassisted-self-report"
+          }
+        },
+        "reflection": null,
+        "review": null,
+        "coverageWarningCount": 0,
+        "includesRawMaterial": false,
+        "breadth": {
+          "policy": "mangal-breadth/1",
+          "planned": 20,
+          "distinctTypes": 20,
+          "completed": 20,
+          "notice": "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
+          "responses": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 6,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 8,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 10,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 12,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 14,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 16,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 18,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 20,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 22,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 24,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 26,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 28,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 30,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 32,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 35,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 37,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 39,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 41,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 43,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 45,
+              "learnerSignal": "ready-to-explain"
+            }
+          ],
+          "origins": [
+            {
+              "id": "q1",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "origin": "template",
+              "model": null
+            }
+          ]
+        }
+      },
+      "full": {
+        "schema": "nua-mangal/1",
+        "policy": "focused-inquiry-1",
+        "sessionId": "synthetic-B",
+        "phase": "complete",
+        "approval": {
+          "mode": "self-study-provisional",
+          "at": 0,
+          "identityVerified": false,
+          "sourceChecked": true
+        },
+        "perspective": "causality",
+        "origin": "rule-based-template",
+        "model": null,
+        "transferMode": "immediate-demo",
+        "dueAt": 86400047,
+        "notice": "Prototype, not a validated score. Timing and outside assistance are unverified. Teacher review is not authenticated. Self-study setup exposes questions/rubric. Transfer is an application task, not an equated learning-gain measure.",
+        "responses": {
+          "recall": {
+            "at": 2,
+            "condition": "closed-source-self-report",
+            "text": "A fair fertilizer test compares similar plants, gives them equal light and water, and changes the fertilizer. You measure their growth and repeat it. I remember repetition being important because if something like light was different, enough trials would smooth that difference out and show whether fertilizer really helped."
+          },
+          "investigate": {
+            "at": 45,
+            "condition": "source-assisted",
+            "text": "Completed 20 inquiry questions. Individual responses and assistance conditions are preserved in the breadth evidence. Completion is not a mastery score."
+          },
+          "question": {
+            "at": 46,
+            "condition": "perspective-prompted",
+            "text": "How many repeats do you need before a light difference stops affecting the fertilizer conclusion? I understand keeping light equal is useful, but I thought averaging enough trials could do the same job."
+          },
+          "revise": {
+            "at": 47,
+            "condition": "source-and-rubric-review",
+            "text": "I would explain the comparison more clearly by saying that similar plants get different fertilizer amounts and ideally equal light and water. Growth measurements need repeats because individual results vary. If light stays different between the groups, the first result is uncertain, but I still think enough repeats of that arrangement can average out light and isolate fertilizer."
+          },
+          "transfer": {
+            "at": 50,
+            "condition": "unassisted-self-report",
+            "text": "I could compare two paper towel types by measuring how much water each holds before dripping. I would aim to keep sheet size and the soaking method equal and repeat the measurements. Sheet size is one condition that could change the result. If type A always used a larger sheet, I think enough repeats would average away that size advantage, so a consistently higher amount would show that type A itself absorbs more."
+          }
+        },
+        "reflection": null,
+        "review": null,
+        "coverageWarningCount": 0,
+        "includesRawMaterial": true,
+        "title": "SYNTHETIC B",
+        "pages": [
+          {
+            "page": 1,
+            "text": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment."
+          }
+        ],
+        "plan": {
+          "objective": "Explain how a fair comparison isolates the effect of fertilizer.",
+          "page": 1,
+          "quote": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment.",
+          "perspective": "causality",
+          "reason": "Distinguish a proposed cause from other explanations.",
+          "recall": "Without reopening the passage, explain what you remember that addresses this objective: Explain how a fair comparison isolates the effect of fertilizer.",
+          "investigate": "Identify a proposed cause and an alternative explanation. What comparison could distinguish them? Keep your response connected to: Explain how a fair comparison isolates the effect of fertilizer.",
+          "transfer": "Describe a different situation where the idea in this objective might apply: Explain how a fair comparison isolates the effect of fertilizer. Explain your reasoning and one condition that could change the result. This learner-created application is not a calibrated transfer test.",
+          "rubric": "Check accuracy against the source; the connection between claim and evidence; the relevance of the chosen perspective; and whether the proposed question or application can be justified. A fluent explanation alone is not evidence of understanding.",
+          "origin": "rule-based-template",
+          "model": null,
+          "policy": "focused-inquiry-1",
+          "breadthPolicy": "mangal-breadth/1",
+          "questions": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "prompt": "Define a fair test of fertilizer. How is it different from simply comparing two plant groups?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish varying fertilizer alone from changing several relevant conditions.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "prompt": "Reconstruct the proposed fertilizer comparison in your own words, including what stays equal.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Mention comparable plants, equal light and water, fertilizer varied, growth measured and comparisons repeated.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "prompt": "Explain how holding light and water equal helps isolate fertilizer in the comparison. Which biological mechanism does the passage leave unexplained?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Explain isolation without inventing a biological account of fertilizer absorption.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "prompt": "Which claim is supported by the description of light and fertilizer changing together? Does the passage supply actual growth measurements?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify the confounding claim and distinguish a design description from observed growth data.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "prompt": "What assumption about the comparability of the plants is needed? How could its failure affect the interpretation?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify differences between groups as a possible alternative explanation, not an observed fact.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "prompt": "Explain why understanding a variable is a prerequisite for understanding this fair comparison.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Connect a variable to a changing or held-equal condition in the described design.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "prompt": "Compare the two-factor-changing design with the fertilizer-only design. Which difference matters for the conclusion?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish simultaneous light and fertilizer changes from fertilizer varied with equal light.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "prompt": "Classify light, water, fertilizer and growth by their roles in the proposed comparison, and explain each placement.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Separate held-equal conditions, the varied factor and the measured outcome.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "prompt": "Can a growth difference be attributed to fertilizer when light also changes? Explain why or why not.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Reject a uniquely identified fertilizer effect when both factors change.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "prompt": "If fertilizer made a difference under equal conditions, what pattern would you predict across repeated growth comparisons?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "State a conditional prediction and acknowledge variation without claiming results were observed.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "prompt": "Suppose water also differed between the plant groups. How would that change the interpretation?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify water as another potential explanation while keeping the counterfactual distinct from the supplied design.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "prompt": "Would this comparison establish the effect for every plant and environment? State a boundary and evidence needed to extend it.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Limit the conclusion to tested conditions and propose evidence for extension.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "prompt": "Imagine a plant that responds differently to fertilizer. Would that refute a claim about only the tested plants? Explain.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish a universal claim from a limited claim and label the proposed example hypothetical.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "prompt": "Correct this mistaken conclusion: both light and fertilizer changed, so fertilizer alone caused the growth difference.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify the unsupported isolation of one cause and explain the alternative factor.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "prompt": "What information is still missing before you could judge whether fertilizer actually affected growth in this comparison?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Ask for measurements, variation and relevant details without inventing an effect.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "prompt": "Describe a table for recording the fertilizer comparison. What would its columns represent, and what would the table not establish alone?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Include group or fertilizer condition, trial and growth measurement; distinguish recording from causal proof.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "prompt": "Give two possible interpretations of a growth difference when light and fertilizer both change. What comparison could distinguish them?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Offer plausible alternatives and an isolating comparison without declaring either alternative proven.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "prompt": "Apply the fair-comparison principle to testing paper helicopter blade length. What would you vary, hold equal and measure?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Map factor isolation to a new situation and state relevant controls and a measurable outcome.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "prompt": "Combine factor isolation and repeated measurement into one explanation of a useful fertilizer comparison.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Explain distinct contributions of controlling factors and observing variation rather than listing them without connection.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "prompt": "Ask a new question about whether this fertilizer result would apply elsewhere, and explain what evidence could answer it.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Propose a relevant answerable question and an evidence plan while acknowledging absent data.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            }
+          ]
+        },
+        "coverageWarnings": [],
+        "parked": [],
+        "events": [
+          {
+            "type": "recall_started",
+            "at": 1,
+            "seq": 1
+          },
+          {
+            "phase": "recall",
+            "type": "response_locked",
+            "at": 2,
+            "seq": 2
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q1",
+            "at": 6,
+            "seq": 3
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q2",
+            "at": 8,
+            "seq": 4
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q3",
+            "at": 10,
+            "seq": 5
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q4",
+            "at": 12,
+            "seq": 6
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q5",
+            "at": 14,
+            "seq": 7
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q6",
+            "at": 16,
+            "seq": 8
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q7",
+            "at": 18,
+            "seq": 9
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q8",
+            "at": 20,
+            "seq": 10
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q9",
+            "at": 22,
+            "seq": 11
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q10",
+            "at": 24,
+            "seq": 12
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q11",
+            "at": 26,
+            "seq": 13
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q12",
+            "at": 28,
+            "seq": 14
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q13",
+            "at": 30,
+            "seq": 15
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q14",
+            "at": 32,
+            "seq": 16
+          },
+          {
+            "phase": "investigate",
+            "type": "source_support",
+            "at": 34,
+            "seq": 17
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q15",
+            "at": 35,
+            "seq": 18
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q16",
+            "at": 37,
+            "seq": 19
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q17",
+            "at": 39,
+            "seq": 20
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q18",
+            "at": 41,
+            "seq": 21
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q19",
+            "at": 43,
+            "seq": 22
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q20",
+            "at": 45,
+            "seq": 23
+          },
+          {
+            "phase": "investigate",
+            "type": "response_locked",
+            "at": 45,
+            "seq": 24
+          },
+          {
+            "phase": "question",
+            "type": "response_locked",
+            "at": 46,
+            "seq": 25
+          },
+          {
+            "phase": "revise",
+            "type": "response_locked",
+            "at": 47,
+            "seq": 26
+          },
+          {
+            "mode": "immediate-demo",
+            "type": "transfer_started",
+            "at": 49,
+            "seq": 27
+          },
+          {
+            "phase": "transfer",
+            "type": "response_locked",
+            "at": 50,
+            "seq": 28
+          }
+        ],
+        "breadth": {
+          "policy": "mangal-breadth/1",
+          "planned": 20,
+          "distinctTypes": 20,
+          "completed": 20,
+          "notice": "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
+          "responses": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 6,
+              "learnerSignal": "ready-to-explain",
+              "text": "A fair test changes fertilizer while keeping things like water and light equal, so the growth comparison has a clear explanation. Just comparing any two groups could include other differences. I think repeating those groups enough times can also make the comparison fair because the extra differences average out."
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 8,
+              "learnerSignal": "ready-to-explain",
+              "text": "Start with comparable plants and divide them into a fertilizer group and a group without it. Give both groups the same water and light, measure how much they grow, and repeat the comparison. If the light cannot be kept equal, I would make up for that by doing more repeats."
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 10,
+              "learnerSignal": "unsure",
+              "text": "Equal light and water remove two possible explanations for a growth difference, leaving fertilizer as the factor being tested. The passage does not explain what happens inside the plant after fertilizer is added or how that changes growth. I am less sure about that biological part."
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 12,
+              "learnerSignal": "ready-to-explain",
+              "text": "The description supports saying that one comparison with both light and fertilizer changing cannot separate their effects. It gives no actual growth measurements. I would want a series of repeats before deciding whether the light difference still matters."
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 14,
+              "learnerSignal": "ready-to-explain",
+              "text": "We assume the plants begin similar enough in size and condition that one group does not already have an advantage. If all the fertilizer plants begin healthier, that could explain their extra growth. I would repeat with more plants to average away that starting advantage, even if the healthier plants stayed in the fertilizer group."
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 16,
+              "learnerSignal": "ready-to-explain",
+              "text": "A variable is something that can take different values, such as the amount of water or the measured growth. You need that idea to tell apart the thing you deliberately change, the conditions you keep equal, and the outcome you measure. Otherwise you could change several things without noticing."
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 18,
+              "learnerSignal": "ready-to-explain",
+              "text": "In the two-factor design, both light and fertilizer differ, so either could explain the first result. In the fertilizer-only design, light stays equal, which makes the conclusion easier. I think the two-factor design can reach the same conclusion if you repeat the original arrangement enough times and get a steady difference."
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 20,
+              "learnerSignal": "ready-to-explain",
+              "text": "Light and water are controlled variables because their amounts should stay equal between the groups. Fertilizer is the variable deliberately changed. Growth is the measured outcome because its difference is what the comparison records. The plants themselves should also start out comparable."
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 22,
+              "learnerSignal": "ready-to-explain",
+              "text": "Not from just one trial, because the light difference could explain it. But if the fertilizer group always gets more light and still grows more over many repeats, I think we can eventually attribute the difference to fertilizer. Repeating should cancel the light effect and leave the consistent fertilizer effect."
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 24,
+              "learnerSignal": "ready-to-explain",
+              "text": "I would predict a difference in average growth across the repeats, with the fertilizer group usually growing more if fertilizer helps under those conditions. Individual plants could vary, so every pair would not have to show exactly the same difference. If fertilizer reduced growth, the average pattern would go the other way."
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 26,
+              "learnerSignal": "ready-to-explain",
+              "text": "Different water amounts add another possible reason for the growth difference. It would make a single comparison weaker. I would repeat the same watering and fertilizer arrangement more times so the water contribution averages out, then use the remaining average difference as the fertilizer result."
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 28,
+              "learnerSignal": "ready-to-explain",
+              "text": "No, the result is about the plants and conditions actually tested. A different kind of plant or a much drier environment might give another result. To extend the claim, I would need measurements from comparisons using those other plants and environments, rather than only more copies of the original plants."
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 30,
+              "learnerSignal": "ready-to-explain",
+              "text": "A different plant responding differently would not refute a claim limited to the tested plants. It would show why that limit matters. It could challenge a statement that fertilizer has the same effect on every plant, but that is a broader statement than the passage makes."
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 32,
+              "learnerSignal": "ready-to-explain",
+              "text": "I would correct it to: both light and fertilizer changed, so we cannot say fertilizer alone caused the difference yet. We should repeat that same setup several times. If the fertilizer group keeps growing more, then we can rule out light through repetition and make the fertilizer conclusion."
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 35,
+              "learnerSignal": "unsure",
+              "text": "We still need actual growth measurements, the starting sizes, how growth was measured, and the spread of results across repeats. We also need the light and water amounts. I am unsure how many repeats are enough to cancel an unequal light amount, so I would want more information about that."
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 37,
+              "learnerSignal": "ready-to-explain",
+              "text": "I would use columns for trial, plant or group, fertilizer amount, light amount, water amount, starting height, final height, and change in height. Those columns record both conditions and growth. A table alone does not explain the biological process inside a plant or establish a result for every environment."
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 39,
+              "learnerSignal": "ready-to-explain",
+              "text": "One interpretation is that fertilizer increased growth; another is that extra light increased growth. Comparing fertilizer and no fertilizer under equal light could distinguish them. I also think repeating the original unequal-light comparison many times could distinguish them, because a steady result would leave less room for light to explain it."
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 41,
+              "learnerSignal": "ready-to-explain",
+              "text": "I would vary blade length, keep the paper, other dimensions, release method, and drop height equal, and measure time to reach the floor. I would repeat each design. If the longer-blade helicopter had to be dropped from higher up every time, enough repeated drops should average out the height difference and still reveal the blade-length effect."
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 43,
+              "learnerSignal": "ready-to-explain",
+              "text": "A useful comparison starts with similar plants and equal light and water while changing fertilizer, then measures growth repeatedly. Keeping conditions equal helps isolate fertilizer, and repeats show how variable the measurements are. Repeats also provide another way to isolate fertilizer if a condition stays unequal, because averaging removes that extra influence."
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 45,
+              "learnerSignal": "ready-to-explain",
+              "text": "Would the same fertilizer have a similar effect on plants growing in a drier setting? I would compare fertilizer and no fertilizer there, keep water equal within that setting, and record repeated growth measurements. Then I could compare the pattern with the original setting instead of assuming the original result applies there."
+            }
+          ],
+          "origins": [
+            {
+              "id": "q1",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "origin": "template",
+              "model": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "caseId": "C",
+      "synthetic": true,
+      "executedThrough": "production domain functions; no browser interaction",
+      "virtualTimestamps": true,
+      "checks": [
+        "too-short response rejected without changing state",
+        "educator feedback before application rejected",
+        "paused response q1 cannot submit",
+        "paused response q2 cannot submit",
+        "paused response q3 cannot submit",
+        "paused response q4 cannot submit",
+        "paused response q5 cannot submit",
+        "paused response q6 cannot submit",
+        "paused response q7 cannot submit",
+        "paused response q8 cannot submit",
+        "paused response q9 cannot submit",
+        "paused response q10 cannot submit",
+        "paused response q11 cannot submit",
+        "paused response q12 cannot submit",
+        "paused response q13 cannot submit",
+        "paused response q14 cannot submit",
+        "paused response q15 cannot submit",
+        "paused response q16 cannot submit",
+        "paused response q17 cannot submit",
+        "paused response q18 cannot submit",
+        "paused response q19 cannot submit",
+        "paused response q20 cannot submit",
+        "early delayed application rejected"
+      ],
+      "summary": {
+        "schema": "nua-mangal/1",
+        "policy": "focused-inquiry-1",
+        "sessionId": "synthetic-C",
+        "phase": "complete",
+        "approval": {
+          "mode": "self-study-provisional",
+          "at": 0,
+          "identityVerified": false,
+          "sourceChecked": true
+        },
+        "perspective": "causality",
+        "origin": "rule-based-template",
+        "model": null,
+        "transferMode": "immediate-demo",
+        "dueAt": 86400050,
+        "notice": "Prototype, not a validated score. Timing and outside assistance are unverified. Teacher review is not authenticated. Self-study setup exposes questions/rubric. Transfer is an application task, not an equated learning-gain measure.",
+        "responses": {
+          "recall": {
+            "at": 2,
+            "condition": "closed-source-self-report"
+          },
+          "investigate": {
+            "at": 48,
+            "condition": "source-assisted"
+          },
+          "question": {
+            "at": 49,
+            "condition": "perspective-prompted"
+          },
+          "revise": {
+            "at": 50,
+            "condition": "source-and-rubric-review"
+          },
+          "transfer": {
+            "at": 53,
+            "condition": "unassisted-self-report"
+          }
+        },
+        "reflection": null,
+        "review": null,
+        "coverageWarningCount": 0,
+        "includesRawMaterial": false,
+        "breadth": {
+          "policy": "mangal-breadth/1",
+          "planned": 20,
+          "distinctTypes": 20,
+          "completed": 20,
+          "notice": "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
+          "responses": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 6,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 8,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 11,
+              "learnerSignal": "need-help"
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 13,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 15,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 18,
+              "learnerSignal": "need-help"
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 20,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 22,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 24,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 27,
+              "learnerSignal": "need-help"
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 29,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 31,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 33,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 35,
+              "learnerSignal": "ready-to-explain"
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 37,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 39,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 41,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 43,
+              "learnerSignal": "unsure"
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "condition": "source-assisted",
+              "kind": "source",
+              "at": 46,
+              "learnerSignal": "need-help"
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 48,
+              "learnerSignal": "unsure"
+            }
+          ],
+          "origins": [
+            {
+              "id": "q1",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "origin": "template",
+              "model": null
+            }
+          ]
+        }
+      },
+      "full": {
+        "schema": "nua-mangal/1",
+        "policy": "focused-inquiry-1",
+        "sessionId": "synthetic-C",
+        "phase": "complete",
+        "approval": {
+          "mode": "self-study-provisional",
+          "at": 0,
+          "identityVerified": false,
+          "sourceChecked": true
+        },
+        "perspective": "causality",
+        "origin": "rule-based-template",
+        "model": null,
+        "transferMode": "immediate-demo",
+        "dueAt": 86400050,
+        "notice": "Prototype, not a validated score. Timing and outside assistance are unverified. Teacher review is not authenticated. Self-study setup exposes questions/rubric. Transfer is an application task, not an equated learning-gain measure.",
+        "responses": {
+          "recall": {
+            "at": 2,
+            "condition": "closed-source-self-report",
+            "text": "I remember using similar plants and giving them equal light and water, but changing the fertilizer. You measure growth and repeat it. I don't understand what isolate means here. Does it mean putting the plants apart? I also remember variation, but I can't explain whether that means changing the fertilizer or getting different measurements."
+          },
+          "investigate": {
+            "at": 48,
+            "condition": "source-assisted",
+            "text": "Completed 20 inquiry questions. Individual responses and assistance conditions are preserved in the breadth evidence. Completion is not a mastery score."
+          },
+          "question": {
+            "at": 49,
+            "condition": "perspective-prompted",
+            "text": "Can you show me the sentences with isolate and variation and explain those words? I can say what to keep equal, but I don't know whether isolate means physically separating plants, or whether variation is something we change or something we measure."
+          },
+          "revise": {
+            "at": 50,
+            "condition": "source-and-rubric-review",
+            "text": "My explanation is that similar plants get equal light and water but different fertilizer, and we measure their growth and repeat the comparison. If light changes too, light could explain the growth difference. I still need help explaining isolate in my own words. I think variation might be different growth readings, but I'm not certain, and I shouldn't say all the repeats must have identical results."
+          },
+          "transfer": {
+            "at": 53,
+            "condition": "unassisted-self-report",
+            "text": "I could compare how quickly sugar dissolves in warm and cool water. Change the water temperature, keep the amount of water and sugar equal, and measure how long dissolving takes. Stirring one cup more could change the result, so stirring should be equal too. I would repeat it, but I don't know how to explain different times if I kept those things equal."
+          }
+        },
+        "reflection": null,
+        "review": null,
+        "coverageWarningCount": 0,
+        "includesRawMaterial": true,
+        "title": "SYNTHETIC C",
+        "pages": [
+          {
+            "page": 1,
+            "text": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment."
+          }
+        ],
+        "plan": {
+          "objective": "Explain how a fair comparison isolates the effect of fertilizer.",
+          "page": 1,
+          "quote": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertilizer, use comparable plants, keep light and water equal, vary fertilizer, measure growth and repeat the comparison. These observations concern the tested plants and conditions, not every possible plant or environment.",
+          "perspective": "causality",
+          "reason": "Distinguish a proposed cause from other explanations.",
+          "recall": "Without reopening the passage, explain what you remember that addresses this objective: Explain how a fair comparison isolates the effect of fertilizer.",
+          "investigate": "Identify a proposed cause and an alternative explanation. What comparison could distinguish them? Keep your response connected to: Explain how a fair comparison isolates the effect of fertilizer.",
+          "transfer": "Describe a different situation where the idea in this objective might apply: Explain how a fair comparison isolates the effect of fertilizer. Explain your reasoning and one condition that could change the result. This learner-created application is not a calibrated transfer test.",
+          "rubric": "Check accuracy against the source; the connection between claim and evidence; the relevance of the chosen perspective; and whether the proposed question or application can be justified. A fluent explanation alone is not evidence of understanding.",
+          "origin": "rule-based-template",
+          "model": null,
+          "policy": "focused-inquiry-1",
+          "breadthPolicy": "mangal-breadth/1",
+          "questions": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "prompt": "Define a fair test of fertilizer. How is it different from simply comparing two plant groups?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish varying fertilizer alone from changing several relevant conditions.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "prompt": "Reconstruct the proposed fertilizer comparison in your own words, including what stays equal.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Mention comparable plants, equal light and water, fertilizer varied, growth measured and comparisons repeated.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "prompt": "Explain how holding light and water equal helps isolate fertilizer in the comparison. Which biological mechanism does the passage leave unexplained?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Explain isolation without inventing a biological account of fertilizer absorption.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "prompt": "Which claim is supported by the description of light and fertilizer changing together? Does the passage supply actual growth measurements?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify the confounding claim and distinguish a design description from observed growth data.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "prompt": "What assumption about the comparability of the plants is needed? How could its failure affect the interpretation?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify differences between groups as a possible alternative explanation, not an observed fact.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "prompt": "Explain why understanding a variable is a prerequisite for understanding this fair comparison.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Connect a variable to a changing or held-equal condition in the described design.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "prompt": "Compare the two-factor-changing design with the fertilizer-only design. Which difference matters for the conclusion?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish simultaneous light and fertilizer changes from fertilizer varied with equal light.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "prompt": "Classify light, water, fertilizer and growth by their roles in the proposed comparison, and explain each placement.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Separate held-equal conditions, the varied factor and the measured outcome.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "prompt": "Can a growth difference be attributed to fertilizer when light also changes? Explain why or why not.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Reject a uniquely identified fertilizer effect when both factors change.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "prompt": "If fertilizer made a difference under equal conditions, what pattern would you predict across repeated growth comparisons?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "State a conditional prediction and acknowledge variation without claiming results were observed.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "prompt": "Suppose water also differed between the plant groups. How would that change the interpretation?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify water as another potential explanation while keeping the counterfactual distinct from the supplied design.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "prompt": "Would this comparison establish the effect for every plant and environment? State a boundary and evidence needed to extend it.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Limit the conclusion to tested conditions and propose evidence for extension.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "prompt": "Imagine a plant that responds differently to fertilizer. Would that refute a claim about only the tested plants? Explain.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Distinguish a universal claim from a limited claim and label the proposed example hypothetical.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "prompt": "Correct this mistaken conclusion: both light and fertilizer changed, so fertilizer alone caused the growth difference.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Identify the unsupported isolation of one cause and explain the alternative factor.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "prompt": "What information is still missing before you could judge whether fertilizer actually affected growth in this comparison?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Ask for measurements, variation and relevant details without inventing an effect.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "prompt": "Describe a table for recording the fertilizer comparison. What would its columns represent, and what would the table not establish alone?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Include group or fertilizer condition, trial and growth measurement; distinguish recording from causal proof.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "prompt": "Give two possible interpretations of a growth difference when light and fertilizer both change. What comparison could distinguish them?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Offer plausible alternatives and an isolating comparison without declaring either alternative proven.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "prompt": "Apply the fair-comparison principle to testing paper helicopter blade length. What would you vary, hold equal and measure?",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Map factor isolation to a new situation and state relevant controls and a measurable outcome.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "prompt": "Combine factor isolation and repeated measurement into one explanation of a useful fertilizer comparison.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Explain distinct contributions of controlling factors and observing variation rather than listing them without connection.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "source",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "prompt": "Ask a new question about whether this fertilizer result would apply elsewhere, and explain what evidence could answer it.",
+              "relevance": "This question examines a distinct reasoning operation needed to evaluate the fertilizer comparison.",
+              "criterion": "Propose a relevant answerable question and an evidence plan while acknowledging absent data.",
+              "anchor": "A fair test varies one factor while keeping other relevant conditions equal. Repeated measurements reveal variation. If light and fertilizer both differ between plant groups, their separate effects cannot be isolated. To investigate fertili",
+              "page": 1,
+              "kind": "investigation",
+              "reviewed": true,
+              "origin": "template",
+              "model": null
+            }
+          ]
+        },
+        "coverageWarnings": [],
+        "parked": [],
+        "events": [
+          {
+            "type": "recall_started",
+            "at": 1,
+            "seq": 1
+          },
+          {
+            "phase": "recall",
+            "type": "response_locked",
+            "at": 2,
+            "seq": 2
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q1",
+            "at": 6,
+            "seq": 3
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q2",
+            "at": 8,
+            "seq": 4
+          },
+          {
+            "phase": "investigate",
+            "type": "source_support",
+            "at": 10,
+            "seq": 5
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q3",
+            "at": 11,
+            "seq": 6
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q4",
+            "at": 13,
+            "seq": 7
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q5",
+            "at": 15,
+            "seq": 8
+          },
+          {
+            "phase": "investigate",
+            "type": "source_support",
+            "at": 17,
+            "seq": 9
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q6",
+            "at": 18,
+            "seq": 10
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q7",
+            "at": 20,
+            "seq": 11
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q8",
+            "at": 22,
+            "seq": 12
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q9",
+            "at": 24,
+            "seq": 13
+          },
+          {
+            "phase": "investigate",
+            "type": "source_support",
+            "at": 26,
+            "seq": 14
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q10",
+            "at": 27,
+            "seq": 15
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q11",
+            "at": 29,
+            "seq": 16
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q12",
+            "at": 31,
+            "seq": 17
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q13",
+            "at": 33,
+            "seq": 18
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q14",
+            "at": 35,
+            "seq": 19
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q15",
+            "at": 37,
+            "seq": 20
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q16",
+            "at": 39,
+            "seq": 21
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q17",
+            "at": 41,
+            "seq": 22
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q18",
+            "at": 43,
+            "seq": 23
+          },
+          {
+            "phase": "investigate",
+            "type": "source_support",
+            "at": 45,
+            "seq": 24
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q19",
+            "at": 46,
+            "seq": 25
+          },
+          {
+            "type": "breadth_response_locked",
+            "questionId": "q20",
+            "at": 48,
+            "seq": 26
+          },
+          {
+            "phase": "investigate",
+            "type": "response_locked",
+            "at": 48,
+            "seq": 27
+          },
+          {
+            "phase": "question",
+            "type": "response_locked",
+            "at": 49,
+            "seq": 28
+          },
+          {
+            "phase": "revise",
+            "type": "response_locked",
+            "at": 50,
+            "seq": 29
+          },
+          {
+            "mode": "immediate-demo",
+            "type": "transfer_started",
+            "at": 52,
+            "seq": 30
+          },
+          {
+            "phase": "transfer",
+            "type": "response_locked",
+            "at": 53,
+            "seq": 31
+          }
+        ],
+        "breadth": {
+          "policy": "mangal-breadth/1",
+          "planned": 20,
+          "distinctTypes": 20,
+          "completed": 20,
+          "notice": "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
+          "responses": [
+            {
+              "id": "q1",
+              "type": "definition",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 6,
+              "learnerSignal": "ready-to-explain",
+              "text": "A fair test uses similar plants with the same water and light, and changes the fertilizer. Just comparing two groups could mean one also gets more sun, so that could explain its growth."
+            },
+            {
+              "id": "q2",
+              "type": "reconstruction",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 8,
+              "learnerSignal": "ready-to-explain",
+              "text": "Get similar plants and make two groups with different fertilizer amounts. Give both groups equal water and light. Measure how much they grow and repeat the comparison. I don't think the passage gives the amounts to use."
+            },
+            {
+              "id": "q3",
+              "type": "mechanism",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 11,
+              "learnerSignal": "need-help",
+              "text": "Equal light and water stops one group getting extra of those things. But I need the sentence about isolate again: does fertilizer have to be kept separate from something? The passage doesn't explain how fertilizer changes growth inside a plant, if that is what biological mechanism means."
+            },
+            {
+              "id": "q4",
+              "type": "evidence",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 13,
+              "learnerSignal": "ready-to-explain",
+              "text": "If light and fertilizer both change, either might be connected to the growth difference, so we can't say it was only fertilizer. There aren't any actual growth numbers in the passage."
+            },
+            {
+              "id": "q5",
+              "type": "assumptions",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 15,
+              "learnerSignal": "unsure",
+              "text": "I think the plants should start about the same size. If one group starts taller, ending taller doesn't necessarily mean the fertilizer helped. I'm unsure how similar they have to be to count as comparable."
+            },
+            {
+              "id": "q6",
+              "type": "prerequisites",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 18,
+              "learnerSignal": "need-help",
+              "text": "A variable is something that can change, I think. You need that to know what you are changing in the test. Is light still a variable when we keep it equal? Could I see the source again to check that part?"
+            },
+            {
+              "id": "q7",
+              "type": "comparison",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 20,
+              "learnerSignal": "ready-to-explain",
+              "text": "In the first design light and fertilizer both differ. In the second only fertilizer is deliberately different, with light and water equal. That matters because extra light could explain a difference in the first design."
+            },
+            {
+              "id": "q8",
+              "type": "classification",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 22,
+              "learnerSignal": "unsure",
+              "text": "Light and water are things to keep equal. Fertilizer is the thing you change. Growth is what you measure to compare the groups. I know those jobs, but I don't remember the formal names for them."
+            },
+            {
+              "id": "q9",
+              "type": "causality",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 24,
+              "learnerSignal": "ready-to-explain",
+              "text": "No, not definitely. More light could have made the plants grow differently too. A growth difference by itself doesn't tell us which of the two changes caused it."
+            },
+            {
+              "id": "q10",
+              "type": "prediction",
+              "condition": "source-assisted",
+              "kind": "investigation",
+              "at": 27,
+              "learnerSignal": "need-help",
+              "text": "I would expect the fertilizer group to grow more each time, maybe by the same amount. I'm not sure whether made a difference could also mean less growth. Please show me the part about variation; I don't know whether repeated results are supposed to match exactly."
+            },
+            {
+              "id": "q11",
+              "type": "counterfactual",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 29,
+              "learnerSignal": "ready-to-explain",
+              "text": "Then water might explain the growth difference as well as fertilizer. We would need another comparison with the water equal before saying fertilizer alone caused it."
+            },
+            {
+              "id": "q12",
+              "type": "boundaries",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 31,
+              "learnerSignal": "unsure",
+              "text": "No, it only covers the plants and conditions tested. To include another kind of plant, I would test that kind too. I don't know how many kinds would be enough to say anything about every plant."
+            },
+            {
+              "id": "q13",
+              "type": "counterexample",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 33,
+              "learnerSignal": "unsure",
+              "text": "If it is a different plant outside the test, I think it doesn't cancel what happened to the tested plants. It would show we shouldn't say all plants respond alike. I'm less sure if you mean one of the plants already in the test."
+            },
+            {
+              "id": "q14",
+              "type": "error",
+              "condition": "perspective-prompted",
+              "kind": "source",
+              "at": 35,
+              "learnerSignal": "ready-to-explain",
+              "text": "Both light and fertilizer changed, so we cannot conclude that fertilizer alone caused the growth difference. Keep the light equal and compare the fertilizer conditions again."
+            },
+            {
+              "id": "q15",
+              "type": "uncertainty",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 37,
+              "learnerSignal": "unsure",
+              "text": "We need the growth measurements for both groups and the repeated results. We also need to know whether light and water really were equal. I don't know how different the measurements must be before the difference counts."
+            },
+            {
+              "id": "q16",
+              "type": "representation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 39,
+              "learnerSignal": "unsure",
+              "text": "I would have columns for plant number, fertilizer amount, starting height and ending height. Each row would be a plant. The table wouldn't prove they all got equal light. I'm unsure where to put repeated measurements without mixing them up."
+            },
+            {
+              "id": "q17",
+              "type": "interpretation",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 41,
+              "learnerSignal": "unsure",
+              "text": "Maybe the fertilizer caused more growth, or maybe the extra light did. Compare different fertilizer amounts with the light equal to check fertilizer. I think you could also compare light with fertilizer equal, but I'm not sure what to conclude if both comparisons show a difference."
+            },
+            {
+              "id": "q18",
+              "type": "application",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 43,
+              "learnerSignal": "unsure",
+              "text": "Change the blade length, use the same kind of paper and drop from the same height. Measure the time until it lands. Repeat the drops. Making blades longer might also make the helicopter heavier, and I'm not sure how to keep that equal."
+            },
+            {
+              "id": "q19",
+              "type": "synthesis",
+              "condition": "source-assisted",
+              "kind": "source",
+              "at": 46,
+              "learnerSignal": "need-help",
+              "text": "Use similar plants, keep light and water equal, change fertilizer and measure growth more than once. I can list that, but I still can't explain factor isolation. Please show the source again. Does variation mean differences in the growth readings, or the fertilizer change we chose?"
+            },
+            {
+              "id": "q20",
+              "type": "inquiry",
+              "condition": "perspective-prompted",
+              "kind": "investigation",
+              "at": 48,
+              "learnerSignal": "unsure",
+              "text": "Would the same fertilizer comparison give a similar result with a different kind of plant? Test that kind with equal water and light within its groups, change fertilizer and record growth repeatedly. Then compare what happened, though I'm unsure how close the results need to be to count as similar."
+            }
+          ],
+          "origins": [
+            {
+              "id": "q1",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q2",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q3",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q4",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q5",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q6",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q7",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q8",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q9",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q10",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q11",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q12",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q13",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q14",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q15",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q16",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q17",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q18",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q19",
+              "origin": "template",
+              "model": null
+            },
+            {
+              "id": "q20",
+              "origin": "template",
+              "model": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

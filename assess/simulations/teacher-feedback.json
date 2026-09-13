@@ -1,0 +1,45 @@
+{
+  "synthetic": true,
+  "notice": "Synthetic teacher proposals based on production replay records. Not a qualified educator review, human validation, diagnosis, mastery score or learning-impact evidence.",
+  "cases": [
+    {
+      "caseId": "A",
+      "assessment": "The response pattern is generally connected to the objective, but q3 and q18 show uncertainty about what the source explains and how to operationalize an investigation. Completion of all questions is not treated as mastery.",
+      "feedback": [
+        {
+          "questionId": "q18",
+          "interpretation": "partly-supported",
+          "evidence": "I am unsure how to keep the rest of the shape exactly equal",
+          "nextStep": "Draw a two-column investigation plan for blade length. List the one feature changed, the features kept equal, the measurement, and one reason to repeat each drop.",
+          "successCriterion": "The plan changes blade length only, keeps paper type, blade width and drop height equal, measures fall time, and states that repeats show variation rather than guarantee a causal conclusion."
+        }
+      ]
+    },
+    {
+      "caseId": "B",
+      "assessment": "The learner identifies confounding in several responses but carries a persistent error into transfer: repeated trials cannot average away a systematically different sheet size. This is a response-specific misconception, not a global ability judgment.",
+      "feedback": [
+        {
+          "questionId": "q9",
+          "interpretation": "partly-supported",
+          "evidence": "Repeating should cancel the light effect and leave the consistent fertilizer effect",
+          "nextStep": "Compare random variation with a systematic confound. Construct two towel groups where one always has a larger sheet, then explain why repeating the same unequal comparison does not isolate towel type.",
+          "successCriterion": "The explanation states that repeated measurements can reveal variation, but a condition that differs consistently between groups remains a competing explanation until it is controlled or separately tested."
+        }
+      ]
+    },
+    {
+      "caseId": "C",
+      "assessment": "The learner requests help and correctly lists several fair-test parts, but remains unsure about isolate, variables and what repetition can establish. The next step should define terms with a concrete mapping before more abstract transfer.",
+      "feedback": [
+        {
+          "questionId": "q6",
+          "interpretation": "needs-clarification",
+          "evidence": "Is light still a variable when we keep it equal?",
+          "nextStep": "Label a fertilizer comparison with three headings: changed deliberately, kept equal, and measured. Place fertilizer, light, water and growth under the headings, then explain why a kept-equal variable can still affect growth.",
+          "successCriterion": "The learner places fertilizer under changed, light and water under kept equal, growth under measured, and explains that keeping a variable equal prevents it from being an alternative explanation for a difference."
+        }
+      ]
+    }
+  ]
+}

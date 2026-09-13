@@ -10,6 +10,10 @@ No cloud model calls, external publication, GitHub push, submission edits or lea
 
 Final release check: reopening after the waiting offline update installed `0.5.0-r2` retained the synthetic evidence and showed the collapsed legacy annotation. Downloaded summary JSON contained feedback/follow-up metadata without raw response or feedback prose. Packaged inquiry UI, feedback module, Mangal core and service worker match source hashes. Debug APK SHA-256: `a851e672cb2aee63ecf44473d9f16224020bf8ee39a4baa0879218901e9aae9c`.
 
+## Synthetic agent assessment
+
+Three constrained student fixtures and one teacher-role review were added under `simulations/`. The replay runs the actors through production domain functions and is covered by three regression tests; 76 Node tests now pass. Results are explicitly synthetic QA only. It found ambiguous hypotheticals, repeated reasoning demands, missing prerequisites, incomplete anchors and a useful systematic-confound misconception case. The teacher role hit the available agent usage limit before response-level feedback; the fallback feedback fixture is labelled accordingly. See [simulations/REPORT.md](simulations/REPORT.md).
+
 ## Historical 0.4.0 checkpoint
 
 Current default: material-based Mangal Inquiry with 20+ distinct inquiry types, one question shown at a time. Read [MANGAL-DESIGN.md](MANGAL-DESIGN.md) before resuming. 67 Node tests pass; Android assembly, lint and JVM tests pass. Browser verification covered PDF/text preparation, 20/20 synthetic inquiry responses, per-question support labels, pause/draft restoration and synthesis. Local AI remains optional and human-reviewed. Prepared-lesson import and physical Android testing remain outstanding. No cloud AI, public deployment, GitHub push or competition submission change was performed.

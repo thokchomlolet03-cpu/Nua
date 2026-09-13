@@ -1,0 +1,140 @@
+{
+  "synthetic": true,
+  "personaId": "misconception",
+  "personaDescription": "Synthetic age 13-14 learner role with fluent explanations and a persistent misconception that repeating a comparison can eliminate a confound. This fixture represents no real learner or observed human behavior.",
+  "recall": "A fair fertilizer test compares similar plants, gives them equal light and water, and changes the fertilizer. You measure their growth and repeat it. I remember repetition being important because if something like light was different, enough trials would smooth that difference out and show whether fertilizer really helped.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "A fair test changes fertilizer while keeping things like water and light equal, so the growth comparison has a clear explanation. Just comparing any two groups could include other differences. I think repeating those groups enough times can also make the comparison fair because the extra differences average out.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q2",
+      "text": "Start with comparable plants and divide them into a fertilizer group and a group without it. Give both groups the same water and light, measure how much they grow, and repeat the comparison. If the light cannot be kept equal, I would make up for that by doing more repeats.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q3",
+      "text": "Equal light and water remove two possible explanations for a growth difference, leaving fertilizer as the factor being tested. The passage does not explain what happens inside the plant after fertilizer is added or how that changes growth. I am less sure about that biological part.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q4",
+      "text": "The description supports saying that one comparison with both light and fertilizer changing cannot separate their effects. It gives no actual growth measurements. I would want a series of repeats before deciding whether the light difference still matters.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q5",
+      "text": "We assume the plants begin similar enough in size and condition that one group does not already have an advantage. If all the fertilizer plants begin healthier, that could explain their extra growth. I would repeat with more plants to average away that starting advantage, even if the healthier plants stayed in the fertilizer group.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q6",
+      "text": "A variable is something that can take different values, such as the amount of water or the measured growth. You need that idea to tell apart the thing you deliberately change, the conditions you keep equal, and the outcome you measure. Otherwise you could change several things without noticing.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q7",
+      "text": "In the two-factor design, both light and fertilizer differ, so either could explain the first result. In the fertilizer-only design, light stays equal, which makes the conclusion easier. I think the two-factor design can reach the same conclusion if you repeat the original arrangement enough times and get a steady difference.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q8",
+      "text": "Light and water are controlled variables because their amounts should stay equal between the groups. Fertilizer is the variable deliberately changed. Growth is the measured outcome because its difference is what the comparison records. The plants themselves should also start out comparable.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q9",
+      "text": "Not from just one trial, because the light difference could explain it. But if the fertilizer group always gets more light and still grows more over many repeats, I think we can eventually attribute the difference to fertilizer. Repeating should cancel the light effect and leave the consistent fertilizer effect.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q10",
+      "text": "I would predict a difference in average growth across the repeats, with the fertilizer group usually growing more if fertilizer helps under those conditions. Individual plants could vary, so every pair would not have to show exactly the same difference. If fertilizer reduced growth, the average pattern would go the other way.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q11",
+      "text": "Different water amounts add another possible reason for the growth difference. It would make a single comparison weaker. I would repeat the same watering and fertilizer arrangement more times so the water contribution averages out, then use the remaining average difference as the fertilizer result.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q12",
+      "text": "No, the result is about the plants and conditions actually tested. A different kind of plant or a much drier environment might give another result. To extend the claim, I would need measurements from comparisons using those other plants and environments, rather than only more copies of the original plants.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "A different plant responding differently would not refute a claim limited to the tested plants. It would show why that limit matters. It could challenge a statement that fertilizer has the same effect on every plant, but that is a broader statement than the passage makes.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "I would correct it to: both light and fertilizer changed, so we cannot say fertilizer alone caused the difference yet. We should repeat that same setup several times. If the fertilizer group keeps growing more, then we can rule out light through repetition and make the fertilizer conclusion.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q15",
+      "text": "We still need actual growth measurements, the starting sizes, how growth was measured, and the spread of results across repeats. We also need the light and water amounts. I am unsure how many repeats are enough to cancel an unequal light amount, so I would want more information about that.",
+      "learnerSignal": "unsure",
+      "requestSource": true
+    },
+    {
+      "id": "q16",
+      "text": "I would use columns for trial, plant or group, fertilizer amount, light amount, water amount, starting height, final height, and change in height. Those columns record both conditions and growth. A table alone does not explain the biological process inside a plant or establish a result for every environment.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q17",
+      "text": "One interpretation is that fertilizer increased growth; another is that extra light increased growth. Comparing fertilizer and no fertilizer under equal light could distinguish them. I also think repeating the original unequal-light comparison many times could distinguish them, because a steady result would leave less room for light to explain it.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q18",
+      "text": "I would vary blade length, keep the paper, other dimensions, release method, and drop height equal, and measure time to reach the floor. I would repeat each design. If the longer-blade helicopter had to be dropped from higher up every time, enough repeated drops should average out the height difference and still reveal the blade-length effect.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "A useful comparison starts with similar plants and equal light and water while changing fertilizer, then measures growth repeatedly. Keeping conditions equal helps isolate fertilizer, and repeats show how variable the measurements are. Repeats also provide another way to isolate fertilizer if a condition stays unequal, because averaging removes that extra influence.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q20",
+      "text": "Would the same fertilizer have a similar effect on plants growing in a drier setting? I would compare fertilizer and no fertilizer there, keep water equal within that setting, and record repeated growth measurements. Then I could compare the pattern with the original setting instead of assuming the original result applies there.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "How many repeats do you need before a light difference stops affecting the fertilizer conclusion? I understand keeping light equal is useful, but I thought averaging enough trials could do the same job.",
+  "revision": "I would explain the comparison more clearly by saying that similar plants get different fertilizer amounts and ideally equal light and water. Growth measurements need repeats because individual results vary. If light stays different between the groups, the first result is uncertain, but I still think enough repeats of that arrangement can average out light and isolate fertilizer.",
+  "transfer": "I could compare two paper towel types by measuring how much water each holds before dripping. I would aim to keep sheet size and the soaking method equal and repeat the measurements. Sheet size is one condition that could change the result. If type A always used a larger sheet, I think enough repeats would average away that size advantage, so a consistently higher amount would show that type A itself absorbs more.",
+  "observations": [
+    "All responses are authored synthetic role-play, not observations of a real student or evidence of human behavior.",
+    "The supplied source was visible during generation; recall and unassisted conditions are simulated and are not experimentally blind.",
+    "The intended misconception persists in recall, several inquiry responses, revision, and the final application: repeated trials are treated as eliminating a systematic confound.",
+    "Correct descriptions of controlled variables and claim boundaries coexist intentionally with the misconception; fluent wording does not establish understanding.",
+    "Learner signals and source requests are fixture choices, not measured confidence or recorded interactions. No actual timings or learning gains are claimed.",
+    "Questions q7, q9, q11, q14, q17, q18, and q19 are likely confusion points because they require distinguishing factor isolation from repetition. Question q15 exposes uncertainty about the imagined number of repeats needed.",
+    "The learner-created final application is not a calibrated transfer test. This fixture has not been replayed through the application or reviewed by a teacher within this task."
+  ]
+}
