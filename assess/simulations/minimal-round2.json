@@ -1,0 +1,138 @@
+{
+  "synthetic": true,
+  "round": 2,
+  "personaId": "minimal",
+  "personaDescription": "Synthetic 13-year-old student actor who gives short valid answers, avoids long writing, and sometimes shows answer burden or uncertainty.",
+  "recall": "A fair test changes fertilizer only. The plants should get the same light and water, then growth is measured more than once. If light changes too, fertilizer is not isolated.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "A fair fertilizer test changes fertilizer but keeps important things like light and water the same. Just comparing groups is not enough if other things differ.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q2",
+      "text": "Use similar plants in two groups. Give them equal light and water, change only fertilizer, record growth, and repeat it.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q3",
+      "text": "Equal light and water remove those as competing causes, so growth differences can be linked more fairly to fertilizer. The passage does not explain the plant biology of how fertilizer changes growth.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q4",
+      "text": "It supports that changing light and fertilizer together means their separate effects cannot be isolated. It gives no actual growth measurements.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q5",
+      "text": "The plants need to be reasonably comparable at the start. If one group is already stronger, its growth could be blamed on fertilizer by mistake.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q6",
+      "text": "A variable is something that can change. Knowing which one changes tells you what the comparison is testing and what must stay equal.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q7",
+      "text": "In the first design, light and fertilizer both change, so the cause is mixed. In the second, fertilizer is the only planned difference, which matters for the conclusion.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q8",
+      "text": "Light and water are kept-equal conditions. Fertilizer is the changed factor. Growth is the measured result.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q9",
+      "text": "No, not confidently. Different light could cause some or all of the growth difference, so fertilizer alone is not isolated.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q10",
+      "text": "The fertilized plants would tend to grow more in repeated comparisons, although individual measurements could vary.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q11",
+      "text": "Then water becomes another possible cause. A growth difference could be from fertilizer, water, or both, so the result is harder to interpret.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q12",
+      "text": "No. It only concerns the tested plants and conditions. More plant types, places, and repeated tests would be needed to extend the result.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "No. It would show that plant responds differently, but it would not refute a claim limited to the tested plants.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "That conclusion is too strong. Because light and fertilizer both changed, the growth difference cannot be assigned to fertilizer alone.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q15",
+      "text": "We need the actual growth measurements, how many plants were tested, and whether light, water, and starting plant size were controlled.",
+      "learnerSignal": "need-help",
+      "requestSource": false
+    },
+    {
+      "id": "q16",
+      "text": "Columns could be group, fertilizer amount, light, water, starting size, and growth. The table alone would not prove fertilizer caused the result.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q17",
+      "text": "The difference could be caused by fertilizer, or by different light. Test groups with equal light and different fertilizer to distinguish them.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q18",
+      "text": "Vary blade length. Keep paper type, helicopter mass, drop height, and release method equal. Measure falling time and repeat drops.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "Change only fertilizer, keep the plant conditions equal, measure growth, and repeat it. Repeats show whether the pattern is consistent.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q20",
+      "text": "Would the fertilizer effect also happen in a different soil? Test comparable plants in both soils with equal light and water, then compare repeated growth measurements.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "Would the same fertilizer work on every kind of plant?",
+  "revision": "I would change my plan to keep light and water equal and test fertilizer by itself.",
+  "transfer": "For paper helicopters, change blade length only, keep the paper and drop height equal, and measure flight time. A different paper could change the result.",
+  "observations": [
+    "Short responses usually identify the changed factor and the controls.",
+    "The actor shows mild writing burden in q15 and uncertainty about applying results elsewhere in q20.",
+    "Potentially confusing IDs: q3 asks for an unexplained biological mechanism; q8 distinguishes conditions, factor, and result; q12 and q13 test limits of generalization; q15 asks for missing evidence.",
+    "No real learner timing, demographic, disability, motivation, or learning-gain claims are made."
+  ]
+}

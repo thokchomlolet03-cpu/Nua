@@ -37,3 +37,31 @@ for (const [caseId, name] of [
     },
   );
 }
+
+for (const name of [
+  "transfer",
+  "overconfident",
+  "minimal",
+  "language",
+  "creative2",
+  "anxious",
+]) {
+  test(
+    "round-two synthetic actor " +
+      name +
+      " completes the frozen 20-question workflow",
+    () => {
+      const result = replay(
+        read("lesson.json"),
+        read(name + "-round2.json"),
+        "round2-" + name,
+      );
+      assert.equal(result.synthetic, true);
+      assert.equal(result.summary.breadth.completed, 20);
+      assert.equal(result.summary.breadth.distinctTypes, 20);
+      assert.equal(result.summary.transferMode, "immediate-demo");
+      assert.equal(result.full.breadth.responses.length, 20);
+      assert.ok(result.checks.length >= 23);
+    },
+  );
+}
