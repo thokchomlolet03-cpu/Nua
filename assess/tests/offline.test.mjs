@@ -24,7 +24,7 @@ function harness() {
     caches: {
       open: async () => cache,
       keys: async () => [
-        "nua-assess-release-0.4.0",
+        "nua-assess-release-0.5.0-r2",
         "nua-assess-mvp-2",
         "unrelated-app",
       ],
@@ -66,6 +66,7 @@ test("offline install caches the complete release and activation preserves unrel
     "/inquiry-app.js",
     "/inquiry-core.js",
     "/mangal-core.js",
+    "/assessment-feedback.js",
     "/inquiry-questions.js",
     "/material.js",
     "/demo.html",

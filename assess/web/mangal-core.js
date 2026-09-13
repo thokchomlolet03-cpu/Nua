@@ -1,15 +1,30 @@
 // Additive adapter: old saved inquiries keep their original sequence and evidence.
 import * as legacy from "./inquiry-core.js";
 import {
+  validateFeedbackState,
+  feedbackReport,
+  learnerSignals,
+} from "./assessment-feedback.js";
+export { addFeedback, addFollowup } from "./assessment-feedback.js";
+import {
   expandPlan,
   validateQuestionSet,
   BREADTH_POLICY,
 } from "./inquiry-questions.js";
 export * from "./inquiry-core.js";
-export { BREADTH_POLICY, MIN_TYPES, MAX_QUESTIONS, questionTypes, validateQuestionSet } from "./inquiry-questions.js";
+export {
+  BREADTH_POLICY,
+  MIN_TYPES,
+  MAX_QUESTIONS,
+  questionTypes,
+  validateQuestionSet,
+} from "./inquiry-questions.js";
 export const KEY = "nua-mangal-session-v2";
-export const templatePlan = (...args) =>
-  expandPlan(legacy.templatePlan(...args));
+export const templatePlan = (...args) => ({
+  ...expandPlan(legacy.templatePlan(...args)),
+  rubric:
+    "Compare the original explanation, inquiry responses and synthesis against the source. Look for justified claims, recognition of missing evidence and correction of a specific error. Use the question-level criteria to decide the next teaching step. Completion alone does not establish understanding.",
+});
 export function validatePlan(plan, pages) {
   legacy.validatePlan(plan, pages);
   if (plan.breadthPolicy !== undefined || plan.questions !== undefined)
@@ -83,7 +98,9 @@ export function submit(s, value, now = Date.now()) {
       ? "source-assisted"
       : "perspective-prompted",
     kind: q.kind,
+    learnerSignal: b.signalDraft || "not-recorded",
   });
+  delete b.signalDraft;
   b.index++;
   delete s.drafts.investigate;
   s.updatedAt = now;
@@ -102,12 +119,18 @@ export function submit(s, value, now = Date.now()) {
 }
 export function validateInquiry(s) {
   legacy.validateInquiry(s);
+  validateFeedbackState(s);
   const hasPlan =
     s.plan.breadthPolicy !== undefined || s.plan.questions !== undefined;
   if (!hasPlan && s.breadth === undefined) return s;
   validateQuestionSet(s.plan, { reviewed: true });
   const b = s.breadth,
     total = s.plan.questions.length;
+  if (
+    b?.signalDraft !== undefined &&
+    (s.phase !== "investigate" || !Object.hasOwn(learnerSignals, b.signalDraft))
+  )
+    throw Error("Saved learner reflection is damaged.");
   if (
     !b ||
     b.policy !== BREADTH_POLICY ||
@@ -147,6 +170,8 @@ export function validateInquiry(s) {
       a.id !== q.id ||
       a.type !== q.type ||
       a.kind !== q.kind ||
+      (a.learnerSignal !== undefined &&
+        !Object.hasOwn(learnerSignals, a.learnerSignal)) ||
       typeof a.text !== "string" ||
       a.text.trim().length < 12 ||
       a.text.length > 1800 ||
@@ -165,6 +190,7 @@ export function validateInquiry(s) {
 export function inquiryReport(s, full = false) {
   validateInquiry(s);
   const report = legacy.inquiryReport(s, full);
+  if (s.feedback) report.feedback = feedbackReport(s, full);
   if (s.breadth)
     report.breadth = {
       policy: BREADTH_POLICY,
@@ -174,12 +200,13 @@ export function inquiryReport(s, full = false) {
       notice:
         "Breadth completion is not mastery. Investigation questions may require evidence beyond the passage; assess reasoning and evidence plans, not invented answers.",
       responses: s.breadth.answers.map(
-        ({ id, type, condition, kind, at, text }) => ({
+        ({ id, type, condition, kind, at, text, learnerSignal }) => ({
           id,
           type,
           condition,
           kind,
           at,
+          learnerSignal: learnerSignal || "not-recorded",
           ...(full ? { text } : {}),
         }),
       ),

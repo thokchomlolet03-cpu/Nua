@@ -188,7 +188,7 @@ export function validateQuestion(
     Number.isInteger(q.page) &&
       q.page === plan.page &&
       text(q.anchor, draft ? 0 : 20, 300) &&
-      plan.quote.includes(q.anchor),
+      (draft || plan.quote.includes(q.anchor)),
     "Question anchor must occur in the selected source passage on its cited page.",
   );
   check(

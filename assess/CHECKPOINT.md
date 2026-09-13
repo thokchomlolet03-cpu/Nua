@@ -1,4 +1,16 @@
-# MVP checkpoint — 0.4.0 — 2026-09-13
+# MVP checkpoint — 0.5.0 — 2026-09-13
+
+Read [COMPETITION-READINESS.md](COMPETITION-READINESS.md) and [PILOT-PROTOCOL.md](PILOT-PROTOCOL.md) for the current competition scope and remaining evidence gates. Added evidence-linked educator feedback, optional learner uncertainty signals, locally saved educator drafts, separate follow-up responses and minimized feedback exports. All 20+ inquiry questions remain required. The legacy overall annotation is retained inside an optional disclosure; new feedback uses the evidence-linked workflow.
+
+73 Node tests pass. Android assembly/lint/JVM tasks succeed; six JVM tests have no failures and lint reports six warnings, no errors. Android version is 0.5.0 / code 6. No physical phone is connected; runtime performance and native model use remain unverified.
+
+Synthetic browser acceptance on port 4196: prepared lesson import reset all review flags; review and all 20 responses completed; a question-level help request selected the corresponding response for educator review; revision and explicitly labelled immediate application completed; partial educator draft survived reload; exact quoted evidence, teaching step and success criterion saved; learner follow-up survived reload. This is software testing with fabricated responses, not a study, educator validation or a real 24-hour retention test. Summary export was downloaded. Full export and privacy fields also have automated coverage.
+
+No cloud model calls, external publication, GitHub push, submission edits or learner data collection were performed in this pass. Existing user work on port 4173 was not cleared. The exact submitted Phase I proposal still needs comparison with the intended scope.
+
+Final release check: reopening after the waiting offline update installed `0.5.0-r2` retained the synthetic evidence and showed the collapsed legacy annotation. Downloaded summary JSON contained feedback/follow-up metadata without raw response or feedback prose. Packaged inquiry UI, feedback module, Mangal core and service worker match source hashes. Debug APK SHA-256: `a851e672cb2aee63ecf44473d9f16224020bf8ee39a4baa0879218901e9aae9c`.
+
+## Historical 0.4.0 checkpoint
 
 Current default: material-based Mangal Inquiry with 20+ distinct inquiry types, one question shown at a time. Read [MANGAL-DESIGN.md](MANGAL-DESIGN.md) before resuming. 67 Node tests pass; Android assembly, lint and JVM tests pass. Browser verification covered PDF/text preparation, 20/20 synthetic inquiry responses, per-question support labels, pause/draft restoration and synthesis. Local AI remains optional and human-reviewed. Prepared-lesson import and physical Android testing remain outstanding. No cloud AI, public deployment, GitHub push or competition submission change was performed.
 

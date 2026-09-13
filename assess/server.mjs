@@ -33,6 +33,7 @@ const allowed = new Set([
   "inquiry-core.js",
   "inquiry-questions.js",
   "mangal-core.js",
+  "assessment-feedback.js",
   "material.js",
   "vendor/pdf.min.js",
   "vendor/pdf.worker.min.js",

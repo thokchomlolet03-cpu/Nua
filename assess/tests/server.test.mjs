@@ -44,6 +44,7 @@ test("new inquiry, PDF worker and preserved demo are served without exposing mod
     "/inquiry-app.js",
     "/inquiry-core.js",
     "/mangal-core.js",
+    "/assessment-feedback.js",
     "/inquiry-questions.js",
     "/material.js",
     "/vendor/pdf.min.js",

@@ -3,6 +3,11 @@ import assert from "node:assert/strict";
 import * as core from "../web/mangal-core.js";
 import * as legacy from "../web/inquiry-core.js";
 import {
+  addFeedback,
+  addFollowup,
+  saveFeedbackDraft,
+} from "../web/assessment-feedback.js";
+import {
   questionTypes,
   makeQuestion,
   validateQuestionSet,
@@ -242,4 +247,127 @@ test("AI cannot invent anchors, omit types, duplicate prompts or substitute rati
     mutate(r);
     assert.throws(() => parseQuestionDraft(JSON.stringify(r), request, "test"));
   }
+});
+
+function completedInquiry() {
+  const s = core.createInquiry(input(), 0);
+  core.beginRecall(s, 1);
+  core.submit(s, response, 2);
+  for (let i = 0; i < 20; i++) {
+    if (i === 3) s.breadth.signalDraft = "need-help";
+    core.submit(s, response, i + 3);
+  }
+  core.submit(s, response, 30);
+  core.submit(s, response, 31);
+  core.returnForTransfer(s, true, 32);
+  core.submit(s, response, 33);
+  return s;
+}
+const feedback = {
+  questionId: "q4",
+  interpretation: "needs-clarification",
+  evidence: "compare equal conditions",
+  nextStep:
+    "Draw two plant groups and label the factor varied and the conditions kept equal.",
+  successCriterion:
+    "Explain why the comparison can isolate fertilizer only when other relevant conditions are equal.",
+};
+test("learner uncertainty is optional, stored per question and remains a self-report", () => {
+  const s = completedInquiry();
+  assert.equal(s.breadth.answers[3].learnerSignal, "need-help");
+  assert.equal(s.breadth.answers[4].learnerSignal, "not-recorded");
+  assert.equal(
+    core.inquiryReport(s).breadth.responses[3].learnerSignal,
+    "need-help",
+  );
+  s.breadth.answers[3].learnerSignal = "diagnosed";
+  assert.throws(() => core.validateInquiry(s));
+});
+test("feedback requires real response evidence and an observable next step after transfer", () => {
+  const s = completedInquiry(),
+    prior = structuredClone(s.responses);
+  addFeedback(s, feedback, 40);
+  round(s);
+  assert.deepEqual(s.responses, prior);
+  for (const override of [
+    { evidence: "invented learner statement" },
+    { nextStep: "" },
+    { questionId: "q99" },
+    { interpretation: "mastered" },
+  ]) {
+    const before = JSON.stringify(s);
+    assert.throws(() => addFeedback(s, { ...feedback, ...override }, 41));
+    assert.equal(JSON.stringify(s), before);
+  }
+  const early = core.createInquiry(input(), 0);
+  assert.throws(() => addFeedback(early, feedback, 1));
+});
+test("follow-up is distinct from original application and feedback revisions retain history", () => {
+  const s = completedInquiry();
+  addFeedback(s, feedback, 40);
+  addFollowup(
+    s,
+    1,
+    "I can now describe which factor changes but still need help explaining variation.",
+    "still-need-help",
+    41,
+  );
+  assert.throws(() => addFollowup(s, 1, response, "can-explain", 42));
+  addFeedback(
+    s,
+    {
+      ...feedback,
+      nextStep:
+        "Compare two sets of repeated measurements and describe the variation in each.",
+    },
+    43,
+  );
+  round(s);
+  assert.equal(s.feedback.entries.length, 2);
+  assert.equal(s.feedback.followups[0].condition, "after-educator-feedback");
+  assert.equal(s.responses.transfer.text, response);
+});
+test("summary omits feedback quotes, next-step text and learner follow-ups", () => {
+  const s = completedInquiry();
+  addFeedback(s, feedback, 40);
+  addFollowup(
+    s,
+    1,
+    "Private synthetic learner follow-up text.",
+    "can-explain",
+    41,
+  );
+  const report = core.inquiryReport(s),
+    full = core.inquiryReport(s, true);
+  assert.equal(report.feedback.entries[0].evidence, undefined);
+  assert.equal(report.feedback.entries[0].nextStep, undefined);
+  assert.equal(report.feedback.followups[0].text, undefined);
+  assert.equal(full.feedback.entries[0].evidence, feedback.evidence);
+  assert.equal(
+    full.feedback.followups[0].text,
+    "Private synthetic learner follow-up text.",
+  );
+});
+test("partial educator drafts restore and cannot masquerade as submitted feedback", () => {
+  const s = completedInquiry();
+  saveFeedbackDraft(s, "q4", {
+    interpretation: "needs-clarification",
+    evidence: "unfinished",
+    nextStep: "",
+    successCriterion: "",
+  });
+  round(s);
+  assert.equal(core.inquiryReport(s).feedback, undefined);
+  assert.throws(() =>
+    addFeedback(s, { questionId: "q4", ...s.feedbackDrafts.q4 }, 40),
+  );
+  addFeedback(s, feedback, 41);
+  assert.equal(s.feedbackDrafts.q4, undefined);
+});
+test("editing an incomplete source anchor remains recoverable but assignment checks the exact source", () => {
+  const d = input();
+  d.plan.questions[0].anchor = "unfinished change";
+  const prep = { ...d, warnings: [], objective, excerpt: text, page: 1 };
+  core.validatePreparation(prep);
+  assert.throws(() => core.createInquiry(d));
 });

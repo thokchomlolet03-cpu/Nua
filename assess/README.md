@@ -1,4 +1,6 @@
-# Nua Assess — Mangal Inquiry MVP 0.4.0
+# Nua Assess — Mangal Inquiry MVP 0.5.0
+
+Current competition review: [COMPETITION-READINESS.md](COMPETITION-READINESS.md). Proposed educator review and learner feasibility study: [PILOT-PROTOCOL.md](PILOT-PROTOCOL.md). Version 0.5 adds optional uncertainty signals, evidence-linked educator next steps and separately recorded learner follow-ups. These require no additional AI calls. Feedback opens after application, not as real-time classroom monitoring. No learning-impact validation is claimed.
 
 The default application now uses uploaded material and a focused 20+ question inquiry sequence. See [MANGAL-DESIGN.md](MANGAL-DESIGN.md) for the current scope, verification and limitations. The fixed science workflow described below remains available at `demo.html`; its saved sessions are preserved separately. The older sections below describe that demonstration, not automatic assessment of arbitrary material.
 

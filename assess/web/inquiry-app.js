@@ -17,7 +17,14 @@ import {
   saveReflection,
   saveReview,
   inquiryReport,
+  addFeedback,
+  addFollowup,
 } from "./mangal-core.js";
+import {
+  interpretations,
+  learnerSignals,
+  saveFeedbackDraft,
+} from "./assessment-feedback.js";
 import {
   questionTypes,
   expandPlan,
@@ -55,7 +62,8 @@ let session = null,
   busy = false,
   showSource = false,
   message = "",
-  editingQuestion = 0;
+  editingQuestion = 0,
+  feedbackQuestionIndex = null;
 const labels = {
   prepare: "Prepare",
   recall: "Recall independently",
@@ -156,7 +164,7 @@ function header() {
   return '<header><div class="brand">nua<span>Mangal Inquiry</span></div><span class="pill">One objective · 20+ angles</span></header>';
 }
 function footer() {
-  return "<footer><span>Nua Assess 0.4.0 · Mangal Inquiry</span><span>Local storage · No cloud AI · Educational validation pending</span></footer>";
+  return "<footer><span>Nua Assess 0.5.0 · Mangal Inquiry</span><span>Local storage · No cloud AI · Educational validation pending</span></footer>";
 }
 function source() {
   return `<section class="card tinted"><h2>Source passage · page ${session.plan.page}</h2><p class="response">${esc(session.plan.quote)}</p><p class="small">According to uploaded material, not independently fact-checked. Original diagrams and layout are not shown.</p></section>`;
@@ -239,6 +247,7 @@ function activeScreen() {
   if (s.phase === "complete")
     return (
       top +
+      feedbackScreen(s) +
       breadthEvidence(s) +
       `<section class="card"><h1>Evidence, not a verdict.</h1><p class="notice">${s.transferMode === "immediate-demo" ? "Immediate demo: no delayed-retention claim." : "Delayed according to device clock; timing is not independently verified."} No overall score, intelligence label or attention estimate is produced.</p><p>Next: have an educator compare the explanations with the source and criteria. If a specific gap remains, teach or practise that concept before extending the scope.</p>${Object.entries(
         s.responses,
@@ -324,6 +333,7 @@ function render() {
     header() +
     `<main>${message ? `<p role="status" class="notice">${esc(message)}</p>` : ""}${session ? activeScreen() : setupScreen()}${footer()}</main>`;
   bind();
+  bindAssessment();
   if (error || !owns) {
     const panel = document.createElement("section");
     panel.className = "card";
@@ -348,6 +358,125 @@ function render() {
     document
       .querySelectorAll("main button,main input,main textarea,main select")
       .forEach((el) => (el.disabled = true));
+}
+function feedbackScreen(s) {
+  if (!s.breadth) return "";
+  if (feedbackQuestionIndex === null) {
+    const flagged = s.breadth.answers.findIndex((a) =>
+      ["need-help", "unsure"].includes(a.learnerSignal),
+    );
+    feedbackQuestionIndex = flagged < 0 ? 0 : flagged;
+  }
+  const index = Math.min(feedbackQuestionIndex, s.breadth.answers.length - 1);
+  feedbackQuestionIndex = index;
+  const a = s.breadth.answers[index],
+    q = s.plan.questions[index];
+  const d = s.feedbackDrafts?.[a.id] || {
+    interpretation: "needs-clarification",
+    evidence: "",
+    nextStep: "",
+    successCriterion: "",
+  };
+  const entries = s.feedback?.entries || [],
+    latest = entries.at(-1);
+  const followup =
+    latest && s.feedback.followups.find((r) => r.feedbackId === latest.id);
+  const helpCount = s.breadth.answers.filter((a) =>
+    ["need-help", "unsure"].includes(a.learnerSignal),
+  ).length;
+  return `<section class="card"><h1>Your next learning step</h1>${latest ? `<p>Linked to question ${s.plan.questions.findIndex((q) => q.id === latest.questionId) + 1}. Educator interpretation: ${esc(interpretations[latest.interpretation])}.</p><p><strong>Evidence in your response</strong></p><blockquote>${esc(latest.evidence)}</blockquote><p class="lead">${esc(latest.nextStep)}</p><p><strong>How to check it:</strong> ${esc(latest.successCriterion)}</p>${followup ? `<h3>Your follow-up</h3><p class="response">${esc(followup.text)}</p><p>${followup.signal === "still-need-help" ? "You indicated that more help is needed." : "You indicated that you can now explain it."} Ask your educator to check this response against the stated criterion.</p>` : `<form id="followup-form"><label>Your response after trying this step<textarea id="followup-text" minlength="12" maxlength="1800" required></textarea></label><label>How does it feel now?<select id="followup-signal"><option value="still-need-help">I still need help</option><option value="can-explain">I can explain my reasoning</option></select></label><p class="small">Save this response before leaving. It will be recorded separately from the independent application.</p><button class="primary">Record my follow-up</button></form>`}` : "<p>An educator can select a response below and connect it to one specific next step.</p>"}<p class="small">${helpCount} question(s) marked unsure or needing help by the learner. These are self-reports to guide review.</p><details><summary>Educator: connect evidence to a next step</summary><label>Choose a response<select id="feedback-question">${s.breadth.answers.map((a, i) => `<option value="${i}" ${i === index ? "selected" : ""}>${i + 1}. ${questionTypes[a.type].title}${["need-help", "unsure"].includes(a.learnerSignal) ? " · learner requested review" : ""}</option>`).join("")}</select></label><p>${esc(q.prompt)}</p><p class="small">${esc(a.condition)} · ${esc(q.kind)}</p><p class="response">${esc(a.text)}</p><h3>Question criteria</h3><p>${esc(q.criterion)}</p><p>Source anchor: ${esc(q.anchor)}</p><form id="feedback-form"><label>Interpretation<select id="feedback-interpretation">${Object.entries(
+    interpretations,
+  )
+    .map(
+      ([v, label]) =>
+        `<option value="${v}" ${d.interpretation === v ? "selected" : ""}>${label}</option>`,
+    )
+    .join(
+      "",
+    )}</select></label><label>Exact evidence from this response<textarea id="feedback-evidence" minlength="12" maxlength="500" required>${esc(d.evidence)}</textarea></label><label>One concrete next teaching or practice step<textarea id="feedback-next" minlength="12" maxlength="1000" required>${esc(d.nextStep)}</textarea></label><label>What the learner should show afterwards<textarea id="feedback-check" minlength="12" maxlength="1000" required>${esc(d.successCriterion)}</textarea></label><p class="small">Draft saves as you type. Saving feedback preserves previous entries. Review a useful subset; every question does not need a separate annotation.</p><button class="primary">Save evidence-linked next step</button></form></details><details><summary>Feedback history (${entries.length})</summary>${entries
+    .map(
+      (e) =>
+        `<p>Question ${s.plan.questions.findIndex((q) => q.id === e.questionId) + 1} · ${esc(interpretations[e.interpretation])}</p><blockquote>${esc(e.evidence)}</blockquote><p>${esc(e.nextStep)}</p><p>Check: ${esc(e.successCriterion)}</p>${s.feedback.followups
+          .filter((r) => r.feedbackId === e.id)
+          .map((r) => `<p class="response">Follow-up: ${esc(r.text)}</p>`)
+          .join("")}`,
+    )
+    .join("")}</details></section>`;
+}
+function bindAssessment() {
+  if (session?.breadth && session.phase === "complete") {
+    const legacyForm = $("#review-form");
+    const disclaimer = legacyForm.nextElementSibling;
+    const details = document.createElement("details");
+    details.innerHTML =
+      "<summary>Legacy overall annotation (optional)</summary><p>Use the evidence-linked next step above for new feedback. This older note remains available for compatibility.</p>";
+    legacyForm.before(details);
+    details.append(legacyForm, disclaimer);
+    const identityNote = document.createElement("p");
+    identityNote.className = "small";
+    identityNote.textContent =
+      "Educator identity is not authenticated. Interpretations require human review and apply to this response, not general mastery.";
+    $("#feedback-form").before(identityNote);
+  }
+  if (session?.phase === "investigate" && session.breadth && !session.paused) {
+    const label = document.createElement("label");
+    label.innerHTML = `How is this question going? (optional)<select id="learner-signal">${Object.entries(
+      learnerSignals,
+    )
+      .map(
+        ([v, t]) =>
+          `<option value="${v}" ${v === (session.breadth.signalDraft || "not-recorded") ? "selected" : ""}>${esc(t)}</option>`,
+      )
+      .join("")}</select>`;
+    $("#response-form button").before(label);
+    $("#learner-signal").onchange = (e) => {
+      session.breadth.signalDraft = e.target.value;
+      persist();
+    };
+  }
+  $("#feedback-question")?.addEventListener("change", (e) => {
+    feedbackQuestionIndex = Number(e.target.value);
+    render();
+  });
+  const draft = () => ({
+    interpretation: $("#feedback-interpretation").value,
+    evidence: $("#feedback-evidence").value,
+    nextStep: $("#feedback-next").value,
+    successCriterion: $("#feedback-check").value,
+  });
+  $("#feedback-form")?.addEventListener("input", () => {
+    try {
+      saveFeedbackDraft(
+        session,
+        session.breadth.answers[feedbackQuestionIndex].id,
+        draft(),
+      );
+      persist();
+    } catch (e) {
+      message = e.message;
+      render();
+    }
+  });
+  $("#feedback-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    change(() =>
+      addFeedback(session, {
+        questionId: session.breadth.answers[feedbackQuestionIndex].id,
+        ...draft(),
+      }),
+    );
+  });
+  $("#followup-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    change(() =>
+      addFollowup(
+        session,
+        session.feedback.entries.at(-1).id,
+        $("#followup-text").value,
+        $("#followup-signal").value,
+      ),
+    );
+  });
 }
 function bind() {
   $("#title")?.addEventListener("input", (e) => {

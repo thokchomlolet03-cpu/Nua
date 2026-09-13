@@ -1,4 +1,6 @@
-# Mangal Inquiry — 0.4.0 implementation and acceptance record
+# Mangal Inquiry — 0.5.0 implementation and acceptance record
+
+Version 0.5 adds optional per-question uncertainty/help self-reports and post-application evidence-linked educator feedback: exact response quotation → interpretation → next teaching/practice step → observable check → separately saved learner follow-up. No automatic grading or emotion inference is involved. Partial educator drafts persist, saved feedback preserves history, and minimized exports exclude feedback prose. See [COMPETITION-READINESS.md](COMPETITION-READINESS.md) and [CHECKPOINT.md](CHECKPOINT.md) for updated alignment and verification; the earlier 0.4 verification below remains historical.
 
 ## Product boundary
 
