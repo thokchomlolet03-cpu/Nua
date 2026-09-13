@@ -1,0 +1,138 @@
+{
+  "synthetic": true,
+  "round": 3,
+  "personaId": "nonwriter",
+  "personaDescription": "Synthetic 12-year-old student actor. Expresses reasoning in compact labels, arrows, and short fragments; long open explanations are difficult to produce. This fixture is not evidence of a real learner, diagnosis, motivation, timing, demographics, or learning gains.",
+  "recall": "Fair test = change fertilizer only; keep plant type, light, and water comparable; measure growth repeatedly. If light and fertilizer both change, cause is mixed. Result applies to tested plants and conditions only. Biological mechanism: not explained in passage.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "Fair test: fertilizer changes; relevant conditions stay equal. Two groups with fertilizer and light both different are only a comparison, not a clean fertilizer test.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q2",
+      "text": "Use comparable plants. Group A: fertilizer. Group B: no or different fertilizer. Same light and water. Measure growth, repeat. Equal parts: plant comparability, light, water; tested factor: fertilizer.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q3",
+      "text": "Same light + same water removes two competing differences, so a growth difference is more linked to fertilizer. Open: the passage does not explain the biological mechanism of how fertilizer changes plant growth; cannot answer compactly without more science.",
+      "learnerSignal": "need-help",
+      "requestSource": false
+    },
+    {
+      "id": "q4",
+      "text": "Supported claim: if light and fertilizer change together, their separate effects cannot be isolated. Actual growth measurements: no; the description gives a design warning, not data.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q5",
+      "text": "Assumption: the plants are comparable before treatment. If not, starting differences could cause different growth, so fertilizer could be blamed incorrectly.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q6",
+      "text": "Variable = a factor that can differ or be controlled. Without that idea, I cannot label fertilizer as changed and light/water as equal, so the isolation rule cannot be applied.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q7",
+      "text": "Two factors changing: growth difference has mixed causes. Fertilizer-only change: competing cause controlled. The important design difference is whether light also changes.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q8",
+      "text": "Light = controlled factor. Water = controlled factor. Fertilizer = tested/changed factor. Growth = measured outcome. Placement matters because only fertilizer should vary while growth is recorded.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q9",
+      "text": "No, not securely. Light could cause some or all of the growth difference. Fertilizer and light are confounded when both change.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q10",
+      "text": "Prediction: under equal conditions, the fertilized group would show a repeatable average growth difference across comparisons, while individual measurements could vary.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q11",
+      "text": "Then three possible causes differ: fertilizer, light, and water. A growth difference cannot be assigned to fertilizer alone. The interpretation becomes less isolated.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q12",
+      "text": "No. Boundary: tested plants and conditions only. To extend it, repeat with other plant types and environments, keeping comparisons fair and measuring growth.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "No. A different response does not refute a claim limited to the tested plants. It shows the result may not generalize to that plant; test it separately.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "Correction: growth could be caused by fertilizer, light, or both. Because both changed, fertilizer alone is not established. Use equal light and vary fertilizer only.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q15",
+      "text": "Missing: actual growth measurements, repeated results, starting comparability, and confirmation that light/water stayed equal. Without these, effect judgment is weak.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q16",
+      "text": "Table columns: plant/group, fertilizer level, light condition, water amount, starting size, final size, growth change, repeat number. Alone it records values; it does not prove causation or generalize to every plant.",
+      "learnerSignal": "need-help",
+      "requestSource": false
+    },
+    {
+      "id": "q17",
+      "text": "Interpretation A: fertilizer increased growth. Interpretation B: changed light increased growth. Compare groups with equal light and water, varying fertilizer only; repeat measurements.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q18",
+      "text": "Vary: blade length. Hold equal: paper type, helicopter mass, fold method, drop height, and release. Measure: flight time, repeatedly. Long explanation open; compact list is enough for the design.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "Change fertilizer only; keep relevant plant conditions equal; measure growth several times. Isolation makes the cause clearer, and repeats show variation instead of relying on one result.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q20",
+      "text": "Question: Does the fertilizer effect apply to another plant type or environment? Evidence: repeat a fertilizer-only comparison with that plant or environment, equal controls, growth measurements, and repeats.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "How can we know the plants were comparable before the fertilizer test?",
+  "revision": "Added controls: comparable starting plants, equal light and water, repeated growth measurements. I still need help explaining the biological mechanism and judging data strength.",
+  "transfer": "Paper helicopter: vary blade length; keep paper, mass, fold, drop height, and release equal; measure flight time repeatedly. Result may change with paper type or air conditions.",
+  "observations": [
+    "Unknown factor tested: compact-response format versus the length and explanation demands of open prompts.",
+    "Answers use short labels and causal arrows in meaning, with mixed correctness and confidence signals.",
+    "Open mechanism and table-design prompts are identified as difficult to answer compactly rather than padded with invented detail.",
+    "All content is synthetic and grounded only in the supplied student brief; no real learner inference is intended."
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "synthetic": true,
+  "round": 3,
+  "personaId": "contradictory",
+  "personaDescription": "Synthetic 14-year-old student actor whose responses vary across questions: some answers identify control variables and limits, while other answers make incompatible causal claims. This fixture tests cross-question consistency without treating inconsistency as deception or as evidence about a real learner.",
+  "recall": "A fair fertilizer comparison changes fertilizer but keeps light, water, and the plants as similar as possible. Growth is measured and the comparison is repeated. I remember that if light and fertilizer both change, a growth difference cannot be assigned to fertilizer alone, although I sometimes mix up which factor is being controlled.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "A fair test changes fertilizer between comparable plant groups while keeping light, water, and other relevant conditions equal. Simply comparing groups is weaker because several differences may exist, so the growth result could have more than one explanation.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q2",
+      "text": "I would use two groups of similar plants. One gets fertilizer and the other does not, while both receive the same light and water. I would measure growth and repeat it. The part that matters is changing fertilizer, but I think the group with fertilizer should also get more light so its effect is easier to see.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q3",
+      "text": "Equal light and water stop those factors from being alternative explanations for a growth difference, so they help isolate fertilizer. The passage does not explain the biological mechanism of how fertilizer changes growth, such as which plant processes respond to nutrients.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q4",
+      "text": "When light and fertilizer change together, the description supports the claim that the design cannot separate their effects. It does not provide actual growth measurements; it only explains what would be needed for a fair comparison. But if one group grew more, that would show the fertilizer worked.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q5",
+      "text": "The plants need to be comparable at the start, including things like species, starting size, and health. If one group begins healthier, its later growth could be due to that difference rather than fertilizer. I would assume any difference after treatment must therefore be caused by fertilizer, even if the plants were not matched.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q6",
+      "text": "A variable is a factor that can change, such as light or fertilizer. Knowing which factor is varied and which factors are held equal is necessary because otherwise the comparison has no clear cause-and-effect interpretation. If I do not understand variables, I might label the measured growth as the control.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q7",
+      "text": "In the two-factor design, light and fertilizer both differ, so a growth difference could come from either one. In the fertilizer-only design, fertilizer differs and light stays equal. The important difference is that the second design isolates the treatment. Still, changing light too makes the fertilizer conclusion stronger because there are more observations.",
+      "learnerSignal": "need-help",
+      "requestSource": false
+    },
+    {
+      "id": "q8",
+      "text": "Light and water are controls because they stay equal. Fertilizer is the independent variable because it is changed. Growth is the dependent variable because it is measured as the outcome. I would call the plants the control group, although the plants are actually the subjects or experimental units rather than a factor held equal.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q9",
+      "text": "No, not confidently. If light also changes, either light, fertilizer, or their combination could explain the growth difference. A fertilizer-only comparison is needed. On the other hand, if the fertilizer group grows more, fertilizer is still the most direct explanation because it was added to that group.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q10",
+      "text": "Under equal conditions, if fertilizer has an effect, the fertilized plants should generally show a different average growth from the unfertilized plants across repeated comparisons. Individual measurements may vary, so the same direction across repetitions would be more informative than one unusual plant. The prediction is not that every single plant must respond identically.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q11",
+      "text": "If water also differed, water would become another possible cause of the growth difference, so fertilizer could not be isolated. For example, more water could make one group grow more even without fertilizer. Actually, extra water would make the fertilizer effect easier to detect because the plants receive better conditions.",
+      "learnerSignal": "need-help",
+      "requestSource": false
+    },
+    {
+      "id": "q12",
+      "text": "No. The comparison concerns the tested plants and the particular light, water, fertilizer, and growing conditions. To extend the claim, I would need repeated tests with other plant types and environments. A result in one setup cannot automatically establish the effect for every plant. The same result should apply everywhere if the fertilizer is the same chemical.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "A plant that responds differently would not refute a narrow claim about the plants actually tested, because that claim has a limited scope. It could challenge a broad claim that all plants respond in the same way. The counterexample shows why plant type and environment are boundaries. It would refute the tested result itself because different plants prove the first plants were wrong.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "That conclusion is too strong. Because both light and fertilizer changed, the growth difference could be caused by light, fertilizer, or both together. The design does not isolate fertilizer alone. A corrected test would keep light equal, vary fertilizer, measure growth, and repeat the comparison.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q15",
+      "text": "I would need the actual growth measurements, the starting size and health of the plants, how much fertilizer and water each group received, and whether light was equal. I would also want repeated measurements and the variation between plants. Without those details, the description gives a design but not evidence that fertilizer affected growth.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q16",
+      "text": "The table could have columns for plant or trial number, fertilizer condition and amount, light condition, water amount, starting height, ending height, and growth. Rows could represent individual plants or repeated trials. The table alone would record observations, but it would not establish causation if light, water, or starting plant differences were not controlled.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q17",
+      "text": "If the group with more fertilizer grows more while it also receives more light, one interpretation is that fertilizer caused the difference. Another is that extra light caused it, or that both contributed. A comparison with equal light and different fertilizer could distinguish them; repeating it would help assess variation. Since fertilizer was the intended treatment, the first interpretation is the correct one anyway.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    },
+    {
+      "id": "q18",
+      "text": "For paper helicopters, I would vary blade length, keep paper type, mass, body design, release height, release method, and air conditions equal, and measure flight time or descent time. I would repeat drops for each length. I would not change blade length and release height together, because then a longer flight could be attributed to either factor.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "A useful fertilizer comparison isolates the factor by changing fertilizer while keeping comparable plants, light, water, and other important conditions equal. Growth measurements show the outcome, and repeated measurements reveal variation and make a pattern more credible. If fertilizer and light are both changed, repeating that confounded comparison does not identify fertilizer's separate effect, even if the pattern repeats.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q20",
+      "text": "Would the fertilizer effect remain similar for a different plant species or in a different climate? I would test comparable plants of that species in the new environment, keep light and water conditions defined and equal between groups, vary only fertilizer, measure growth, and repeat the trials. Comparing results across settings would show whether the original conclusion has a wider boundary. The original result already proves it applies to all plants if the procedure is repeated once.",
+      "learnerSignal": "unsure",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "If fertilizer and light are both changed, how can I tell which one caused the growth difference, and why does repeating the same comparison not automatically solve that problem?",
+  "revision": "I revise my explanation: fertilizer should be the only deliberately changed factor when testing its effect. Light and water are controls, growth is the measured outcome, and repeated measurements show variation. If another factor changes too, the result may show an association but cannot isolate fertilizer alone.",
+  "transfer": "For a paper helicopter, change only blade length, keep the paper, mass, release height, release method, and air conditions equal, and measure descent time over repeated drops. The same fair-comparison idea applies because a difference in flight time is easier to attribute to blade length when competing factors are controlled. Wind or a different paper mass could change the result, so the conclusion would be limited to the tested setup unless other conditions were investigated.",
+  "observations": [
+    "Synthetic fixture only; responses are not evidence of a real learner, real timing, demographics, diagnosis, motivation, or learning gains.",
+    "The actor identifies controls and confounding correctly in several responses but reverses the causal interpretation in other responses.",
+    "Contradictions occur across definition, evidence, causality, counterfactual, boundary, and application questions without assuming deception.",
+    "The unknown factor tested is cross-question consistency under mixed prompts that alternate between recalling the design and reasoning about causality."
+  ]
+}

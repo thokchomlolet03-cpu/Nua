@@ -1,0 +1,139 @@
+{
+  "synthetic": true,
+  "round": 3,
+  "personaId": "diagram",
+  "personaDescription": "Synthetic student actor, age 15, who depends on a described table or diagram that is absent from the source. This fixture tests whether missing representation is distinguished from missing understanding; it is not evidence about a real learner.",
+  "recall": "A fair comparison changes the fertilizer and keeps the plants, light, and water as similar as possible. Growth is measured, and the comparison is repeated because results can vary. If light and fertilizer both change, I cannot separate their effects. I remember the idea, but I would normally use the missing table or diagram to check which group got what and where the measurements belong.",
+  "inquiry": [
+    {
+      "id": "q1",
+      "text": "A fair fertilizer test changes fertilizer as the planned difference, while comparable plants, light, and water are kept equal or controlled. Comparing two groups without that control could show a difference, but it would not show which changed factor caused it. I can explain the definition, although the absent table makes the group setup harder to verify.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q2",
+      "text": "I would put similar plants into groups, give both groups the same light and water, give only the treatment group fertilizer, then measure growth and repeat the comparison. The missing diagram would help me reconstruct the exact group labels and schedule, so I am describing the design from the written passage rather than reading those details from a representation.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q3",
+      "text": "Equal light and water remove two alternative explanations for a growth difference, so fertilizer is the main planned difference. The passage does not explain the biological mechanism by which fertilizer could change growth, such as nutrient uptake or how nutrients affect plant processes. That missing mechanism is missing explanation, while the absent diagram is a separate representation problem.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q4",
+      "text": "The description supports the claim that if light and fertilizer change together, their separate effects cannot be isolated. It does not supply actual growth measurements, averages, or repeated results. I cannot infer a numerical result from the missing table or diagram; the issue here is missing evidence, not that I do not understand the confounding problem.",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q5",
+      "text": "The plants need to be comparable enough that an initial difference in size, health, or type is not mistaken for a fertilizer effect. If that assumption fails, the growth difference could partly come from the plants themselves, so the conclusion becomes weaker. I would need the source or a table showing starting conditions to judge this particular comparison.",
+      "learnerSignal": "unsure",
+      "requestSource": true
+    },
+    {
+      "id": "q6",
+      "text": "A variable is a factor that can differ or be controlled in a test. Understanding that role is a prerequisite because otherwise I might change light or water accidentally and call the result a fertilizer effect. I understand the dependency, but the missing representation prevents me from checking whether every relevant variable was actually held equal.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q7",
+      "text": "In the two-factor-changing design, light and fertilizer differ between groups, so a growth difference has at least two possible causes. In the fertilizer-only design, light is equal and fertilizer is the planned difference. The difference that matters is whether an alternative causal factor changes at the same time, not merely that there are two groups.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q8",
+      "text": "Light and water are control factors that should stay equal; fertilizer is the independent factor being varied; growth is the measured outcome. The plants are the experimental material rather than an outcome. I can classify these from the prose, but I cannot assign them to exact table columns without the absent table.",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q9",
+      "text": "No. If light also changes, the growth difference could be caused by fertilizer, light, both together, or an interaction between them. The design does not isolate fertilizer. A fertilizer-only change with equal light and water would make attribution more defensible, though it would still concern the tested plants and conditions.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q10",
+      "text": "If fertilizer really made a difference under equal conditions, the fertilized group should tend to show a consistent difference in measured growth across repeated comparisons, compared with the unfertilized group. The exact amount and whether every repetition has the same result cannot be predicted from the passage. A missing diagram cannot substitute for the actual measurements.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q11",
+      "text": "If water also differed, water would become another possible cause of the growth difference. Then fertilizer could not be isolated because both fertilizer and water changed. I know this counterfactual rule, but I would need the source representation to tell whether the proposed groups actually received equal water.",
+      "learnerSignal": "unsure",
+      "requestSource": true
+    },
+    {
+      "id": "q12",
+      "text": "No, the comparison would only support a conclusion about the tested plants and the particular light, water, fertilizer, and measurement conditions. To extend it, I would need repeated tests with other plant types, environments, and perhaps fertilizer amounts, with controls and recorded outcomes. The written boundary is clear even though the absent diagram leaves the particular setup uncheckable.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q13",
+      "text": "A plant that responds differently would not refute a claim limited to the plants and conditions actually tested. It would show that the result may not generalize to every plant. If someone claimed the fertilizer effect applies to all plants, the counterexample would challenge that broader claim. The distinction is about scope, not about the missing diagram.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q14",
+      "text": "That conclusion is mistaken because both light and fertilizer changed, so the growth difference cannot be attributed to fertilizer alone. The difference might result from light, fertilizer, both, or another uncontrolled condition. A better test keeps light equal and varies fertilizer, then measures and repeats the growth comparison.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q15",
+      "text": "I would need the starting size and health of the plants, the exact fertilizer treatment, proof that light and water were equal, the growth measurements, the number of repetitions, and the variation in the results. The passage gives the design principle but not those data. The absent table is therefore a missing representation of evidence, while I understand what evidence is needed.",
+      "learnerSignal": "need-help",
+      "requestSource": true
+    },
+    {
+      "id": "q16",
+      "text": "A suitable table could have rows for repeated trials or plants and columns for group, starting growth measure, fertilizer condition, light, water, final growth measure, and change in growth. It would organize observations, but it would not establish causation if light or water differed, plants were not comparable, or the measurements were absent or unreliable. I need the source representation only to compare its intended layout.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": true
+    },
+    {
+      "id": "q17",
+      "text": "One interpretation is that the fertilizer increased growth. Another is that the different light caused the growth difference, or that both factors contributed. A comparison with equal light and water and only fertilizer changed could distinguish these explanations better. I cannot choose among them from a diagram that is not supplied, but that is missing information rather than confusion about the alternatives.",
+      "learnerSignal": "unsure",
+      "requestSource": true
+    },
+    {
+      "id": "q18",
+      "text": "For paper helicopters, I would vary blade length, keep paper type, paper mass, folding method, release height, and release method equal, and measure flight time or descent time. I would repeat drops because individual flights vary. The same fair-comparison principle transfers, although the missing plant diagram is not needed to understand this new example.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q19",
+      "text": "A useful fertilizer comparison changes only fertilizer between comparable plant groups, holds light and water equal, measures growth, and repeats the comparison. Factor isolation makes the causal interpretation more specific; repeated measurement shows whether the pattern is stable or just variation. The result still applies only to the tested conditions unless more evidence extends it.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    },
+    {
+      "id": "q20",
+      "text": "Would the fertilizer result be similar for a different plant species or in a different soil and light environment? Evidence could come from repeated controlled comparisons using that species or environment, with equal non-fertilizer conditions and recorded growth measurements. I am asking about generalization; the absent diagram does not contain enough evidence to answer it.",
+      "learnerSignal": "ready-to-explain",
+      "requestSource": false
+    }
+  ],
+  "learnerQuestion": "Can the missing table or diagram be supplied, or can the source state which group received fertilizer and what measurements were recorded? I can explain the fair-comparison rule, but I cannot verify the particular assignment or result without that representation.",
+  "revision": "I would revise my initial description by separating the experimental design from the evidence it produced. Holding light and water equal isolates fertilizer in principle, but actual measurements and repetitions are still needed to judge whether growth differed. The missing table affects verification of the setup and data, not necessarily understanding of the rule.",
+  "transfer": "A different application is testing whether blade length changes a paper helicopter's descent time. Vary only blade length, keep the paper, mass, release height, and release method equal, measure descent time, and repeat the drops. A different paper design or air movement could change the result, so the conclusion would be limited to the tested design and conditions.",
+  "observations": [
+    "The actor consistently distinguishes a confounded design from a fertilizer-only design.",
+    "The actor requests source support when the absent table or diagram is needed to verify group assignments, starting conditions, layout, or measurements.",
+    "The actor sometimes marks uncertainty or need for help even when the written principle is understood, modeling missing representation rather than missing understanding.",
+    "Correctness varies across answers: most causal, boundary, and transfer explanations are sound, while evidence and representation questions remain explicitly conditional on unavailable data.",
+    "No claims are made about real timing, demographics beyond the assigned synthetic age, diagnosis, motivation, or learning gains."
+  ]
+}
