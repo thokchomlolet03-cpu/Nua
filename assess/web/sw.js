@@ -1,6 +1,6 @@
 // Bump for EVERY bundled-asset change. Do not skipWaiting or claim clients:
 // an open assessment must finish using its existing release.
-const CACHE = "nua-assess-release-0.6.0-r1";
+const CACHE = "nua-assess-release-0.7.0-r1";
 const FILES = [
   "/",
   "/index.html",
@@ -16,6 +16,7 @@ const FILES = [
   "/mangal-core.js",
   "/assessment-feedback.js",
   "/material.js",
+  "/material-review.js",
   "/vendor/pdf.min.js",
   "/vendor/pdf.worker.min.js",
 ];

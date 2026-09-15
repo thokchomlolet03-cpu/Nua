@@ -377,12 +377,16 @@ export function validateQuestion(
   return q;
 }
 export function validateQuestionSet(plan, options = {}) {
+  const minimum = plan.selectionPolicy === 'objective-coverage/1' ? 1 : MIN_TYPES;
+  if (minimum === 1) check(text(plan.coverageReason,12,1000), 'Explain why this inquiry set covers the objective.');
   check(
     plan.breadthPolicy === BREADTH_POLICY &&
       Array.isArray(plan.questions) &&
-      plan.questions.length >= MIN_TYPES &&
+      plan.questions.length >= minimum &&
       plan.questions.length <= MAX_QUESTIONS,
-    "Prepare 20–40 questions with at least 20 distinct inquiry types.",
+    minimum === 1
+      ? "Prepare the selected number of questions and keep each reasoning type distinct."
+      : "Prepare 20–40 questions with at least 20 distinct inquiry types.",
   );
   plan.questions.forEach((q) => validateQuestion(q, plan, options));
   check(
@@ -391,8 +395,10 @@ export function validateQuestionSet(plan, options = {}) {
   );
   if (!options.draft)
     check(
-      new Set(plan.questions.map((q) => q.type)).size >= MIN_TYPES,
-      "At least 20 distinct inquiry types are required; paraphrases do not count as breadth.",
+      new Set(plan.questions.map((q) => q.type)).size >= minimum,
+      minimum === 1
+        ? "Each question must use a distinct reasoning type; paraphrases do not count as breadth."
+        : "At least 20 distinct inquiry types are required; paraphrases do not count as breadth.",
     );
   if (!options.draft)
     check(

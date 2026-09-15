@@ -36,6 +36,7 @@ import {
 } from "./inquiry-questions.js";
 import { withSessionEditor } from "./storage.js";
 import { readMaterial } from "./material.js";
+import { reviewInput, searchLink, approveSupplement } from './material-review.js';
 const PREP = "nua-mangal-preparation-v2";
 const $ = (s) => document.querySelector(s);
 const esc = (x) =>
@@ -163,10 +164,10 @@ function change(fn) {
   }
 }
 function header() {
-  return '<header><div class="brand">nua<span>Mangal Inquiry</span></div><span class="pill">One objective · 20+ angles</span></header>';
+  return '<header><div class="brand">nua<span>Mangal Inquiry</span></div><span class="pill">One objective · Multiple angles</span></header>';
 }
 function footer() {
-  return "<footer><span>Nua Assess 0.6.0 · Mangal Inquiry</span><span>Local storage · No cloud AI · Educational validation pending</span></footer>";
+  return "<footer><span>Nua Assess 0.7.0 · Mangal Inquiry</span><span>Local storage · No cloud AI · Educational validation pending</span></footer>";
 }
 function source() {
   return `<section class="card tinted"><h2>Source passage · page ${session.plan.page}</h2><p class="response">${esc(session.plan.quote)}</p><p class="small">According to uploaded material, not independently fact-checked. Original diagrams and layout are not shown.</p></section>`;
@@ -196,7 +197,7 @@ function questionEditor(plan) {
   editingQuestion = Math.min(editingQuestion, plan.questions.length - 1);
   const q = plan.questions[editingQuestion];
   const guidance = questionGuidance(q);
-  return `<h2>20+ angles. One coherent objective.</h2><p>${plan.questions.length} questions · ${new Set(plan.questions.map((q) => q.type)).size} distinct types · <span id="review-count">${plan.questions.filter((q) => q.reviewed).length}</span> reviewed. Every question is part of the learner journey, not optional extra content.</p><p class="notice">Templates are starting prompts, not automatically material-specific assessments. Review relevance, distinct reasoning, source sufficiency and criteria for every question. If the material cannot support the set, expand the selected material instead of approving filler.</p><label>Question to review<select id="edit-question">${plan.questions.map((q, i) => `<option value="${i}" ${i === editingQuestion ? "selected" : ""}>${i + 1}. ${questionTypes[q.type].title}</option>`).join("")}</select></label><label>Reasoning type<select id="question-type">${Object.entries(
+  return `<h2>Multiple angles. One coherent objective.</h2><p>${plan.questions.length} questions · ${new Set(plan.questions.map((q) => q.type)).size} distinct types · <span id="review-count">${plan.questions.filter((q) => q.reviewed).length}</span> reviewed. Every question is part of the learner journey, not optional extra content.</p><p class="notice">Templates are starting prompts, not automatically material-specific assessments. Review relevance, distinct reasoning, source sufficiency and criteria for every question. If the material cannot support the set, expand the selected material instead of approving filler.</p><label>Question to review<select id="edit-question">${plan.questions.map((q, i) => `<option value="${i}" ${i === editingQuestion ? "selected" : ""}>${i + 1}. ${questionTypes[q.type].title}</option>`).join("")}</select></label><label>Reasoning type<select id="question-type">${Object.entries(
     questionTypes,
   )
     .map(
@@ -218,19 +219,19 @@ function questionEditor(plan) {
     )
     .join(
       "",
-    )}<label>Evidence condition<select id="question-kind"><option value="source" ${q.kind === "source" ? "selected" : ""}>Answer supported by the passage</option><option value="investigation" ${q.kind === "investigation" ? "selected" : ""}>Investigation: reasoning or additional evidence needed</option><option value="needs-material" ${q.kind === "needs-material" ? "selected" : ""}>Blocked: more material needed before assignment</option></select></label><label class="option"><input id="question-reviewed" type="checkbox" ${q.reviewed ? "checked" : ""}> I reviewed this question's distinct reasoning, relevance, source anchor and criteria.</label><div class="actions"><button type="button" id="previous-question" class="secondary" ${editingQuestion === 0 ? "disabled" : ""}>Previous question</button><button type="button" id="next-question" class="secondary" ${editingQuestion === plan.questions.length - 1 ? "disabled" : ""}>Next question</button></div><details><summary>Extend or refine the inquiry set</summary><p>Minimum 20 distinct types. This prototype supports up to 40 questions per set. Additional questions must earn their place through relevance, not repeated wording.</p><button type="button" id="add-question" class="secondary" ${plan.questions.length >= MAX_QUESTIONS ? "disabled" : ""}>Add another question</button><button type="button" id="remove-question" class="secondary" ${plan.questions.length <= 20 ? "disabled" : ""}>Remove this draft question</button></details>`;
+    )}<label>Evidence condition<select id="question-kind"><option value="source" ${q.kind === "source" ? "selected" : ""}>Answer supported by the passage</option><option value="investigation" ${q.kind === "investigation" ? "selected" : ""}>Investigation: reasoning or additional evidence needed</option><option value="needs-material" ${q.kind === "needs-material" ? "selected" : ""}>Blocked: more material needed before assignment</option></select></label><label class="option"><input id="question-reviewed" type="checkbox" ${q.reviewed ? "checked" : ""}> I reviewed this question's distinct reasoning, relevance, source anchor and criteria.</label><div class="actions"><button type="button" id="previous-question" class="secondary" ${editingQuestion === 0 ? "disabled" : ""}>Previous question</button><button type="button" id="next-question" class="secondary" ${editingQuestion === plan.questions.length - 1 ? "disabled" : ""}>Next question</button></div><details><summary>Extend or refine the inquiry set</summary><p>Choose distinct types that cover your objective. This prototype supports up to 40 questions per set. Additional questions must earn their place through relevance, not repeated wording.</p><button type="button" id="add-question" class="secondary" ${plan.questions.length >= MAX_QUESTIONS ? "disabled" : ""}>Add another question</button><button type="button" id="remove-question" class="secondary" ${plan.questions.length <= (plan.selectionPolicy === "objective-coverage/1" ? 1 : 20) ? "disabled" : ""}>Remove this draft question</button></details>`;
 }
 function setupScreen() {
   if (!setup.pages.length)
-    return `<section class="hero"><div><span class="pill">MATERIAL → 20+ INQUIRY ANGLES → EVIDENCE</span><h1>Many angles.<br>One focus.</h1><p class="lead">Explore your lesson through at least 20 distinct question types, one question at a time. Recall, investigate, synthesize, revise and return to apply.</p><p>Focus means staying connected to the material—not narrowing the inquiry. Pause across sessions without losing the remaining questions.</p></div></section><section class="card"><h2>Start with your material</h2><p>Use material you are permitted to process. Files stay on this device; optional AI drafting sends only the selected passage to the local model on this computer.</p><label>Lesson title<input id="title" maxlength="160" value="${esc(setup.title)}" placeholder="For example: Causes and evidence"></label><label>Readable PDF, text or Markdown<input id="material-file" type="file" accept=".pdf,.txt,.md"></label><p class="small">Maximum 12 MB / 80 pages / 180,000 extracted characters. No OCR, audio, video or editable slide parsing. PDF extraction needs a modern browser/WebView.</p><label>Or paste a checked lesson passage<textarea id="pasted" maxlength="180000" placeholder="Paste the material, not personal student information."></textarea></label><button id="use-paste" class="primary">Review this material</button></section><p class="small">School-age use requires educator supervision. This is an English-interface prototype; extracted text may be multilingual, but language quality needs review.</p><p><a href="demo.html">Open the fixed science demonstration</a> · Existing demo sessions are kept separately.</p>`;
+    return `<section class="hero"><div><span class="pill">MATERIAL → 20+ INQUIRY ANGLES → EVIDENCE</span><h1>Many angles.<br>One focus.</h1><p class="lead">Explore your lesson through a reviewed range of distinct question types, one question at a time. Recall, investigate, synthesize, revise and return to apply.</p><p>Focus means staying connected to the material—not narrowing the inquiry. Pause across sessions without losing the remaining questions.</p></div></section><section class="card"><h2>Start with your material</h2><p>Use material you are permitted to process. Files stay on this device; optional AI drafting sends only the selected passage to the local model on this computer.</p><label>Lesson title<input id="title" maxlength="160" value="${esc(setup.title)}" placeholder="For example: Causes and evidence"></label><label>Readable PDF, text or Markdown<input id="material-file" type="file" accept=".pdf,.txt,.md"></label><p class="small">Maximum 12 MB / 80 pages / 180,000 extracted characters. No OCR, audio, video or editable slide parsing. PDF extraction needs a modern browser/WebView.</p><label>Or paste a checked lesson passage<textarea id="pasted" maxlength="180000" placeholder="Paste the material, not personal student information."></textarea></label><button id="use-paste" class="primary">Review this material</button></section><p class="small">School-age use requires educator supervision. This is an English-interface prototype; extracted text may be multilingual, but language quality needs review.</p><p><a href="demo.html">Open the fixed science demonstration</a> · Existing demo sessions are kept separately.</p>`;
   if (!setup.plan)
-    return `<span class="eyebrow">Review coverage before choosing a focus</span><h1>One lesson.<br>Many ways to inquire.</h1><section class="card"><h2>${esc(setup.title)}</h2><p>${setup.pages.length} page/section(s) processed. This is a text extraction preview, not an AI claim of full-document understanding.</p>${setup.warnings.map((w) => `<p class="notice">${esc(w)}</p>`).join("")}<label>Inspect page / section<select id="page">${setup.pages.map((p) => `<option value="${p.page}" ${p.page === setup.page ? "selected" : ""}>${p.page} · ${p.text.length} characters${p.text.length < 40 ? " · CHECK MISSING TEXT" : ""}</option>`).join("")}</select></label><details><summary>Show all extracted text on this page</summary><p class="response">${esc(setup.pages[setup.page - 1].text || "No text extracted.")}</p></details><label>Exact passage for this inquiry (40–6000 characters)<textarea id="excerpt" maxlength="6000">${esc(setup.excerpt)}</textarea></label><p class="small">Select a contiguous passage from this page rich enough for 20 distinct inquiry types. If it is too thin, choose broader material or paste a checked lesson section. This version does not semantically map the whole document. Do not use text whose meaning depends on an unread diagram.</p><label>What should the learner be able to explain or do?<textarea id="objective" maxlength="300" minlength="12" placeholder="Use one specific, observable objective.">${esc(setup.objective)}</textarea></label><button id="draft-plan" class="primary">Prepare 20 inquiry questions</button><p class="small">The initial set uses editable question-type templates. Local AI can tailor four questions at a time; human review is required either way.</p></section>`;
+    return `<span class="eyebrow">Review coverage before choosing a focus</span><h1>One lesson.<br>Many ways to inquire.</h1><section class="card"><h2>${esc(setup.title)}</h2><p>${setup.pages.length} page/section(s) processed. This is a text extraction preview, not an AI claim of full-document understanding.</p>${setup.warnings.map((w) => `<p class="notice">${esc(w)}</p>`).join("")}<label>Inspect page / section<select id="page">${setup.pages.map((p) => `<option value="${p.page}" ${p.page === setup.page ? "selected" : ""}>${p.page} · ${p.text.length} characters${p.text.length < 40 ? " · CHECK MISSING TEXT" : ""}</option>`).join("")}</select></label><details><summary>Show all extracted text on this page</summary><p class="response">${esc(setup.pages[setup.page - 1].text || "No text extracted.")}</p></details><label>Exact passage for this inquiry (40–6000 characters)<textarea id="excerpt" maxlength="6000">${esc(setup.excerpt)}</textarea></label><p class="small">Select a contiguous passage from this page rich enough for 20 distinct inquiry types. If it is too thin, choose broader material or paste a checked lesson section. This version does not semantically map the whole document. Do not use text whose meaning depends on an unread diagram.</p><label>What should the learner be able to explain or do?<textarea id="objective" maxlength="300" minlength="12" placeholder="Use one specific, observable objective.">${esc(setup.objective)}</textarea></label><button id="draft-plan" class="primary">Prepare inquiry questions</button><p class="small">The initial set uses editable question-type templates. Local AI can tailor four questions at a time; human review is required either way.</p></section>`;
   const p = setup.plan;
   return `<span class="eyebrow">Preparation · not a learner test</span><h1>Review the full inquiry.</h1><p class="notice">Review every question and its criteria. They are drafts, not validated assessment items. Editing is locked once learning starts.</p><section class="card"><h2>Objective</h2><p>${esc(p.objective)}</p><details><summary>Source · page ${p.page}</summary><p class="response">${esc(p.quote)}</p></details>${!p.questions ? '<p class="notice">Legacy preparation: preserve or export it first, then expand it for the new 20+ workflow.</p><button id="expand-legacy" class="secondary">Expand to 20 inquiry types</button>' : ""}<form id="approve-form">${fields(p)}<label>Review condition<select id="mode"><option value="teacher-reviewed" ${setup.mode === "teacher-reviewed" ? "selected" : ""}>Educator reviewed (identity not authenticated)</option><option value="self-study-provisional" ${setup.mode === "self-study-provisional" ? "selected" : ""}>Self-study provisional (questions and criteria already seen)</option></select></label><label class="option"><input type="checkbox" id="checked-source" required> I checked source accuracy, extraction, the full set's distinct reasoning and the relevance of its questions. Investigation tasks are labelled; missing prerequisites are resolved.</label><button class="primary">Approve and begin preparation</button></form><div class="actions"><button id="edit-source" class="secondary">Back to source and objective</button>${window.NuaNative ? '<p class="small">AI drafting is desktop-only. Edit templates or import a reviewed plan on this device.</p>' : '<button id="ai-plan" class="secondary">Tailor next four unreviewed questions with local AI</button>'}<button id="export-plan" class="secondary">Export lesson plan</button></div><p class="small">Each question gets at most one AI attempt in this preparation. Batches preserve reviewed questions and keep templates on failure. ${setup.aiTypesTried?.length || 0} question attempts used. No cloud fallback; reused plans need no new model calls.</p></section>`;
 }
 function activeScreen() {
   const s = session;
-  const top = `<section class="card tinted"><span class="eyebrow">Your focus</span><h2>${esc(s.plan.objective)}</h2><p class="small">${labels[s.phase]} · ${esc(s.title)} · Source page ${s.plan.page}</p>${s.breadth ? `<p>${s.breadth.index}/${s.plan.questions.length} inquiry questions recorded · ${new Set(s.plan.questions.map((q) => q.type)).size} distinct types. Progress is coverage, not mastery. Pause at any time; the remaining questions stay in your journey.</p>` : '<p class="notice">Legacy short inquiry: your original questions and responses are preserved. New preparations use the 20+ inquiry sequence.</p>'}</section>`;
+  const top = `<section class="card tinted"><span class="eyebrow">Your focus</span><h2>${esc(s.plan.objective)}</h2><p class="small">${labels[s.phase]} · ${esc(s.title)} · Source page ${s.plan.page}</p>${s.breadth ? `<p>${s.breadth.index}/${s.plan.questions.length} inquiry questions recorded · ${new Set(s.plan.questions.map((q) => q.type)).size} distinct types. Progress is coverage, not mastery. Pause at any time; the remaining questions stay in your journey.</p>` : '<p class="notice">Legacy short inquiry: your original questions and responses are preserved. New preparations use the multi-angle inquiry sequence.</p>'}</section>`;
   if (s.paused)
     return (
       top +
@@ -561,7 +562,14 @@ function bind() {
     });
   $("#draft-plan")?.addEventListener("click", () =>
     change(() => {
+      if (setup.materialReview && (setup.materialReview.input.objective !== setup.objective || setup.materialReview.input.excerpt !== setup.excerpt || setup.materialReview.input.level !== (setup.level || ''))) throw Error('Reassess the changed material, objective or learner level before preparing questions.');
       setup.plan = templatePlan(setup.objective, setup.excerpt, setup.page);
+      if (setup.coverageReason?.trim().length >= 12) {
+        setup.plan.selectionPolicy='objective-coverage/1';
+        setup.plan.coverageReason=setup.coverageReason.trim();
+        setup.plan.questions=setup.plan.questions.slice(0,setup.questionCount || 20);
+      }
+      setup.plan.materialSnapshot={review:setup.materialReview || null,supplements:structuredClone(setup.supplements || []),level:setup.level || '',at:Date.now()};
       validatePlan(setup.plan, setup.pages);
     }),
   );
@@ -612,8 +620,9 @@ function bind() {
   $("#remove-question")?.addEventListener("click", () =>
     change(() => {
       capturePlan();
-      if (setup.plan.questions.length <= 20)
-        throw Error("Keep at least 20 questions.");
+      const minimum = setup.plan.selectionPolicy === "objective-coverage/1" ? 1 : 20;
+      if (setup.plan.questions.length <= minimum)
+        throw Error(`Keep at least ${minimum} question${minimum === 1 ? "" : "s"}.`);
       setup.plan.questions.splice(editingQuestion, 1);
       editingQuestion = Math.min(
         editingQuestion,
@@ -899,7 +908,41 @@ const renderBase = render;
 render = function () {
   renderBase();
   addPlanImport();
+  materialReviewPanel();
 };
+function materialReviewPanel() {
+  if (session || !setup.pages.length || setup.plan || !owns || error) return;
+  const panel = document.createElement('section');
+  panel.className = 'card';
+  const review = setup.materialReview;
+  const current = review && review.input.objective === setup.objective && review.input.excerpt === setup.excerpt && review.input.level === (setup.level || '');
+  panel.innerHTML = `<h2>Does this material support your goal?</h2><p>Set the objective above, then review the selected passage. Other pages and factual accuracy need separate checking.</p><label>Learner level and prior knowledge<input id="review-level" maxlength="200" value="${esc(setup.level || '')}"></label><button id="review-material" ${busy || window.NuaNative ? 'disabled' : ''}>Assess passage with local AI</button><p>Review each requirement and its evidence. Missing information may call for a supplement or a narrower goal. Local AI review requires the desktop server and Ollama.</p>${review ? `<p>${current ? 'Review matches the current passage and goal.' : 'Outdated review: the passage, goal or learner level changed. Reassess before using these findings.'}</p>${review.findings.map(f => `<article><h3>${esc(f.requirement)} — ${esc(f.status)}</h3><blockquote>${esc(f.quote || 'No supporting quotation supplied')}</blockquote><p>${esc(f.reason)}</p><p>Suggested action: ${esc(f.remedy)}</p><a href="${esc(searchLink(f.search))}" target="_blank" rel="noopener noreferrer">Search for resources to address this requirement</a><p class="small">External search; results have not been verified or endorsed by Nua. Opening sends the search query to Google.</p></article>`).join('')}` : ''}<details><summary>Add an approved resource to your learning pack</summary><p>Your original pages remain intact. Check the resource before adding text you have permission to use. The supplement becomes a separate selectable section; choose or combine checked text for the next review.</p><label>Resource title<input id="supp-title" maxlength="160"></label><label>Source URL<input id="supp-url" type="url"></label><label>Checked supplementary text<textarea id="supp-text" maxlength="6000"></textarea></label><button id="approve-supplement">Approve and add supplement</button></details>`;
+  $('#draft-plan').before(panel);
+  const coverage=document.createElement('div');
+  coverage.innerHTML=`<h3>Plan the inquiry breadth</h3><p>Twenty is a starting suggestion. Choose a smaller initial set when justified, then review and change its reasoning types in preparation. Counts do not establish depth or coverage.</p><label>Initial questions (1–20)<input id="inquiry-count" type="number" min="1" max="20" value="${setup.questionCount || 20}"></label><label>Why will this selection cover the learning objective?<textarea id="coverage-reason" maxlength="1000">${esc(setup.coverageReason || '')}</textarea></label><p>Explain the required perspectives and any exclusions. Without a rationale, the existing 20-type default is used. You can add questions during review, up to 40.</p>`;
+  panel.append(coverage);
+  $('#inquiry-count').onchange=e=>{setup.questionCount=Math.max(1,Math.min(20,Number(e.target.value)||20));persist();};
+  $('#coverage-reason').oninput=e=>{setup.coverageReason=e.target.value;persist();};
+  $('#review-level').oninput = e => { setup.level=e.target.value; persist(); };
+  $('#review-material').onclick = async () => {
+    if (busy) return;
+    try {
+      const input = reviewInput({objective:setup.objective,level:setup.level || '',excerpt:setup.excerpt});
+      busy=true; render();
+      const response = await fetch('/api/material-review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),signal:AbortSignal.timeout(70000)});
+      const data = await response.json();
+      if (!response.ok) throw Error(data.error || 'Review failed.');
+      setup.materialReview=data.review; persist(); message='Review ready. Check its judgments against your source.';
+    } catch(e) { message=e.message; } finally { busy=false; render(); }
+  };
+  $('#approve-supplement').onclick = () => change(() => {
+    const addition=approveSupplement(setup.pages,$('#supp-title').value,$('#supp-text').value,$('#supp-url').value);
+    setup.supplements=[...(setup.supplements || []),addition];
+    setup.pages.push({page:addition.page,text:addition.text});
+    setup.page=addition.page; setup.excerpt=addition.text;
+  });
+  if (busy) panel.querySelectorAll('input,textarea,button').forEach(el=>el.disabled=true);
+}
 $("#app").textContent = "Opening your focused learning workspace…";
 withSessionEditor(navigator.locks, window.NuaNative, (granted) => {
   owns = granted;

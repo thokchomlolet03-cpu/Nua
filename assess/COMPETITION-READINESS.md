@@ -1,4 +1,4 @@
-# Competition alignment review — Nua Assess 0.6.0
+# Competition alignment review — Nua Assess 0.7.0
 
 Reviewed 13 September 2026. This report distinguishes implemented behavior, engineering checks, proposed research and unverified claims. It is not a funding prediction. The exact submitted Phase I answers were not available for reconciliation; no submission was changed.
 

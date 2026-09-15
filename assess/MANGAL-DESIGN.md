@@ -1,4 +1,4 @@
-# Mangal Inquiry — 0.6.0 implementation and acceptance record
+# Mangal Inquiry — 0.7.0 implementation and acceptance record
 
 Version 0.6 adds response contracts and relevant plain-language glossary terms to the existing per-question uncertainty/help and evidence-linked educator workflow. It also exposes three pacing checkpoints and preserves exact source anchors selected as complete sentences or bounded source spans. No automatic grading, focus inference or emotion inference is involved. Partial educator drafts persist, saved feedback preserves history, and minimized exports exclude feedback prose. See [COMPETITION-READINESS.md](COMPETITION-READINESS.md) and [CHECKPOINT.md](CHECKPOINT.md) for updated alignment and verification; the earlier 0.4 and 0.5 verification below remains historical.
 

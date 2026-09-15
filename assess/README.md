@@ -1,8 +1,8 @@
-# Nua Assess — Mangal Inquiry MVP 0.6.0
+# Nua Assess — Mangal Inquiry MVP 0.7.0
 
 Current competition review: [COMPETITION-READINESS.md](COMPETITION-READINESS.md). Proposed educator review and learner feasibility study: [PILOT-PROTOCOL.md](PILOT-PROTOCOL.md). Version 0.6 adds response contracts, material-neutral plain-language glossary support, three pacing checkpoints and complete source-anchor selection. These require no additional AI calls. Feedback opens after application, not as real-time classroom monitoring. No learning-impact validation is claimed.
 
-The default application now uses uploaded material and a focused 20+ question inquiry sequence. See [MANGAL-DESIGN.md](MANGAL-DESIGN.md) for the current scope, and [SYSTEMATIC-UPDATE-0.6.0.md](SYSTEMATIC-UPDATE-0.6.0.md) for the test-to-change trace and remaining non-claims. The fixed science workflow described below remains available at `demo.html`; its saved sessions are preserved separately. The older sections below describe that demonstration, not automatic assessment of arbitrary material.
+The default application now uses uploaded material, an objective-based material-readiness review, approved supplements, and a focused inquiry sequence whose question count can be justified rather than fixed. See [RELEASE-0.7.0.md](RELEASE-0.7.0.md) for the current boundaries and [MANGAL-DESIGN.md](MANGAL-DESIGN.md) for the learning design. The fixed science workflow described below remains available at `demo.html`; its saved sessions are preserved separately. The older sections below describe that demonstration, not automatic assessment of arbitrary material.
 
 Current setup requires Node **22.13+** (verified with Node 24.18.1). Run `npm ci` in `assess/` before `npm start` or an Android build. This installs pinned PDF.js and prepares the bundled offline PDF reader. The previous no-install/Node 20 instructions below are historical and superseded.
 
@@ -37,7 +37,7 @@ English and Hindi task content is included. The interface is mostly English. Hin
 
 Built APK: `android/app/build/outputs/apk/debug/app-debug.apk` (debug-signed; development use only).
 
-This is a separate application (`org.nua.assess`), so it does not replace the original Nua app. The current debug package is version 0.6.0 / Android version code 7. It packages the same assessment UI and a Kotlin LiteRT-LM CPU bridge. Android 8/API 26+ is the shell minimum, **not a promise that every supported device can run a model**. Model memory requirements must be measured on the target phone.
+This is a separate application (`org.nua.assess`), so it does not replace the original Nua app. The current debug package is version 0.7.0 / Android version code 8. It packages the same assessment UI and a Kotlin LiteRT-LM CPU bridge. Android 8/API 26+ is the shell minimum, **not a promise that every supported device can run a model**. Model memory requirements must be measured on the target phone.
 
 Settings → Import local model opens Android's document picker. Import a compatible **`.litertlm`** text-instruction model, at most 2.5 GB. Ollama/GGUF files are not interchangeable with LiteRT-LM files. No model is bundled; obtain one from its publisher and review its license. Import copies it to app-private storage and initializes the CPU engine. There is no INTERNET permission. Initial model acquisition outside the app still needs connectivity. A replacement is committed only after successful initialization; failed imports restore the previous model.
 

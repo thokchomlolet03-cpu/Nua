@@ -1,4 +1,6 @@
 import http from "node:http";
+import { materialReviewRequest } from './material-review-model.mjs';
+import { reviewInput, parseReview } from './web/material-review.js';
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { readJSONBody } from "./request-body.mjs";
@@ -35,6 +37,7 @@ const allowed = new Set([
   "mangal-core.js",
   "assessment-feedback.js",
   "material.js",
+  "material-review.js",
   "vendor/pdf.min.js",
   "vendor/pdf.worker.min.js",
   "vendor/PDFJS-LICENSE.txt",
@@ -73,6 +76,20 @@ const server = http.createServer(async (req, res) => {
     if (origin && !["http://" + host].includes(origin))
       return json(res, 403, { error: "Origin not allowed." });
     const path = new URL(req.url, "http://" + host).pathname;
+    if (path === '/api/material-review' && req.method === 'POST') {
+      if (req.headers['content-type'] !== 'application/json') return json(res,415,{error:'JSON required.'});
+      let input;
+      try { input = reviewInput(await readJSONBody(req,24000)); } catch(e) { return json(res,e.status || 400,{error:e.message}); }
+      if (running) return json(res,429,{error:'Local model is busy.'});
+      running = true;
+      try {
+        const result = await ollama('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(materialReviewRequest(model,input))});
+        if (!result.ok) throw Error('Local review unavailable. Check the passage manually or retry when Ollama is available.');
+        const data = await result.json();
+        if (data.done_reason === 'length') throw Error('Review exceeded the output budget. Try a shorter passage.');
+        return json(res,200,{review:parseReview(data.response,input)});
+      } catch(e) { return json(res,503,{error:e.message}); } finally { running=false; }
+    }
     if (
       ["/api/inquiry-plan", "/api/inquiry-questions"].includes(path) &&
       req.method === "POST"
