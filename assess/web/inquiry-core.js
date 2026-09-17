@@ -141,7 +141,7 @@ export function validatePlan(p, pages) {
       `Review the ${field} field (12–1800 characters).`,
     );
   requireThat(
-    ["rule-based-template", "local-ai-draft"].includes(p.origin) &&
+    ["rule-based-template", "local-ai-draft", "gemini-ai-draft"].includes(p.origin) &&
       p.policy === POLICY &&
       (p.model === null || str(p.model, 1, 200)),
     "Invalid plan provenance.",

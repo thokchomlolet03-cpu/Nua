@@ -19,6 +19,11 @@ import {
   extractRoute,
   INFERENCE_TIMEOUT_MS,
 } from "./local-model.mjs";
+import {
+  generateInquiryQuestionsGemini,
+  analyzeResponseGemini,
+  GEMINI_MODEL,
+} from "./gemini-client.mjs";
 const root = fileURLToPath(new URL("./web/", import.meta.url));
 const port = Number(process.env.NUA_PORT || 4173),
   model = process.env.NUA_MODEL || "qwen2.5:1.5b";
@@ -38,6 +43,8 @@ const allowed = new Set([
   "assessment-feedback.js",
   "material.js",
   "material-review.js",
+  "teacher.html",
+  "teacher-portal.js",
   "vendor/pdf.min.js",
   "vendor/pdf.worker.min.js",
   "vendor/PDFJS-LICENSE.txt",
@@ -51,6 +58,18 @@ const types = {
 };
 let running = false,
   lastRequest = 0;
+let geminiRunning = false,
+  lastGeminiRequest = 0;
+
+function getApiKeyFromReq(req, body) {
+  const authHeader = req.headers.authorization || "";
+  if (authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) return token;
+  }
+  return body?.apiKey || process.env.GEMINI_API_KEY;
+}
+
 function json(res, status, data) {
   res.writeHead(status, {
     "Content-Type": "application/json",
@@ -76,6 +95,72 @@ const server = http.createServer(async (req, res) => {
     if (origin && !["http://" + host].includes(origin))
       return json(res, 403, { error: "Origin not allowed." });
     const path = new URL(req.url, "http://" + host).pathname;
+    if (path === "/api/gemini/status" && req.method === "GET") {
+      const keySet = !!process.env.GEMINI_API_KEY;
+      return json(res, 200, {
+        configured: keySet,
+        model: GEMINI_MODEL,
+        label: keySet ? "Gemini 3.8 Flash (configured via env)" : "Gemini 3.8 Flash (ready for API key)",
+      });
+    }
+    if (path === "/api/gemini/generate-questions" && req.method === "POST") {
+      if (req.headers["content-type"] !== "application/json") return json(res, 415, { error: "JSON required." });
+      let body;
+      try { body = await readJSONBody(req, 48000); } catch (e) { return json(res, e.status || 400, { error: e.message }); }
+      if (!body.objective || typeof body.objective !== "string" || body.objective.trim().length < 5) {
+        return json(res, 400, { error: "A valid learning objective is required (minimum 5 characters)." });
+      }
+      if (!body.excerpt || typeof body.excerpt !== "string" || body.excerpt.trim().length < 20) {
+        return json(res, 400, { error: "Valid source material excerpt is required (minimum 20 characters)." });
+      }
+      if (geminiRunning) {
+        return json(res, 429, { error: "Gemini service is currently busy. Please wait a moment." });
+      }
+      geminiRunning = true;
+      lastGeminiRequest = Date.now();
+      const apiKey = getApiKeyFromReq(req, body);
+      try {
+        const questions = await generateInquiryQuestionsGemini(apiKey, {
+          objective: body.objective,
+          excerpt: body.excerpt,
+          page: body.page || 1,
+          subject: body.subject,
+          gradeLevel: body.gradeLevel,
+          types: body.types,
+        });
+        return json(res, 200, { questions, model: GEMINI_MODEL });
+      } catch (err) {
+        return json(res, 500, { error: err.message });
+      } finally {
+        geminiRunning = false;
+      }
+    }
+    if (path === "/api/gemini/analyze-response" && req.method === "POST") {
+      if (req.headers["content-type"] !== "application/json") return json(res, 415, { error: "JSON required." });
+      let body;
+      try { body = await readJSONBody(req, 24000); } catch (e) { return json(res, e.status || 400, { error: e.message }); }
+      if (!body.studentAnswer || typeof body.studentAnswer !== "string" || body.studentAnswer.trim().length < 5) {
+        return json(res, 400, { error: "Valid student answer required for analysis (minimum 5 characters)." });
+      }
+      if (geminiRunning) {
+        return json(res, 429, { error: "Gemini service is currently busy. Please wait a moment." });
+      }
+      geminiRunning = true;
+      lastGeminiRequest = Date.now();
+      const apiKey = getApiKeyFromReq(req, body);
+      try {
+        const analysis = await analyzeResponseGemini(apiKey, {
+          questionPrompt: body.questionPrompt,
+          expectedCriterion: body.expectedCriterion,
+          studentAnswer: body.studentAnswer,
+        });
+        return json(res, 200, { analysis, model: GEMINI_MODEL });
+      } catch (err) {
+        return json(res, 500, { error: err.message });
+      } finally {
+        geminiRunning = false;
+      }
+    }
     if (path === '/api/material-review' && req.method === 'POST') {
       if (req.headers['content-type'] !== 'application/json') return json(res,415,{error:'JSON required.'});
       let input;

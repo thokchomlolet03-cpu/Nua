@@ -269,7 +269,7 @@ function check(ok, msg) {
 }
 const text = (v, min, max) =>
   typeof v === "string" && v.trim().length >= min && v.length <= max;
-function completeAnchor(source, type) {
+export function completeAnchor(source, type) {
   const sentences = source.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
   const usable = sentences.map((s) => s.trim()).filter((s) => s.length >= 20 && s.length <= 300);
   if (usable.length)
@@ -365,7 +365,7 @@ export function validateQuestion(
   );
   check(
     typeof q.reviewed === "boolean" &&
-      ["template", "local-ai"].includes(q.origin) &&
+      ["template", "local-ai", "gemini-ai"].includes(q.origin) &&
       (q.model === null || text(q.model, 1, 200)),
     "Invalid question review or provenance.",
   );

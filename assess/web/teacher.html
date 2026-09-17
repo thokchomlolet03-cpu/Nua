@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#142e2a" />
+    <title>Nua Assess · Teacher Portal</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .portal-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--line);
+        padding-bottom: 8px;
+      }
+      .portal-tab {
+        background: transparent;
+        border: none;
+        padding: 10px 18px;
+        font-weight: 650;
+        color: var(--muted);
+        border-radius: 8px;
+      }
+      .portal-tab.active {
+        background: var(--lime);
+        color: var(--green);
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .badge-source {
+        background: #e1f0da;
+        color: #2b542c;
+      }
+      .badge-investigation {
+        background: #e0e9f8;
+        color: #244673;
+      }
+      .badge-verified {
+        background: #d4edda;
+        color: #155724;
+      }
+      .badge-warning {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .q-card {
+        background: #fffef9;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+      .q-card.approved {
+        border-left: 6px solid #28a745;
+      }
+      .q-card.pending {
+        border-left: 6px solid #ffc107;
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-sizing: border-box;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+      .verbatim-box {
+        background: #fdfdf9;
+        border-left: 4px solid var(--green);
+        padding: 10px 14px;
+        font-style: italic;
+        margin: 8px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        Nua Assess <span>Teacher Portal · Hybrid Model</span>
+      </div>
+      <nav>
+        <button id="nav-create" class="portal-tab active">1. Author Lesson</button>
+        <button id="nav-review" class="portal-tab">2. Review & Export</button>
+        <button id="nav-grading" class="portal-tab">3. Inspect Responses</button>
+        <a href="index.html" style="color:#d4e9a6; text-decoration:none; margin-left:12px; font-weight:600;">Student Mode &rarr;</a>
+      </nav>
+    </header>
+
+    <main>
+      <div id="status-bar" class="card tinted" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>AI Engine:</strong> <span id="model-label">Checking Gemini 3.8 Flash...</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <label style="font-size:13px; color:var(--muted);">API Key (optional if set in env):</label>
+          <input type="password" id="gemini-key-input" placeholder="AIzaSy..." style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); font-size:13px; width:220px;" />
+          <button id="save-key-btn" class="secondary" style="padding:6px 12px; font-size:13px;">Save</button>
+        </div>
+      </div>
+
+      <div id="toast" role="status" aria-live="polite"></div>
+
+      <!-- SECTION 1: INGESTION & GENERATION -->
+      <section id="section-create" class="card">
+        <h2>Ingest Lesson Material & Synthesize Questions</h2>
+        <p class="lead">Upload or paste educational text (e.g. Zoology Class 11). Gemini 3.8 Flash will generate 20 multifaceted cognitive inquiry questions strictly grounded in your text.</p>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lesson-subject">Subject</label>
+            <input id="lesson-subject" value="Zoology" placeholder="e.g. Zoology, Biology, Physics" />
+          </div>
+          <div class="form-group">
+            <label for="lesson-grade">Target Level</label>
+            <input id="lesson-grade" value="Higher Secondary (Class 11)" placeholder="e.g. Class 11" />
+          </div>
+          <div class="form-group">
+            <label for="lesson-title">Lesson / Unit Title</label>
+            <input id="lesson-title" value="Comparative Respiration in Aquatic and Terrestrial Organisms" placeholder="Lesson title" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lesson-objective">Core Learning Objective</label>
+          <input id="lesson-objective" value="Explain how surface area to volume ratio and countercurrent exchange isolate respiratory efficiency across environments." placeholder="What must students understand?" />
+        </div>
+
+        <div class="form-group">
+          <label for="lesson-passage">Curriculum Text / Passage Excerpt</label>
+          <textarea id="lesson-passage" rows="7" placeholder="Paste 1–3 paragraphs from your syllabus or textbook...">Gills and lungs represent two distinct structural solutions for gas exchange under different physical constraints. In aquatic respiration, water flows unidirectionally across gill lamellae where blood flows in the opposite direction. This countercurrent exchange mechanism maintains a concentration gradient along the entire capillary bed, allowing fish to extract up to 80% of dissolved oxygen from water. In contrast, terrestrial organisms like mammals rely on tidal ventilation in lungs with millions of microscopic alveoli, providing a massive surface area to volume ratio while minimizing evaporative water loss. However, tidal flow results in residual volume where fresh air mixes with stale air, capping extraction efficiency at approximately 25%. If temperature rises, dissolved oxygen in water drops sharply while metabolic demand increases, exposing the limits of aquatic respiration.</textarea>
+          <p class="small">Provide 100–3000 words. Verbatim quotations will be extracted from this exact passage.</p>
+        </div>
+
+        <div class="actions">
+          <button id="btn-generate-gemini" class="primary" style="font-size:16px;">
+            &uarr; Generate 20 Inquiry Questions with Gemini 3.8 Flash
+          </button>
+          <button id="btn-use-template" class="secondary">
+            Use Rule-Based Offline Template
+          </button>
+        </div>
+        <p class="small" style="margin-top:10px; color:var(--muted);">
+          &bull; <strong>Gemini synthesis</strong> requires active internet connection and API key. <br/>
+          &bull; <strong>Rule-based offline template</strong> generates 20 multifaceted inquiry questions 100% locally on this machine without internet or API keys.
+        </p>
+      </section>
+
+      <!-- SECTION 2: REVIEW & EXPORT -->
+      <section id="section-review" class="card" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <h2>Review & Approve Lesson Plan</h2>
+            <p id="review-stats" class="small">0 of 20 questions reviewed.</p>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button id="btn-approve-all" class="secondary">Approve All Questions</button>
+            <button id="btn-export-lesson" class="primary">Export lesson.json for Students</button>
+          </div>
+        </div>
+
+        <div id="questions-list"></div>
+      </section>
+
+      <!-- SECTION 3: STUDENT RESPONSE INSPECTOR -->
+      <section id="section-grading" class="card" style="display:none;">
+        <h2>Student Response Inspector & Diagnostic Assistant</h2>
+        <p class="lead">Import a completed student response export (<code>nua-mangal-evidence.json</code> or <code>nua-mangal-summary.json</code>) to inspect reasoning and generate actionable next steps.</p>
+
+        <div class="form-group">
+          <label for="file-import-response">Import Student Response File</label>
+          <input type="file" id="file-import-response" accept=".json" />
+        </div>
+
+        <div id="student-submission-view" style="display:none; margin-top:24px;">
+          <div class="card tinted">
+            <h3 id="student-meta-title">Student Submission</h3>
+            <p id="student-meta-info" class="small"></p>
+          </div>
+
+          <div id="student-responses-container"></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="teacher-portal.js"></script>
+  </body>
+</html>

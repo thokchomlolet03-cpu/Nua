@@ -47,6 +47,8 @@ test("new inquiry, PDF worker and preserved demo are served without exposing mod
     "/assessment-feedback.js",
     "/inquiry-questions.js",
     "/material.js",
+    "/teacher.html",
+    "/teacher-portal.js",
     "/vendor/pdf.min.js",
     "/vendor/pdf.worker.min.js",
     "/demo.html",
@@ -158,4 +160,103 @@ test("rejects oversized and malformed requests", async () => {
     });
     assert.equal(r.status, status);
   }
+});
+
+test("teacher portal HTML and JS are served properly", async () => {
+  const htmlRes = await fetch(base + "/teacher.html");
+  assert.equal(htmlRes.status, 200);
+  assert.match(await htmlRes.text(), /Teacher Portal/);
+
+  const jsRes = await fetch(base + "/teacher-portal.js");
+  assert.equal(jsRes.status, 200);
+  assert.match(await jsRes.text(), /handleGenerateGemini/);
+});
+
+test("gemini status endpoint returns model details and ready status", async () => {
+  const res = await fetch(base + "/api/gemini/status");
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.ok(data.model);
+  assert.ok(data.label);
+});
+
+test("gemini generate-questions produces 20 questions in mock mode and supports Bearer token", async () => {
+  const res = await fetch(base + "/api/gemini/generate-questions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer mock",
+    },
+    body: JSON.stringify({
+      objective: "Explain countercurrent gas exchange.",
+      excerpt: "Gills allow fish to extract dissolved oxygen through countercurrent flow across lamellae.",
+      page: 1,
+    }),
+  });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.equal(data.questions.length, 20);
+  assert.equal(data.questions[0].origin, "gemini-ai");
+  assert.equal(data.questions[0].page, 1);
+});
+
+test("gemini generate-questions rejects non-JSON, malformed body, foreign origin", async () => {
+  // Non-JSON
+  const rNonJson = await fetch(base + "/api/gemini/generate-questions", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: "hello",
+  });
+  assert.equal(rNonJson.status, 415);
+
+  // Missing required objective
+  const rBad = await fetch(base + "/api/gemini/generate-questions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ objective: "", excerpt: "valid text" }),
+  });
+  assert.equal(rBad.status, 400);
+
+  // Foreign origin
+  const rOrigin = await fetch(base + "/api/gemini/generate-questions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Origin: "https://evil.example",
+    },
+    body: JSON.stringify({ objective: "test", excerpt: "test excerpt here..." }),
+  });
+  assert.equal(rOrigin.status, 403);
+});
+
+test("gemini analyze-response evaluates student answers in mock mode and validates input", async () => {
+  // Normal analysis call
+  const res = await fetch(base + "/api/gemini/analyze-response", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer mock",
+    },
+    body: JSON.stringify({
+      questionPrompt: "Explain countercurrent flow.",
+      expectedCriterion: "Mentions opposing directions of water and blood flow.",
+      studentAnswer: "Water flows one way while blood flows the other way to maintain gradient.",
+    }),
+  });
+  assert.equal(res.status, 200);
+  const data = await res.json();
+  assert.ok(data.analysis);
+  assert.ok(data.analysis.criterion_met);
+
+  // Missing student answer returns 400
+  const rEmpty = await fetch(base + "/api/gemini/analyze-response", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      questionPrompt: "Explain countercurrent flow.",
+      expectedCriterion: "Criterion",
+      studentAnswer: "",
+    }),
+  });
+  assert.equal(rEmpty.status, 400);
 });
